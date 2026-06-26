@@ -1,5 +1,5 @@
 @import './base.css';
-@import url('https://use.typekit.net/teh5ikr.css');
+@import url('https://use.typekit.net/uvu3rvh.css');
 
 a {
   color: inherit;
@@ -14,4 +14,8 @@ a {
     'header header header'
     '. main .'
     'footer footer footer';
+}
+
+main {
+  grid-area: main;
 }

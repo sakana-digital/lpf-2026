@@ -13,6 +13,7 @@
     "prepare": "vp config"
   },
   "dependencies": {
+    "three": "^0.185.0",
     "vue": "beta",
     "vue-i18n": "11",
     "vue-router": "^5.0.4"
@@ -20,6 +21,7 @@
   "devDependencies": {
     "@tsconfig/node24": "^24.0.4",
     "@types/node": "^24.12.0",
+    "@types/three": "^0.185.0",
     "@vitejs/plugin-vue": "^6.0.5",
     "@vue/tsconfig": "^0.9.1",
     "npm-run-all2": "^8.0.4",
