@@ -1,16 +1,9 @@
 import './assets/main.css'
 
 import { createApp, vaporInteropPlugin } from 'vue'
-import { createI18n } from 'vue-i18n'
+import { i18n } from './i18n'
 import App from './App.vue'
 import router from './router'
-import ja from './locales/ja.json'
-
-const i18n = createI18n({
-  legacy: false,
-  locale: 'ja',
-  messages: { ja },
-})
 
 const app = createApp(App)
 

@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
 
 const crumbs = computed(() => {
-  const segments = route.path.split('/').filter(Boolean)
-  return segments.map((segment, index) => ({
-    label: segment,
-    to: '/' + segments.slice(0, index + 1).join('/'),
-  }))
+  const prefix = route.meta.locale === 'en' ? '/en' : ''
+  const segments = route.path.split('/').filter((s) => s !== 'en' && Boolean(s))
+  return segments
+    .map((segment, index) => ({
+      label: segment,
+      to: prefix + '/' + segments.slice(0, index + 1).join('/'),
+    }))
+    .filter((crumb) => router.resolve(crumb.to).matched.length > 0)
 })
 </script>
 
