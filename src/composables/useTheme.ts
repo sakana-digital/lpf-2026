@@ -1,15 +1,18 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 export type Theme = 'system' | 'light' | 'dark'
+export type ResolvedTheme = 'light' | 'dark'
 
 export function useTheme() {
   const theme = ref<Theme>('system')
+  const resolvedTheme = ref<ResolvedTheme>('light')
   let mq: MediaQueryList | null = null
 
   function resolveAndApply(t: Theme) {
     const isDark =
       t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
+    resolvedTheme.value = isDark ? 'dark' : 'light'
+    document.documentElement.setAttribute('data-theme', resolvedTheme.value)
   }
 
   function onSystemChange() {
@@ -35,5 +38,5 @@ export function useTheme() {
     mq?.removeEventListener('change', onSystemChange)
   })
 
-  return { theme, setTheme }
+  return { theme, resolvedTheme, setTheme }
 }
