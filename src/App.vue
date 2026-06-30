@@ -2,6 +2,7 @@
 import { watchEffect } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import Header from './components/Header.vue'
+import SearchModal from './components/SearchModal.vue'
 
 const route = useRoute()
 
@@ -31,4 +32,5 @@ watchEffect(() => {
 <template>
   <Header />
   <RouterView />
+  <SearchModal />
 </template>

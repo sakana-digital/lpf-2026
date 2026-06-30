@@ -2,8 +2,13 @@ import './assets/main.css'
 
 import { createApp, vaporInteropPlugin } from 'vue'
 import { i18n } from './i18n'
+import { initTheme } from './composables/useTheme'
+import { initSearch } from './composables/useSearch'
 import App from './App.vue'
 import router from './router'
+
+initTheme()
+initSearch()
 
 const app = createApp(App)
 
