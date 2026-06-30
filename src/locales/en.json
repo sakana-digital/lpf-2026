@@ -6,5 +6,34 @@
     "day1": "Day 1",
     "day2": "Day 2",
     "ended": "Ended"
+  },
+  "themeToggle": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "nav": {
+    "search": "Search",
+    "maps": "Maps",
+    "more": "More"
+  },
+  "sitemap": {
+    "caption": "Page list",
+    "home": "/",
+    "news": "news",
+    "maps": "maps"
+  },
+  "search": {
+    "label": "Site search",
+    "placeholder": "Search pages…",
+    "empty": "No matching pages",
+    "titles": {
+      "home": "Home"
+    },
+    "keywords": {
+      "home": ["/", "home", "top"],
+      "news": ["news", "updates", "announcements"],
+      "maps": ["maps", "venue", "access", "location"]
+    }
   }
 }

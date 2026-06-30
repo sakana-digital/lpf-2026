@@ -26,8 +26,8 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
-  const locale = (to.meta.locale as string) ?? 'ja'
-  ;(i18n.global.locale as WritableComputedRef<string>).value = locale
+  const isEn = to.path === '/en' || to.path.startsWith('/en/')
+  ;(i18n.global.locale as WritableComputedRef<string>).value = isEn ? 'en' : 'ja'
 })
 
 router.afterEach((to) => {

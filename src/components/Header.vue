@@ -1,20 +1,37 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import Logo from '../assets/logo.vue'
+import SearchIcon from '../assets/search.vue'
+import MapsIcon from '../assets/maps.vue'
 import Breadcrumb from './Breadcrumb.vue'
 import DayBadge from './DayBadge.vue'
-import ThemeToggle from './ThemeToggle.vue'
+import MoreMenu from './MoreMenu.vue'
+import { useSearch } from '../composables/useSearch'
+
+import { computed } from 'vue'
+
+const { t, locale } = useI18n()
+const { open } = useSearch()
+
+const homePath = computed(() => (locale.value === 'en' ? '/en' : '/'))
 </script>
 
 <template>
   <header class="header">
     <nav class="global-nav">
       <div class="header-breadcrumb">
-        <RouterLink to="/" class="logo"><Logo /></RouterLink>
+        <RouterLink :to="homePath" class="logo"><Logo /></RouterLink>
         <Breadcrumb />
       </div>
       <div class="header-actions">
         <DayBadge />
-        <ThemeToggle />
+        <button class="icon-button" :aria-label="t('nav.search')" @click="open">
+          <SearchIcon />
+        </button>
+        <button class="icon-button" :aria-label="t('nav.maps')">
+          <MapsIcon />
+        </button>
+        <MoreMenu />
       </div>
     </nav>
   </header>
@@ -22,6 +39,9 @@ import ThemeToggle from './ThemeToggle.vue'
 
 <style scoped>
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   display: flex;
   justify-content: center;
   grid-area: header;
@@ -44,8 +64,28 @@ import ThemeToggle from './ThemeToggle.vue'
 }
 
 .header-actions {
-  position: relative;
   display: flex;
+  align-items: center;
+  gap: 4px;
   height: 32px;
+
+  .icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-text);
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s;
+
+    &:hover {
+      color: var(--color-heading);
+    }
+  }
 }
 </style>

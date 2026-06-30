@@ -6,5 +6,34 @@
     "day1": "Day 1",
     "day2": "Day 2",
     "ended": "Ended"
+  },
+  "themeToggle": {
+    "system": "システム",
+    "light": "ライト",
+    "dark": "ダーク"
+  },
+  "nav": {
+    "search": "検索",
+    "maps": "地図",
+    "more": "その他"
+  },
+  "sitemap": {
+    "caption": "Page list",
+    "home": "/",
+    "news": "ニュース",
+    "maps": "地図"
+  },
+  "search": {
+    "label": "サイト内検索",
+    "placeholder": "ページを検索…",
+    "empty": "該当するページがありません",
+    "titles": {
+      "home": "ホーム"
+    },
+    "keywords": {
+      "home": ["/", "ホーム", "トップ", "home", "top"],
+      "news": ["ニュース", "お知らせ", "新着", "news"],
+      "maps": ["地図", "マップ", "会場", "アクセス", "maps", "access"]
+    }
   }
 }
