@@ -18,6 +18,9 @@ export default defineConfig({
     semi: false,
     singleQuote: true,
   },
+  server: {
+    host: true,
+  },
   plugins: lazyPlugins(() => [vue(), vueDevTools()]),
   resolve: {
     alias: {
