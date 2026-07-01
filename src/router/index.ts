@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { WritableComputedRef } from 'vue'
 import { i18n } from '../i18n'
 import HomeView from '../views/HomeView.vue'
+import NotFoundView from '../views/NotFoundView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -20,7 +21,19 @@ const router = createRouter({
           name: 'home-en',
           component: HomeView,
         },
+        {
+          path: ':pathMatch(.*)*',
+          name: 'not-found-en',
+          component: NotFoundView,
+          meta: { title: 'notFound.title' },
+        },
       ],
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFoundView,
+      meta: { title: 'notFound.title' },
     },
   ],
 })

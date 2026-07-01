@@ -13,7 +13,12 @@ const crumbs = computed(() => {
       label: segment,
       to: prefix + '/' + segments.slice(0, index + 1).join('/'),
     }))
-    .filter((crumb) => router.resolve(crumb.to).matched.length > 0)
+    .filter((crumb) => {
+      const resolved = router.resolve(crumb.to)
+      return (
+        resolved.matched.length > 0 && !resolved.matched.some((r) => r.path.includes(':pathMatch'))
+      )
+    })
 })
 </script>
 

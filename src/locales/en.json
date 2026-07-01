@@ -23,6 +23,11 @@
     "news": "news",
     "maps": "maps"
   },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you're looking\nfor can't be found.",
+    "home": "Back to home"
+  },
   "search": {
     "label": "Site search",
     "placeholder": "Search pages…",
