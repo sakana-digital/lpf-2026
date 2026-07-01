@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import SearchIcon from '../assets/search.vue'
+import { useSearch } from '../composables/useSearch'
 
-const route = useRoute()
-const homePath = computed(() => (route.meta.locale === 'en' ? '/en' : '/'))
+const { open } = useSearch()
 </script>
 
 <template>
   <main class="not-found">
     <p class="description">{{ $t('notFound.description') }}</p>
-    <RouterLink :to="homePath" class="home">{{ $t('notFound.home') }}</RouterLink>
+    <button type="button" class="search-trigger" @click="open">
+      <SearchIcon />
+      {{ $t('notFound.search') }}
+    </button>
+    <p class="search-hint">{{ $t('notFound.searchHint') }}</p>
   </main>
 </template>
 
@@ -33,14 +36,26 @@ const homePath = computed(() => (route.meta.locale === 'en' ? '/en' : '/'))
     color: var(--color-heading);
   }
 
-  & .home {
+  & .search-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
     margin-top: 1rem;
+    border: none;
+    background: transparent;
     color: var(--color-accent);
-    text-decoration: none;
+    font-size: 1rem;
+    cursor: pointer;
 
     &:hover {
       text-decoration: underline;
     }
+  }
+
+  & .search-hint {
+    margin: 0;
+    color: var(--color-text-mute);
+    font-size: 0.875rem;
   }
 }
 </style>
