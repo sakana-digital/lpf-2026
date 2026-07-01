@@ -26,7 +26,8 @@
   "notFound": {
     "title": "Page not found",
     "description": "The page you're looking\nfor can't be found.",
-    "home": "Back to home"
+    "search": "Search the site…",
+    "searchHint": "(Press / to search)"
   },
   "search": {
     "label": "Site search",

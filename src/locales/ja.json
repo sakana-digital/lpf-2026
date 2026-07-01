@@ -26,7 +26,8 @@
   "notFound": {
     "title": "ページが見つかりません",
     "description": "お探しのページは\n見つかりません。",
-    "home": "ホームへ戻る"
+    "search": "サイト内を検索…",
+    "searchHint": "(/ キーで検索)"
   },
   "search": {
     "label": "サイト内検索",
