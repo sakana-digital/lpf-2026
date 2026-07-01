@@ -62,6 +62,11 @@ html[data-theme='dark'] {
   font-weight: 500;
 }
 
+::selection {
+  background: var(--color-heading);
+  color: var(--color-background);
+}
+
 body {
   min-height: 100vh;
   min-width: 240px;

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { pages } from '../config/pages'
 import { filterEntries, useSearch } from '../composables/useSearch'
 
 const { t, locale, messages, availableLocales } = useI18n()
 const { isOpen, close } = useSearch()
+const router = useRouter()
 
 const query = ref('')
 const inputRef = useTemplateRef<HTMLInputElement>('inputRef')
@@ -42,9 +44,29 @@ const entries = computed(() =>
 const hasQuery = computed(() => query.value.trim() !== '')
 const results = computed(() => filterEntries(query.value, entries.value))
 
+const activeIndex = ref(0)
+
+watch(results, () => {
+  activeIndex.value = 0
+})
+
+function move(delta: number) {
+  const count = results.value.length
+  if (count === 0) return
+  activeIndex.value = (activeIndex.value + delta + count) % count
+}
+
+function selectActive() {
+  const entry = results.value[activeIndex.value]
+  if (!entry) return
+  router.push(entry.to)
+  close()
+}
+
 watch(isOpen, (open) => {
   if (!open) return
   query.value = ''
+  activeIndex.value = 0
   nextTick(() => inputRef.value?.focus())
 })
 </script>
@@ -61,15 +83,23 @@ watch(isOpen, (open) => {
           class="field"
           :placeholder="t('search.placeholder')"
           :aria-label="t('search.label')"
+          @keydown.down.prevent="move(1)"
+          @keydown.up.prevent="move(-1)"
+          @keydown.enter.prevent="selectActive"
         />
         <div class="body" :class="{ open: hasQuery }">
           <div class="body-inner">
             <template v-if="hasQuery">
               <ul v-if="results.length" class="results">
-                <li v-for="entry in results" :key="entry.to">
-                  <RouterLink :to="entry.to" class="result" @click="close">{{
-                    entry.label
-                  }}</RouterLink>
+                <li v-for="(entry, index) in results" :key="entry.to">
+                  <RouterLink
+                    :to="entry.to"
+                    class="result"
+                    :class="{ active: index === activeIndex }"
+                    @click="close"
+                    @mouseenter="activeIndex = index"
+                    >{{ entry.label }}</RouterLink
+                  >
                 </li>
               </ul>
               <p v-else class="empty">{{ t('search.empty') }}</p>
@@ -139,6 +169,9 @@ watch(isOpen, (open) => {
   }
 
   .results {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     list-style: none;
     margin: 4px 0 0;
     padding: 0;
@@ -150,10 +183,8 @@ watch(isOpen, (open) => {
       color: var(--color-text);
       text-decoration: none;
 
-      &:hover,
-      &.router-link-active {
+      &.active {
         background: var(--color-background-mute);
-        color: var(--color-heading);
       }
     }
   }
