@@ -46,7 +46,7 @@ const branches = computed(() => nodes.value.slice(1))
   .head {
     display: flex;
     align-items: baseline;
-    gap: 14px;
+    gap: 6px;
     margin-bottom: 10px;
   }
 
@@ -66,8 +66,11 @@ const branches = computed(() => nodes.value.slice(1))
   }
 
   .root {
+    display: inline-block;
+    width: 32px;
     color: var(--color-heading);
     font-size: 14px;
+    text-align: center;
   }
 
   .branch {
@@ -77,21 +80,21 @@ const branches = computed(() => nodes.value.slice(1))
 
     .line {
       position: relative;
-      width: 12px;
+      width: 32px;
 
       &::before {
         content: '';
         position: absolute;
-        right: 0;
+        right: 50%;
         top: 50%;
-        width: 100%;
+        width: 50%;
         border-top: 1px solid var(--color-border-hover);
       }
 
       &::after {
         content: '';
         position: absolute;
-        right: 0;
+        right: 50%;
         top: 0;
         bottom: 0;
         border-right: 1px solid var(--color-border-hover);
