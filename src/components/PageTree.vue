@@ -39,19 +39,19 @@ const branches = computed(() => nodes.value.slice(1))
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 18px;
   line-height: 1.6;
 
   .head {
     display: flex;
     align-items: baseline;
-    gap: 14px;
+    gap: 6px;
     margin-bottom: 10px;
   }
 
   .caption {
     color: var(--color-text-mute);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 11px;
   }
 
@@ -66,8 +66,11 @@ const branches = computed(() => nodes.value.slice(1))
   }
 
   .root {
+    display: inline-block;
+    width: 48px;
     color: var(--color-heading);
     font-size: 14px;
+    text-align: center;
   }
 
   .branch {
@@ -77,21 +80,21 @@ const branches = computed(() => nodes.value.slice(1))
 
     .line {
       position: relative;
-      width: 12px;
+      width: 48px;
 
       &::before {
         content: '';
         position: absolute;
-        right: 0;
+        right: 50%;
         top: 50%;
-        width: 100%;
+        width: 50%;
         border-top: 1px solid var(--color-border-hover);
       }
 
       &::after {
         content: '';
         position: absolute;
-        right: 0;
+        right: 50%;
         top: 0;
         bottom: 0;
         border-right: 1px solid var(--color-border-hover);

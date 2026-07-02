@@ -6,7 +6,7 @@ import type { Theme } from '../composables/useTheme'
 const { t } = useI18n()
 const { theme, setTheme } = useTheme()
 
-const options: Theme[] = ['system', 'light', 'dark']
+const options: Theme[] = ['light', 'system', 'dark']
 </script>
 
 <template>
@@ -20,28 +20,7 @@ const options: Theme[] = ['system', 'light', 'dark']
       :aria-pressed="theme === opt"
       @click="setTheme(opt)"
     >
-      <svg v-if="opt === 'system'" viewBox="0 0 16 16" fill="none">
-        <rect
-          x="1.5"
-          y="2.5"
-          width="13"
-          height="9"
-          rx="1"
-          stroke="currentColor"
-          stroke-width="1.2"
-        />
-        <line x1="8" y1="11.5" x2="8" y2="14" stroke="currentColor" stroke-width="1.2" />
-        <line
-          x1="5.5"
-          y1="14"
-          x2="10.5"
-          y2="14"
-          stroke="currentColor"
-          stroke-width="1.2"
-          stroke-linecap="round"
-        />
-      </svg>
-      <svg v-else-if="opt === 'light'" viewBox="0 0 16 16" fill="none">
+      <svg v-if="opt === 'light'" viewBox="0 0 16 16" fill="none">
         <circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.2" />
         <line
           x1="8"
@@ -116,6 +95,27 @@ const options: Theme[] = ['system', 'light', 'dark']
           stroke-linecap="round"
         />
       </svg>
+      <svg v-else-if="opt === 'system'" viewBox="0 0 16 16" fill="none">
+        <rect
+          x="1.5"
+          y="2.5"
+          width="13"
+          height="9"
+          rx="1"
+          stroke="currentColor"
+          stroke-width="1.2"
+        />
+        <line x1="8" y1="11.5" x2="8" y2="14" stroke="currentColor" stroke-width="1.2" />
+        <line
+          x1="5.5"
+          y1="14"
+          x2="10.5"
+          y2="14"
+          stroke="currentColor"
+          stroke-width="1.2"
+          stroke-linecap="round"
+        />
+      </svg>
       <svg v-else viewBox="0 0 16 16" fill="none">
         <path
           d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5a5.5 5.5 0 1 0 7 7Z"
@@ -132,14 +132,13 @@ const options: Theme[] = ['system', 'light', 'dark']
 .theme-switch {
   display: flex;
   align-items: center;
-  gap: 4px;
 
   .theme-option {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 48px;
+    height: 48px;
     border: none;
     border-radius: 50%;
     background: transparent;

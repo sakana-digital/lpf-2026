@@ -14,14 +14,18 @@
   },
   "nav": {
     "search": "検索",
-    "maps": "地図",
-    "more": "その他"
+    "explore": "探索",
+    "menu": "メニュー",
+    "instagram": "Instagram"
   },
   "sitemap": {
-    "caption": "Page list",
+    "caption": "Pages",
     "home": "/",
-    "news": "ニュース",
-    "maps": "地図"
+    "news": "News",
+    "explore": "Explore"
+  },
+  "externalLinks": {
+    "school": "高校公式サイト"
   },
   "notFound": {
     "title": "ページが見つかりません",
@@ -34,12 +38,14 @@
     "placeholder": "ページを検索…",
     "empty": "該当するページがありません",
     "titles": {
-      "home": "ホーム"
+      "home": "ホーム",
+      "explore": "探索",
+      "news": "News"
     },
     "keywords": {
       "home": ["/", "ホーム", "トップ", "home", "top"],
       "news": ["ニュース", "お知らせ", "新着", "news"],
-      "maps": ["地図", "マップ", "会場", "アクセス", "maps", "access"]
+      "explore": ["探索", "地図", "マップ", "会場", "アクセス", "explore", "maps", "access"]
     }
   }
 }

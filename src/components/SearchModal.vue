@@ -11,6 +11,7 @@ const router = useRouter()
 
 const query = ref('')
 const inputRef = useTemplateRef<HTMLInputElement>('inputRef')
+const resultRefs = ref<{ $el: HTMLElement }[]>([])
 
 function resolvePath(tree: unknown, path: string): unknown {
   return path
@@ -50,10 +51,17 @@ watch(results, () => {
   activeIndex.value = 0
 })
 
-function move(delta: number) {
+function moveFocus(delta: number) {
   const count = results.value.length
   if (count === 0) return
-  activeIndex.value = (activeIndex.value + delta + count) % count
+
+  if (delta < 0 && activeIndex.value === 0) {
+    inputRef.value?.focus()
+    return
+  }
+
+  activeIndex.value = (((activeIndex.value + delta) % count) + count) % count
+  resultRefs.value[activeIndex.value]?.$el?.focus()
 }
 
 function selectActive() {
@@ -83,8 +91,8 @@ watch(isOpen, (open) => {
           class="field"
           :placeholder="t('search.placeholder')"
           :aria-label="t('search.label')"
-          @keydown.down.prevent="move(1)"
-          @keydown.up.prevent="move(-1)"
+          @keydown.down.prevent="moveFocus(1)"
+          @keydown.up.prevent="moveFocus(-1)"
           @keydown.enter.prevent="selectActive"
         />
         <div class="body" :class="{ open: hasQuery }">
@@ -93,11 +101,15 @@ watch(isOpen, (open) => {
               <ul v-if="results.length" class="results">
                 <li v-for="(entry, index) in results" :key="entry.to">
                   <RouterLink
+                    ref="resultRefs"
                     :to="entry.to"
                     class="result"
                     :class="{ active: index === activeIndex }"
                     @click="close"
                     @mouseenter="activeIndex = index"
+                    @focus="activeIndex = index"
+                    @keydown.down.prevent="moveFocus(1)"
+                    @keydown.up.prevent="moveFocus(-1)"
                     >{{ entry.label }}</RouterLink
                   >
                 </li>
@@ -182,6 +194,10 @@ watch(isOpen, (open) => {
       border-radius: 20px;
       color: var(--color-text);
       text-decoration: none;
+
+      &:focus {
+        outline: none;
+      }
 
       &.active {
         background: var(--color-background-mute);

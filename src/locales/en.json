@@ -14,14 +14,18 @@
   },
   "nav": {
     "search": "Search",
-    "maps": "Maps",
-    "more": "More"
+    "explore": "Explore",
+    "menu": "Menu",
+    "instagram": "Instagram"
   },
   "sitemap": {
-    "caption": "Page list",
+    "caption": "Pages",
     "home": "/",
-    "news": "news",
-    "maps": "maps"
+    "news": "News",
+    "explore": "Explore"
+  },
+  "externalLinks": {
+    "school": "High School Official Site"
   },
   "notFound": {
     "title": "Page not found",
@@ -34,12 +38,14 @@
     "placeholder": "Search pages…",
     "empty": "No matching pages",
     "titles": {
-      "home": "Home"
+      "home": "Home",
+      "explore": "Explore",
+      "news": "News"
     },
     "keywords": {
       "home": ["/", "home", "top"],
       "news": ["news", "updates", "announcements"],
-      "maps": ["maps", "venue", "access", "location"]
+      "explore": ["explore", "maps", "venue", "access", "location"]
     }
   }
 }
