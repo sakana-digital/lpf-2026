@@ -14,14 +14,14 @@
   },
   "nav": {
     "search": "Search",
-    "maps": "Maps",
+    "explore": "Explore",
     "menu": "Menu"
   },
   "sitemap": {
     "caption": "Pages",
     "home": "/",
     "news": "News",
-    "maps": "Maps"
+    "explore": "Explore"
   },
   "notFound": {
     "title": "Page not found",
@@ -39,7 +39,7 @@
     "keywords": {
       "home": ["/", "home", "top"],
       "news": ["news", "updates", "announcements"],
-      "maps": ["maps", "venue", "access", "location"]
+      "explore": ["explore", "maps", "venue", "access", "location"]
     }
   }
 }

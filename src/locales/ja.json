@@ -14,14 +14,14 @@
   },
   "nav": {
     "search": "検索",
-    "maps": "地図",
+    "explore": "探索",
     "menu": "メニュー"
   },
   "sitemap": {
     "caption": "Pages",
     "home": "/",
     "news": "News",
-    "maps": "Maps"
+    "explore": "Explore"
   },
   "notFound": {
     "title": "ページが見つかりません",
@@ -39,7 +39,7 @@
     "keywords": {
       "home": ["/", "ホーム", "トップ", "home", "top"],
       "news": ["ニュース", "お知らせ", "新着", "news"],
-      "maps": ["地図", "マップ", "会場", "アクセス", "maps", "access"]
+      "explore": ["探索", "地図", "マップ", "会場", "アクセス", "explore", "maps", "access"]
     }
   }
 }

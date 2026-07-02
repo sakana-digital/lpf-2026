@@ -13,5 +13,5 @@ export const pages: PageNode[] = [
     keywordsKey: 'search.keywords.home',
   },
   { path: '/news', labelKey: 'sitemap.news', keywordsKey: 'search.keywords.news' },
-  { path: '/maps', labelKey: 'sitemap.maps', keywordsKey: 'search.keywords.maps' },
+  { path: '/explore', labelKey: 'sitemap.explore', keywordsKey: 'search.keywords.explore' },
 ]

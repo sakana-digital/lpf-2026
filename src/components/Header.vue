@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import Logo from '../assets/logo.vue'
 import SearchIcon from '../assets/search.vue'
-import MapsIcon from '../assets/maps.vue'
+import ExploreIcon from '../assets/explore.vue'
 import Breadcrumb from './Breadcrumb.vue'
 import DayBadge from './DayBadge.vue'
 import NavMenu from './NavMenu.vue'
@@ -28,8 +28,8 @@ const homePath = computed(() => (locale.value === 'en' ? '/en' : '/'))
         <button class="icon-button" :aria-label="t('nav.search')" @click="open">
           <SearchIcon />
         </button>
-        <button class="icon-button" :aria-label="t('nav.maps')">
-          <MapsIcon />
+        <button class="icon-button" :aria-label="t('nav.explore')">
+          <ExploreIcon />
         </button>
         <NavMenu />
       </div>
