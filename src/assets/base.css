@@ -60,6 +60,7 @@ html[data-theme='dark'] {
   box-sizing: border-box;
   margin: 0;
   font-weight: 500;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button,
@@ -75,7 +76,7 @@ select {
 }
 
 body {
-  min-height: 100vh;
+  min-height: 100svh;
   min-width: 320px;
   color: var(--color-text);
   background: var(--color-background);

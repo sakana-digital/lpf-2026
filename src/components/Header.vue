@@ -73,6 +73,10 @@ const isRoot = computed(() => ['/', '/en', '/en/'].includes(route.path))
   display: flex;
   align-items: center;
   gap: 12px;
+
+  .logo {
+    margin-left: 16px;
+  }
 }
 
 .header-actions {
