@@ -15,13 +15,17 @@
   "nav": {
     "search": "検索",
     "explore": "探索",
-    "menu": "メニュー"
+    "menu": "メニュー",
+    "instagram": "Instagram"
   },
   "sitemap": {
     "caption": "Pages",
     "home": "/",
     "news": "News",
     "explore": "Explore"
+  },
+  "externalLinks": {
+    "school": "高校公式サイト"
   },
   "notFound": {
     "title": "ページが見つかりません",

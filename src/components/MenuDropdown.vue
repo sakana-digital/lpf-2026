@@ -5,6 +5,7 @@ import MenuIcon from '../assets/menu.vue'
 import ThemeToggle from './ThemeToggle.vue'
 import LanguageToggle from './LanguageToggle.vue'
 import PageTree from './PageTree.vue'
+import ExternalLinks from './ExternalLinks.vue'
 import ProgressiveBlur from './ProgressiveBlur.vue'
 
 const { t } = useI18n()
@@ -47,6 +48,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
         <div class="dropdown-items">
           <ThemeToggle />
           <LanguageToggle />
+          <ExternalLinks />
           <PageTree />
         </div>
       </div>
