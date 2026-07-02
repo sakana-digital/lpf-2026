@@ -38,7 +38,9 @@
     "placeholder": "ページを検索…",
     "empty": "該当するページがありません",
     "titles": {
-      "home": "ホーム"
+      "home": "ホーム",
+      "explore": "探索",
+      "news": "News"
     },
     "keywords": {
       "home": ["/", "ホーム", "トップ", "home", "top"],

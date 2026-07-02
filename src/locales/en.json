@@ -38,7 +38,9 @@
     "placeholder": "Search pages…",
     "empty": "No matching pages",
     "titles": {
-      "home": "Home"
+      "home": "Home",
+      "explore": "Explore",
+      "news": "News"
     },
     "keywords": {
       "home": ["/", "home", "top"],
