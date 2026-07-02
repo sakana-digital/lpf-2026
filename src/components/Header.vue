@@ -5,7 +5,7 @@ import SearchIcon from '../assets/search.vue'
 import MapsIcon from '../assets/maps.vue'
 import Breadcrumb from './Breadcrumb.vue'
 import DayBadge from './DayBadge.vue'
-import MoreMenu from './MoreMenu.vue'
+import NavMenu from './NavMenu.vue'
 import { useSearch } from '../composables/useSearch'
 
 import { computed } from 'vue'
@@ -31,7 +31,7 @@ const homePath = computed(() => (locale.value === 'en' ? '/en' : '/'))
         <button class="icon-button" :aria-label="t('nav.maps')">
           <MapsIcon />
         </button>
-        <MoreMenu />
+        <NavMenu />
       </div>
     </nav>
   </header>

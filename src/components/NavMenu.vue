@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import MoreIcon from '../assets/more.vue'
+import MenuIcon from '../assets/menu.vue'
 import ThemeToggle from './ThemeToggle.vue'
 import LanguageToggle from './LanguageToggle.vue'
 import PageTree from './PageTree.vue'
@@ -15,15 +15,15 @@ function toggle() {
 </script>
 
 <template>
-  <div class="more-menu">
+  <div class="nav-menu">
     <button
       class="icon-button"
       :class="{ 'is-open': isOpen }"
-      :aria-label="t('nav.more')"
+      :aria-label="t('nav.menu')"
       :aria-expanded="isOpen"
       @click="toggle"
     >
-      <MoreIcon />
+      <MenuIcon :open="isOpen" />
     </button>
     <div v-if="isOpen" class="dropdown">
       <ThemeToggle />
@@ -34,7 +34,7 @@ function toggle() {
 </template>
 
 <style scoped>
-.more-menu {
+.nav-menu {
   position: relative;
   display: flex;
 
