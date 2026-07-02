@@ -20,8 +20,8 @@
   "sitemap": {
     "caption": "Pages",
     "home": "/",
-    "news": "news",
-    "maps": "maps"
+    "news": "News",
+    "maps": "Maps"
   },
   "notFound": {
     "title": "Page not found",
