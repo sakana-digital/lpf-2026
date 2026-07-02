@@ -132,14 +132,13 @@ const options: Theme[] = ['light', 'system', 'dark']
 .theme-switch {
   display: flex;
   align-items: center;
-  gap: 4px;
 
   .theme-option {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 48px;
+    height: 48px;
     border: none;
     border-radius: 50%;
     background: transparent;

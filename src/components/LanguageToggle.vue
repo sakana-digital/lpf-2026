@@ -22,7 +22,6 @@ const enPath = computed(() => (jaPath.value === '/' ? '/en' : `/en${jaPath.value
 .language-toggle {
   display: flex;
   align-items: center;
-  gap: 4px;
   font-size: 12px;
   text-transform: uppercase;
 
@@ -30,8 +29,8 @@ const enPath = computed(() => (jaPath.value === '/' ? '/en' : `/en${jaPath.value
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     color: var(--color-text-mute);
     text-decoration: none;

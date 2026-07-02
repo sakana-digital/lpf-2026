@@ -67,7 +67,7 @@ const branches = computed(() => nodes.value.slice(1))
 
   .root {
     display: inline-block;
-    width: 32px;
+    width: 48px;
     color: var(--color-heading);
     font-size: 14px;
     text-align: center;
@@ -80,7 +80,7 @@ const branches = computed(() => nodes.value.slice(1))
 
     .line {
       position: relative;
-      width: 32px;
+      width: 48px;
 
       &::before {
         content: '';

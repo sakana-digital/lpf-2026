@@ -18,6 +18,7 @@ svg {
   height: 20px;
   width: auto;
   padding: 2px 2px;
+  margin-left: 16px;
   background-color: var(--color-heading);
   fill: var(--color-background);
   transition: all 0.25s;

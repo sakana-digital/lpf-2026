@@ -15,7 +15,7 @@ function toggle() {
 </script>
 
 <template>
-  <div class="nav-menu">
+  <div class="menu-dropdown">
     <button
       class="icon-button"
       :class="{ 'is-open': isOpen }"
@@ -34,7 +34,7 @@ function toggle() {
 </template>
 
 <style scoped>
-.nav-menu {
+.menu-dropdown {
   position: relative;
   display: flex;
 
@@ -42,8 +42,8 @@ function toggle() {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 48px;
+    height: 48px;
     border: none;
     border-radius: 50%;
     background: transparent;

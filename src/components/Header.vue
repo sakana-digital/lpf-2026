@@ -54,7 +54,6 @@ const homePath = computed(() => (locale.value === 'en' ? '/en' : '/'))
   justify-content: space-between;
   width: 100%;
   max-width: 1024px;
-  margin: 0 16px;
 }
 
 .header-breadcrumb {
@@ -66,15 +65,14 @@ const homePath = computed(() => (locale.value === 'en' ? '/en' : '/'))
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
-  height: 32px;
+  height: 48px;
 
   .icon-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 48px;
+    height: 48px;
     border: none;
     border-radius: 50%;
     background: transparent;
