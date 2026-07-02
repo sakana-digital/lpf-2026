@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import MenuIcon from '../assets/menu.vue'
 import ThemeToggle from './ThemeToggle.vue'
@@ -8,14 +8,24 @@ import PageTree from './PageTree.vue'
 
 const { t } = useI18n()
 const isOpen = ref(false)
+const rootRef = useTemplateRef<HTMLElement>('rootRef')
 
 function toggle() {
   isOpen.value = !isOpen.value
 }
+
+function handleClickOutside(event: MouseEvent) {
+  if (isOpen.value && !rootRef.value?.contains(event.target as Node)) {
+    isOpen.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('click', handleClickOutside))
+onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 </script>
 
 <template>
-  <div class="menu-dropdown">
+  <div ref="rootRef" class="menu-dropdown">
     <button
       class="icon-button"
       :class="{ 'is-open': isOpen }"
