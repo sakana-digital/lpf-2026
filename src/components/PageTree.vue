@@ -39,7 +39,6 @@ const branches = computed(() => nodes.value.slice(1))
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 18px;
   line-height: 1.6;
 
@@ -52,6 +51,7 @@ const branches = computed(() => nodes.value.slice(1))
 
   .caption {
     color: var(--color-text-mute);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 11px;
   }
 
