@@ -5,6 +5,7 @@ import MenuIcon from '../assets/menu.vue'
 import ThemeToggle from './ThemeToggle.vue'
 import LanguageToggle from './LanguageToggle.vue'
 import PageTree from './PageTree.vue'
+import ProgressiveBlur from './ProgressiveBlur.vue'
 
 const { t } = useI18n()
 const isOpen = ref(false)
@@ -35,11 +36,21 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
     >
       <MenuIcon :open="isOpen" />
     </button>
-    <div v-if="isOpen" class="dropdown">
-      <ThemeToggle />
-      <LanguageToggle />
-      <PageTree />
-    </div>
+    <Transition name="dropdown" :duration="250">
+      <div v-if="isOpen" class="dropdown">
+        <ProgressiveBlur
+          class="dropdown-blur"
+          tail="32px"
+          :blur="3"
+          side-mask="linear-gradient(to right, transparent, black 64px, black calc(100% - 24px), transparent), linear-gradient(to bottom, transparent 9px, black 15px)"
+        />
+        <div class="dropdown-items">
+          <ThemeToggle />
+          <LanguageToggle />
+          <PageTree />
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -72,10 +83,57 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
     position: absolute;
     top: calc(100% + 4px);
     right: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
+
+    .dropdown-items {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      clip-path: inset(0 0 0% 0);
+    }
+
+    .dropdown-blur {
+      inset: -52px 0 -32px 0;
+      z-index: -1;
+    }
+  }
+}
+
+.dropdown-enter-active {
+  .dropdown-items {
+    transition:
+      opacity 0.2s ease-out,
+      filter 0.22s ease-out,
+      clip-path 0.25s ease-out;
+  }
+
+  :deep(.blur-layer) {
+    transition: opacity 0.25s ease-out;
+  }
+}
+
+.dropdown-leave-active {
+  .dropdown-items {
+    transition:
+      opacity 0.2s ease-in,
+      filter 0.2s ease-in,
+      clip-path 0.25s ease-in;
+  }
+
+  :deep(.blur-layer) {
+    transition: opacity 0.2s ease-in;
+  }
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  .dropdown-items {
+    opacity: 0;
+    filter: blur(6px);
+    clip-path: inset(0 0 100% 0);
+  }
+
+  :deep(.blur-layer) {
+    opacity: 0;
   }
 }
 </style>

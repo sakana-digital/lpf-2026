@@ -1,23 +1,28 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import Logo from '../assets/logo.vue'
 import SearchIcon from '../assets/search.vue'
 import ExploreIcon from '../assets/explore.vue'
 import Breadcrumb from './Breadcrumb.vue'
 import DayBadge from './DayBadge.vue'
 import MenuDropdown from './MenuDropdown.vue'
+import ProgressiveBlur from './ProgressiveBlur.vue'
 import { useSearch } from '../composables/useSearch'
 
 import { computed } from 'vue'
 
 const { t, locale } = useI18n()
 const { open } = useSearch()
+const route = useRoute()
 
 const homePath = computed(() => (locale.value === 'en' ? '/en' : '/'))
+const isRoot = computed(() => ['/', '/en', '/en/'].includes(route.path))
 </script>
 
 <template>
   <header class="header">
+    <ProgressiveBlur v-if="!isRoot" class="header-blur" :blur="3" />
     <nav class="global-nav">
       <div class="header-breadcrumb">
         <RouterLink :to="homePath" class="logo"><Logo /></RouterLink>
@@ -46,6 +51,14 @@ const homePath = computed(() => (locale.value === 'en' ? '/en' : '/'))
   justify-content: center;
   grid-area: header;
   height: 48px;
+
+  .header-blur {
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    z-index: -1;
+  }
 }
 
 .global-nav {
