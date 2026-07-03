@@ -1,5 +1,9 @@
 /* color palette from <https://github.com/vuejs/theme> */
 :root {
+  --header-height: 48px;
+  --footer-height: 64px;
+  --tabbar-height: 32px;
+
   --vt-c-white: oklch(100% 0 0);
   --vt-c-white-soft: oklch(97.91% 0 0);
   --vt-c-white-mute: oklch(96.12% 0 0);

@@ -18,12 +18,10 @@ const { open } = useSearch()
 
 <style scoped>
 .not-found {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  align-content: center;
+  justify-items: center;
   gap: 0.75rem;
-  min-height: 70vh;
   padding: 2rem 1rem;
   text-align: center;
 
