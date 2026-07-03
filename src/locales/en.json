@@ -24,6 +24,13 @@
     "news": "News",
     "explore": "Explore"
   },
+  "explore": {
+    "tabs": {
+      "map": "Venue Map",
+      "events": "Events",
+      "nodes": "Node Graph"
+    }
+  },
   "externalLinks": {
     "school": "High School Official Site"
   },

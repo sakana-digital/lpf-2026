@@ -24,6 +24,13 @@
     "news": "News",
     "explore": "Explore"
   },
+  "explore": {
+    "tabs": {
+      "map": "会場マップ",
+      "events": "イベント",
+      "nodes": "ノードグラフ"
+    }
+  },
   "externalLinks": {
     "school": "高校公式サイト"
   },

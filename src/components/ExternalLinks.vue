@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import InstagramIcon from '../assets/instagram.vue'
+import InstagramIcon from './icons/instagram.vue'
 
 const { t } = useI18n()
 
