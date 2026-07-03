@@ -4,8 +4,6 @@
      - テーマ切り替えで円が広がる transition
      - テキストシャッフル
      - 複数の画像タイルが斜めにスライドするアニメーション
-     - /\*:
-       - breadcrumb からリンクコピー，レスポンシブ対応
      - /Explore: filter by {Maps, Types}, Schedule, Bookmarks
        - Absynth 6
        - Suno AI

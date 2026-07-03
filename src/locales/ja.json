@@ -18,6 +18,10 @@
     "menu": "メニュー",
     "instagram": "Instagram"
   },
+  "breadcrumb": {
+    "copy": "リンクをコピー",
+    "copied": "コピーしました"
+  },
   "sitemap": {
     "caption": "Pages",
     "home": "/",

@@ -18,6 +18,10 @@
     "menu": "Menu",
     "instagram": "Instagram"
   },
+  "breadcrumb": {
+    "copy": "Copy link",
+    "copied": "Copied"
+  },
   "sitemap": {
     "caption": "Pages",
     "home": "/",
