@@ -17,6 +17,6 @@ import ExploreTabBar from '../components/ExploreTabBar.vue'
 }
 
 .content {
-  padding-top: var(--tabbar-height);
+  padding-top: calc(var(--page-title-height) + var(--tabbar-height));
 }
 </style>

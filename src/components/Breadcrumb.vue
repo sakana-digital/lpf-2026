@@ -24,27 +24,29 @@ const crumbs = computed(() => {
 
 <template>
   <div v-if="crumbs.length" class="breadcrumb" aria-label="breadcrumb">
-    <template v-for="crumb in crumbs" :key="crumb.to">
-      <svg
-        class="separator"
-        width="8"
-        height="16"
-        viewBox="0 0 8 16"
-        fill="none"
-        aria-hidden="true"
-      >
-        <line
-          x1="6"
-          y1="2"
-          x2="2"
-          y2="14"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-        />
-      </svg>
-      <RouterLink :to="crumb.to" class="crumb">{{ crumb.label }}</RouterLink>
-    </template>
+    <div class="crumbs">
+      <template v-for="crumb in crumbs" :key="crumb.to">
+        <svg
+          class="separator"
+          width="8"
+          height="16"
+          viewBox="0 0 8 16"
+          fill="none"
+          aria-hidden="true"
+        >
+          <line
+            x1="6"
+            y1="2"
+            x2="2"
+            y2="14"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+        <RouterLink :to="crumb.to" class="crumb">{{ crumb.label }}</RouterLink>
+      </template>
+    </div>
   </div>
 </template>
 
@@ -52,8 +54,22 @@ const crumbs = computed(() => {
 .breadcrumb {
   display: flex;
   align-items: center;
+  min-width: 0;
   gap: 2px;
   font-size: 0.875rem;
   color: #888;
+  transform: translateY(-3px);
+
+  .crumbs {
+    overflow: hidden;
+    min-width: 0;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .separator {
+    margin: 0 2px;
+    vertical-align: middle;
+  }
 }
 </style>

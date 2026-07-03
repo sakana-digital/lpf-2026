@@ -18,6 +18,10 @@
     "menu": "Menu",
     "instagram": "Instagram"
   },
+  "copyLink": {
+    "copy": "Copy link",
+    "copied": "Copied"
+  },
   "sitemap": {
     "caption": "Pages",
     "home": "/",
@@ -31,7 +35,7 @@
       "nodes": "Node Graph"
     }
   },
-  "externalLinks": {
+  "siteLinks": {
     "school": "High School Official Site"
   },
   "notFound": {

@@ -18,6 +18,10 @@
     "menu": "メニュー",
     "instagram": "Instagram"
   },
+  "copyLink": {
+    "copy": "リンクをコピー",
+    "copied": "コピーしました"
+  },
   "sitemap": {
     "caption": "Pages",
     "home": "/",
@@ -31,7 +35,7 @@
       "nodes": "ノードグラフ"
     }
   },
-  "externalLinks": {
+  "siteLinks": {
     "school": "高校公式サイト"
   },
   "notFound": {

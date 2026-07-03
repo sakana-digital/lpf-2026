@@ -1,14 +1,9 @@
 1. Pages
    - /: Contact, About, Details, Search
-     - テキストシャッフル
-     - icons の場所を別 dir に
-     - 複数の画像タイルが斜めにスライドするアニメーション
      - 画面が回転してもサイドバーの場所を固定する
      - テーマ切り替えで円が広がる transition
-     - scroll bar の見た目変える
-     - /\*:
-       - PageTitle を作成 Header 左下に大きめに表示
-       - breadcrumb からリンクコピー，レスポンシブ対応
+     - テキストシャッフル
+     - 複数の画像タイルが斜めにスライドするアニメーション
      - /Explore: filter by {Maps, Types}, Schedule, Bookmarks
        - Absynth 6
        - Suno AI

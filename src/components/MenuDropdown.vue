@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import MenuIcon from '../assets/menu.vue'
+import MenuIcon from './icons/menu.vue'
 import ThemeToggle from './ThemeToggle.vue'
 import LanguageToggle from './LanguageToggle.vue'
 import PageTree from './PageTree.vue'
-import ExternalLinks from './ExternalLinks.vue'
+import SiteLinks from './SiteLinks.vue'
 import ProgressiveBlur from './ProgressiveBlur.vue'
 
 const { t } = useI18n()
@@ -48,7 +48,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
         <div class="dropdown-items">
           <ThemeToggle />
           <LanguageToggle />
-          <ExternalLinks />
+          <SiteLinks />
           <PageTree />
         </div>
       </div>

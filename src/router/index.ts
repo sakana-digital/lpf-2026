@@ -14,6 +14,7 @@ function exploreRoutes(suffix: string): RouteRecordRaw {
   return {
     path: 'explore',
     component: ExploreView,
+    meta: { pageTitle: 'sitemap.explore' },
     children: [
       { path: '', redirect: () => ({ name: `explore-${getLastExploreTab()}${suffix}` }) },
       {
@@ -61,7 +62,7 @@ const router = createRouter({
           path: ':pathMatch(.*)*',
           name: 'not-found-en',
           component: NotFoundView,
-          meta: { title: 'notFound.title' },
+          meta: { title: 'notFound.title', pageTitle: 'notFound.title' },
         },
       ],
     },
