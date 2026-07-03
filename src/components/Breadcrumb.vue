@@ -1,11 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import CopyIcon from './icons/copy.vue'
-import CheckIcon from './icons/check.vue'
 
-const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
@@ -24,39 +20,6 @@ const crumbs = computed(() => {
       )
     })
 })
-
-const copied = ref(false)
-let copiedTimer: ReturnType<typeof setTimeout> | undefined
-
-function copyWithFallback(text: string) {
-  const textarea = document.createElement('textarea')
-  textarea.value = text
-  textarea.style.position = 'fixed'
-  textarea.style.top = '-9999px'
-  textarea.style.left = '-9999px'
-  document.body.appendChild(textarea)
-  textarea.focus()
-  textarea.select()
-  textarea.setSelectionRange(0, text.length)
-  document.execCommand('copy')
-  document.body.removeChild(textarea)
-}
-
-async function copyLink() {
-  const url = window.location.origin + route.fullPath
-  if (navigator.clipboard) {
-    try {
-      await navigator.clipboard.writeText(url)
-    } catch {
-      copyWithFallback(url)
-    }
-  } else {
-    copyWithFallback(url)
-  }
-  copied.value = true
-  clearTimeout(copiedTimer)
-  copiedTimer = setTimeout(() => (copied.value = false), 1500)
-}
 </script>
 
 <template>
@@ -84,15 +47,6 @@ async function copyLink() {
         <RouterLink :to="crumb.to" class="crumb">{{ crumb.label }}</RouterLink>
       </template>
     </div>
-    <button
-      type="button"
-      class="copy-button"
-      :aria-label="copied ? t('breadcrumb.copied') : t('breadcrumb.copy')"
-      @click="copyLink"
-    >
-      <CheckIcon v-if="copied" />
-      <CopyIcon v-else />
-    </button>
   </div>
 </template>
 
@@ -113,24 +67,8 @@ async function copyLink() {
   }
 
   .separator {
+    margin: 0 2px;
     vertical-align: middle;
-  }
-
-  .copy-button {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    margin-left: 6px;
-    padding: 4px;
-    border: none;
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-
-    &:hover {
-      color: var(--color-heading);
-    }
   }
 }
 </style>

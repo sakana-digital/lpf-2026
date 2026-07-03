@@ -18,7 +18,7 @@
     "menu": "Menu",
     "instagram": "Instagram"
   },
-  "breadcrumb": {
+  "copyLink": {
     "copy": "Copy link",
     "copied": "Copied"
   },
@@ -35,7 +35,7 @@
       "nodes": "Node Graph"
     }
   },
-  "externalLinks": {
+  "siteLinks": {
     "school": "High School Official Site"
   },
   "notFound": {

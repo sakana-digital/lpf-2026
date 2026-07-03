@@ -18,7 +18,7 @@
     "menu": "メニュー",
     "instagram": "Instagram"
   },
-  "breadcrumb": {
+  "copyLink": {
     "copy": "リンクをコピー",
     "copied": "コピーしました"
   },
@@ -35,7 +35,7 @@
       "nodes": "ノードグラフ"
     }
   },
-  "externalLinks": {
+  "siteLinks": {
     "school": "高校公式サイト"
   },
   "notFound": {
