@@ -3,6 +3,11 @@
   --header-height: 48px;
   --footer-height: 64px;
   --tabbar-height: 32px;
+  --page-title-height: 72px;
+
+  @media (max-width: 768px) {
+    --page-title-height: 48px;
+  }
 
   --vt-c-white: oklch(100% 0 0);
   --vt-c-white-soft: oklch(97.91% 0 0);
@@ -96,4 +101,27 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scrollbar-color: var(--color-border-hover) transparent;
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+}
+
+::-webkit-scrollbar-track {
+  margin: 0;
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: var(--color-border-hover);
+
+  &:hover {
+    background: var(--color-text-mute);
+  }
 }
