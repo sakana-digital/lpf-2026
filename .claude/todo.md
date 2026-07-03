@@ -1,8 +1,6 @@
 1. Pages
    - /: Contact, About, Details, Search
      - 画面が回転してもサイドバーの場所を固定する
-     - テーマ切り替えで円が広がる transition
-     - テキストシャッフル
      - 複数の画像タイルが斜めにスライドするアニメーション
      - /Explore: filter by {Maps, Types}, Schedule, Bookmarks
        - Absynth 6
