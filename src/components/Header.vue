@@ -1,23 +1,23 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
-import Logo from '../assets/logo.vue'
-import SearchIcon from '../assets/search.vue'
-import ExploreIcon from '../assets/explore.vue'
+import Logo from './icons/logo.vue'
+import SearchIcon from './icons/search.vue'
+import ExploreIcon from './icons/explore.vue'
 import Breadcrumb from './Breadcrumb.vue'
 import DayBadge from './DayBadge.vue'
 import MenuDropdown from './MenuDropdown.vue'
 import ProgressiveBlur from './ProgressiveBlur.vue'
 import { useSearch } from '../composables/useSearch'
+import { useIsRoot } from '../composables/useIsRoot'
 
 import { computed } from 'vue'
 
 const { t, locale } = useI18n()
 const { open } = useSearch()
-const route = useRoute()
+const isRoot = useIsRoot()
 
 const homePath = computed(() => (locale.value === 'en' ? '/en' : '/'))
-const isRoot = computed(() => ['/', '/en', '/en/'].includes(route.path))
+const explorePath = computed(() => (locale.value === 'en' ? '/en/explore' : '/explore'))
 </script>
 
 <template>
@@ -33,9 +33,9 @@ const isRoot = computed(() => ['/', '/en', '/en/'].includes(route.path))
         <button class="icon-button" :aria-label="t('nav.search')" @click="open">
           <SearchIcon />
         </button>
-        <button class="icon-button" :aria-label="t('nav.explore')">
+        <RouterLink class="icon-button" :to="explorePath" :aria-label="t('nav.explore')">
           <ExploreIcon />
-        </button>
+        </RouterLink>
         <MenuDropdown />
       </div>
     </nav>
@@ -44,13 +44,14 @@ const isRoot = computed(() => ['/', '/en', '/en/'].includes(route.path))
 
 <style scoped>
 .header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
   display: flex;
   justify-content: center;
-  grid-area: header;
-  height: 48px;
+  height: var(--header-height);
 
   .header-blur {
     top: 0;
@@ -58,6 +59,10 @@ const isRoot = computed(() => ['/', '/en', '/en/'].includes(route.path))
     right: 0;
     height: 64px;
     z-index: -1;
+
+    @media (max-width: 768px) {
+      display: none;
+    }
   }
 }
 
@@ -72,15 +77,18 @@ const isRoot = computed(() => ['/', '/en', '/en/'].includes(route.path))
 .header-breadcrumb {
   display: flex;
   align-items: center;
+  min-width: 0;
   gap: 12px;
 
   .logo {
+    flex-shrink: 0;
     margin-left: 16px;
   }
 }
 
 .header-actions {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   height: 48px;
 
@@ -99,6 +107,10 @@ const isRoot = computed(() => ['/', '/en', '/en/'].includes(route.path))
     transition: color 0.15s;
 
     &:hover {
+      color: var(--color-heading);
+    }
+
+    &.router-link-active {
       color: var(--color-heading);
     }
   }

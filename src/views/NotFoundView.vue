@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import SearchIcon from '../assets/search.vue'
+import SearchIcon from '../components/icons/search.vue'
 import { useSearch } from '../composables/useSearch'
 
 const { open } = useSearch()
@@ -18,13 +18,11 @@ const { open } = useSearch()
 
 <style scoped>
 .not-found {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  align-content: center;
+  justify-items: center;
   gap: 0.75rem;
-  min-height: 70vh;
-  padding: 2rem 1rem;
+  padding: calc(2rem + var(--page-title-height)) 1rem 2rem;
   text-align: center;
 
   & .description {
