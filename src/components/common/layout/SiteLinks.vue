@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import InstagramIcon from './icons/instagram.vue'
-import CopyIcon from './icons/copy.vue'
-import CheckIcon from './icons/check.vue'
-import { useCopyLink } from '../composables/useCopyLink'
+import InstagramIcon from '@/components/common/icons/instagram.vue'
+import CopyIcon from '@/components/common/icons/copy.vue'
+import CheckIcon from '@/components/common/icons/check.vue'
+import { useCopyLink } from '@/composables/useCopyLink'
 
 const { t } = useI18n()
 const route = useRoute()

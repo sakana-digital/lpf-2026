@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import SearchIcon from '../components/icons/search.vue'
-import { useSearch } from '../composables/useSearch'
+import SearchIcon from '@/components/common/icons/search.vue'
+import { useSearch } from '@/composables/useSearch'
 
 const { open } = useSearch()
 </script>

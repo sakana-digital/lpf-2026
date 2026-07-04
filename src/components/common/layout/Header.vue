@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import Logo from './icons/logo.vue'
-import SearchIcon from './icons/search.vue'
-import ExploreIcon from './icons/explore.vue'
+import Logo from '@/components/common/icons/logo.vue'
+import SearchIcon from '@/components/common/icons/search.vue'
+import ExploreIcon from '@/components/common/icons/explore.vue'
 import Breadcrumb from './Breadcrumb.vue'
 import DayBadge from './DayBadge.vue'
 import MenuDropdown from './MenuDropdown.vue'
 import ProgressiveBlur from './ProgressiveBlur.vue'
-import { useSearch } from '../composables/useSearch'
-import { useIsRoot } from '../composables/useIsRoot'
+import { useSearch } from '@/composables/useSearch'
+import { useIsRoot } from '@/composables/useIsRoot'
 
 import { computed } from 'vue'
 
