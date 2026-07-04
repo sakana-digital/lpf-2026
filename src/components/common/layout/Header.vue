@@ -64,6 +64,23 @@ const explorePath = computed(() => (locale.value === 'en' ? '/en/explore' : '/ex
       display: none;
     }
   }
+
+  @media (max-height: 500px) {
+    html[data-orientation='landscape-left'] &,
+    html[data-orientation='landscape-right'] & {
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: auto;
+      width: var(--header-height);
+      height: auto;
+    }
+
+    html[data-orientation='landscape-right'] & {
+      left: auto;
+      right: 0;
+    }
+  }
 }
 
 .global-nav {
@@ -72,6 +89,23 @@ const explorePath = computed(() => (locale.value === 'en' ? '/en/explore' : '/ex
   justify-content: space-between;
   width: 100%;
   max-width: 1024px;
+
+  @media (max-height: 500px) {
+    html[data-orientation='landscape-left'] &,
+    html[data-orientation='landscape-right'] & {
+      width: auto;
+      max-width: none;
+      height: 100%;
+    }
+
+    html[data-orientation='landscape-left'] & {
+      flex-direction: column-reverse;
+    }
+
+    html[data-orientation='landscape-right'] & {
+      flex-direction: column;
+    }
+  }
 }
 
 .header-breadcrumb {
@@ -84,6 +118,53 @@ const explorePath = computed(() => (locale.value === 'en' ? '/en/explore' : '/ex
     flex-shrink: 0;
     margin-left: 16px;
   }
+
+  @media (max-height: 500px) {
+    html[data-orientation='landscape-left'] &,
+    html[data-orientation='landscape-right'] & {
+      flex-direction: column;
+
+      .logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--header-height);
+        height: 67px;
+        margin: 0;
+      }
+    }
+
+    html[data-orientation='landscape-left'] & .logo {
+      margin-bottom: 8px;
+    }
+
+    html[data-orientation='landscape-right'] & .logo {
+      margin-top: 8px;
+    }
+  }
+}
+
+.header-breadcrumb .logo :deep(svg) {
+  transition: transform 0.25s;
+}
+
+html[data-orientation='landscape-left'] .header-breadcrumb :deep(.breadcrumb),
+html[data-orientation='landscape-right'] .header-breadcrumb :deep(.breadcrumb) {
+  @media (max-height: 500px) {
+    display: none;
+  }
+}
+
+html[data-orientation='landscape-left'] .header-breadcrumb .logo :deep(svg) {
+  @media (max-height: 500px) {
+    transform: rotate(-90deg);
+  }
+}
+
+html[data-orientation='landscape-right'] .header-breadcrumb .logo :deep(svg) {
+  @media (max-height: 500px) {
+    transform: rotate(90deg);
+  }
 }
 
 .header-actions {
@@ -91,6 +172,21 @@ const explorePath = computed(() => (locale.value === 'en' ? '/en/explore' : '/ex
   flex-shrink: 0;
   align-items: center;
   height: 48px;
+
+  @media (max-height: 500px) {
+    html[data-orientation='landscape-left'] &,
+    html[data-orientation='landscape-right'] & {
+      height: auto;
+    }
+
+    html[data-orientation='landscape-left'] & {
+      flex-direction: column-reverse;
+    }
+
+    html[data-orientation='landscape-right'] & {
+      flex-direction: column;
+    }
+  }
 
   .icon-button {
     display: flex;
