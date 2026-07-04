@@ -15,8 +15,4 @@ import ExploreTabBar from '@/components/explore/ExploreTabBar.vue'
 .explore {
   min-height: 100svh;
 }
-
-.content {
-  padding-top: var(--page-title-height);
-}
 </style>

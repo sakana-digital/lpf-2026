@@ -4,6 +4,7 @@ import type { WritableComputedRef } from 'vue'
 import { i18n } from '@/i18n'
 import { getLastExploreTab, setLastExploreTab } from '@/composables/useExploreTab'
 import HomeView from '@/views/HomeView.vue'
+import NewsView from '@/views/NewsView.vue'
 import ExploreView from '@/views/ExploreView.vue'
 import ExploreMapTab from '@/components/explore/ExploreMapTab.vue'
 import ExploreEventsTab from '@/components/explore/ExploreEventsTab.vue'
@@ -47,6 +48,12 @@ const router = createRouter({
       name: 'home',
       component: HomeView,
     },
+    {
+      path: '/news',
+      name: 'news',
+      component: NewsView,
+      meta: { pageTitle: 'sitemap.news', title: 'search.titles.news' },
+    },
     { ...exploreRoutes(''), path: '/explore' },
     {
       path: '/en',
@@ -56,6 +63,12 @@ const router = createRouter({
           path: '',
           name: 'home-en',
           component: HomeView,
+        },
+        {
+          path: 'news',
+          name: 'news-en',
+          component: NewsView,
+          meta: { pageTitle: 'sitemap.news', title: 'search.titles.news' },
         },
         exploreRoutes('-en'),
         {

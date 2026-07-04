@@ -35,6 +35,10 @@
       "nodes": "ノードグラフ"
     }
   },
+  "news": {
+    "instagramLink": "Instagram で見る",
+    "noPosts": "no posts yet"
+  },
   "siteLinks": {
     "school": "高校公式サイト"
   },

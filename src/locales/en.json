@@ -35,6 +35,10 @@
       "nodes": "Node Graph"
     }
   },
+  "news": {
+    "instagramLink": "View on Instagram",
+    "noPosts": "no posts yet"
+  },
   "siteLinks": {
     "school": "High School Official Site"
   },
