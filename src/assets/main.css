@@ -15,4 +15,16 @@ main {
   & > * {
     grid-column: 2;
   }
+
+  @media (max-height: 500px) {
+    html[data-orientation='landscape-left'] & {
+      padding-top: 0;
+      padding-left: var(--header-height);
+    }
+
+    html[data-orientation='landscape-right'] & {
+      padding-top: 0;
+      padding-right: var(--header-height);
+    }
+  }
 }

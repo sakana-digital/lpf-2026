@@ -34,6 +34,24 @@ const title = computed(() => t(props.titleKey))
   padding: 0 16px;
   gap: 12px;
 
+  @media (max-height: 500px) {
+    html[data-orientation='landscape-left'] & {
+      top: 0;
+      left: var(--header-height);
+      right: 0;
+      width: auto;
+      margin: 0;
+    }
+
+    html[data-orientation='landscape-right'] & {
+      top: 0;
+      left: 0;
+      right: var(--header-height);
+      width: auto;
+      margin: 0;
+    }
+  }
+
   h1 {
     overflow: hidden;
     min-width: 0;

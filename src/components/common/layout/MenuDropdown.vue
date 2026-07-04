@@ -98,6 +98,36 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
       z-index: -1;
     }
   }
+
+  @media (max-height: 500px) {
+    html[data-orientation='landscape-left'] & .dropdown {
+      top: 0;
+      left: calc(100% + 4px);
+      right: auto;
+
+      .dropdown-blur {
+        inset: 0 -32px 0 -52px;
+      }
+    }
+
+    html[data-orientation='landscape-right'] & .dropdown {
+      top: auto;
+      bottom: 0;
+      right: calc(100% + 4px);
+      left: auto;
+
+      .dropdown-blur {
+        inset: 0 -52px 0 -32px;
+      }
+    }
+  }
+}
+
+html[data-orientation='landscape-left'] .menu-dropdown :deep(.page-tree),
+html[data-orientation='landscape-right'] .menu-dropdown :deep(.page-tree) {
+  @media (max-height: 500px) {
+    display: none;
+  }
 }
 
 .dropdown-enter-active {
