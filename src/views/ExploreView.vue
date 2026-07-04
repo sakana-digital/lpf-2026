@@ -13,7 +13,7 @@ import ExploreTabBar from '@/components/explore/ExploreTabBar.vue'
 
 <style scoped>
 .explore {
-  min-height: calc(100svh - var(--footer-height));
+  min-height: 100svh;
 }
 
 .content {

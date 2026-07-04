@@ -2,7 +2,6 @@
 import { computed, watchEffect } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import Header from '@/components/common/layout/Header.vue'
-import Footer from '@/components/common/layout/Footer.vue'
 import PageHeader from '@/components/common/layout/PageHeader.vue'
 import SearchModal from '@/components/common/SearchModal.vue'
 import { useIsRoot } from '@/composables/useIsRoot'
@@ -38,6 +37,5 @@ watchEffect(() => {
   <Header />
   <PageHeader v-if="!isRoot && pageTitleKey" :title-key="pageTitleKey" />
   <RouterView />
-  <Footer />
   <SearchModal />
 </template>

@@ -10,7 +10,7 @@ main {
   display: grid;
   grid-template-columns: 1fr min(1024px, 100%) 1fr;
   padding-top: var(--header-height);
-  min-height: calc(100svh - var(--footer-height));
+  min-height: 100svh;
 
   & > * {
     grid-column: 2;
