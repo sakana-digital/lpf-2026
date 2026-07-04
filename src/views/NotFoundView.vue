@@ -22,7 +22,7 @@ const { open } = useSearch()
   align-content: center;
   justify-items: center;
   gap: 0.75rem;
-  padding: calc(2rem + var(--page-title-height)) 1rem 2rem;
+  padding: 2rem 1rem;
   text-align: center;
 
   & .description {

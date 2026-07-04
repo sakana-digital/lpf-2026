@@ -62,7 +62,7 @@ const router = createRouter({
           path: ':pathMatch(.*)*',
           name: 'not-found-en',
           component: NotFoundView,
-          meta: { title: 'notFound.title', pageTitle: 'notFound.title' },
+          meta: { title: 'notFound.title' },
         },
       ],
     },

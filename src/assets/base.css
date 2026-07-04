@@ -2,7 +2,6 @@
 :root {
   --header-height: 48px;
   --footer-height: 64px;
-  --tabbar-height: 32px;
   --page-title-height: 72px;
 
   @media (max-width: 768px) {
