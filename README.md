@@ -1,10 +1,7 @@
-# 八宝菜 - LiSA Papillon Festival 2026 Official Website
-
-八宝祭 - LiSA Papillon Festival 2026 のウェブサイトです。Vue 3 + [Vite Plus](https://vite.dev/) で構築しています。
+# 八宝祭 - LiSA Papillon Festival 2026 Official Website
 
 ## 主な機能
 
-- サイト内検索モーダル（キーボード操作対応）
 - 日本語 / 英語の多言語対応（vue-i18n、`/` が日本語・`/en` が英語）
 - three.js を用いた演出
 
