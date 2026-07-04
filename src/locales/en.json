@@ -1,6 +1,6 @@
 {
   "pageTitle": {
-    "suffix": "Happōsai - LiSA Papillon Festival 2026"
+    "suffix": "Happo-sai - LiSA Papillon Festival 2026"
   },
   "dayBadge": {
     "day1": "Day 1",
@@ -38,6 +38,28 @@
   "news": {
     "instagramLink": "View on Instagram",
     "noPosts": "no posts yet"
+  },
+  "home": {
+    "keyVisual": {
+      "label": "Key Visual"
+    },
+    "about": {
+      "title": "Happo-sai - LiSA Papillon Festival 2026",
+      "lead": "The school festival of Kanagawa Sogo Sangyo High School. Two days of exhibitions, stage performances, and food stalls.",
+      "search": "Search pages…"
+    },
+    "details": {
+      "title": "Information",
+      "date": { "label": "Date", "value": "Day 1 – Day 2" },
+      "venue": { "label": "Venue", "value": "Kanagawa Sogo Sangyo High School" },
+      "admission": { "label": "Admission", "value": "Open to the public" }
+    },
+    "contact": {
+      "title": "Contact",
+      "lead": "Follow the links below for the latest updates.",
+      "instagram": "Instagram",
+      "school": "High School Official Site"
+    }
   },
   "siteLinks": {
     "school": "High School Official Site"
