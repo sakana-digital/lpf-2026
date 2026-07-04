@@ -4,8 +4,8 @@ import ExploreTabBar from '../components/ExploreTabBar.vue'
 
 <template>
   <main class="explore">
+    <ExploreTabBar />
     <div class="content">
-      <ExploreTabBar />
       <RouterView />
     </div>
   </main>
@@ -17,6 +17,6 @@ import ExploreTabBar from '../components/ExploreTabBar.vue'
 }
 
 .content {
-  padding-top: calc(var(--page-title-height) + var(--tabbar-height));
+  padding-top: var(--page-title-height);
 }
 </style>

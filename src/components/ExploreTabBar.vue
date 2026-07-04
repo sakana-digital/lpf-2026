@@ -16,5 +16,7 @@ const tabs = computed(() => {
 </script>
 
 <template>
-  <TabBar :tabs="tabs" :aria-label="t('sitemap.explore')" />
+  <Teleport to="#page-header-tabs">
+    <TabBar :tabs="tabs" :aria-label="t('sitemap.explore')" />
+  </Teleport>
 </template>

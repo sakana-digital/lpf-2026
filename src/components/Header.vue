@@ -78,7 +78,7 @@ const explorePath = computed(() => (locale.value === 'en' ? '/en/explore' : '/ex
   display: flex;
   align-items: center;
   min-width: 0;
-  gap: 12px;
+  gap: 2px;
 
   .logo {
     flex-shrink: 0;

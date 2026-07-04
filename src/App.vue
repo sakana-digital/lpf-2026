@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { computed, watchEffect } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
-import PageTitle from './components/PageTitle.vue'
+import PageHeader from './components/PageHeader.vue'
 import SearchModal from './components/SearchModal.vue'
 import { useIsRoot } from './composables/useIsRoot'
 
-const { t } = useI18n()
 const route = useRoute()
 const isRoot = useIsRoot()
 const pageTitleKey = computed(() => route.meta.pageTitle as string | undefined)
@@ -38,7 +36,7 @@ watchEffect(() => {
 
 <template>
   <Header />
-  <PageTitle v-if="!isRoot && pageTitleKey" :title="t(pageTitleKey)" />
+  <PageHeader v-if="!isRoot && pageTitleKey" :title-key="pageTitleKey" />
   <RouterView />
   <Footer />
   <SearchModal />
