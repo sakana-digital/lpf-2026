@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import TextShuffle from './TextShuffle.vue'
+import TextShuffle from '@/components/common/TextShuffle.vue'
 
 const props = defineProps<{
   titleKey: string
