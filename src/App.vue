@@ -9,6 +9,11 @@ import { useIsRoot } from '@/composables/useIsRoot'
 const route = useRoute()
 const isRoot = useIsRoot()
 const pageTitleKey = computed(() => route.meta.pageTitle as string | undefined)
+const hasPageHeader = computed(() => !isRoot.value && !!pageTitleKey.value)
+
+watchEffect(() => {
+  document.documentElement.toggleAttribute('data-page-header', hasPageHeader.value)
+})
 
 watchEffect(() => {
   document.querySelectorAll('link[hreflang]').forEach((el) => el.remove())
