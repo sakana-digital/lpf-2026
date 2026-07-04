@@ -1,14 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import type { WritableComputedRef } from 'vue'
-import { i18n } from '../i18n'
-import { getLastExploreTab, setLastExploreTab } from '../composables/useExploreTab'
-import HomeView from '../views/HomeView.vue'
-import ExploreView from '../views/ExploreView.vue'
-import ExploreMapTab from '../components/ExploreMapTab.vue'
-import ExploreEventsTab from '../components/ExploreEventsTab.vue'
-import ExploreNodesTab from '../components/ExploreNodesTab.vue'
-import NotFoundView from '../views/NotFoundView.vue'
+import { i18n } from '@/i18n'
+import { getLastExploreTab, setLastExploreTab } from '@/composables/useExploreTab'
+import HomeView from '@/views/HomeView.vue'
+import ExploreView from '@/views/ExploreView.vue'
+import ExploreMapTab from '@/components/explore/ExploreMapTab.vue'
+import ExploreEventsTab from '@/components/explore/ExploreEventsTab.vue'
+import ExploreNodesTab from '@/components/explore/ExploreNodesTab.vue'
+import NotFoundView from '@/views/NotFoundView.vue'
 
 function exploreRoutes(suffix: string): RouteRecordRaw {
   return {

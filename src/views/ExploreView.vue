@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ExploreTabBar from '../components/ExploreTabBar.vue'
+import ExploreTabBar from '@/components/explore/ExploreTabBar.vue'
 </script>
 
 <template>

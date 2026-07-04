@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { pages } from '../config/pages'
+import { pages } from '@/config/pages'
 
 const { t, locale } = useI18n()
 
