@@ -185,6 +185,7 @@ onMounted(() => {
 
   .title {
     font-size: clamp(2rem, 6vw, 3rem);
+    white-space: pre-line;
   }
 
   .subtitle {
