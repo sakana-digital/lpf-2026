@@ -69,6 +69,10 @@ input,
 textarea,
 select {
   font-family: inherit;
+  color: inherit;
+  border: none;
+  background: transparent;
+  appearance: none;
 }
 
 ::selection {

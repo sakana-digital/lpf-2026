@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import SearchIcon from '@/components/common/icons/search.vue'
 import InstagramIcon from '@/components/common/icons/instagram.vue'
-import { useSearch } from '@/composables/useSearch'
+import HomeSidebar from '@/components/home/HomeSidebar.vue'
+import HomeDock from '@/components/home/HomeDock.vue'
+import HomeFooter from '@/components/home/HomeFooter.vue'
 import { consumeDirectRootEntrance } from '@/composables/useRootEntrance'
 import { instagramUrl, schoolUrl } from '@/config/social'
 
 const { t } = useI18n()
-const { open } = useSearch()
 const detailItems = ['date', 'venue', 'admission'] as const
 
 const entrance = ref(false)
@@ -19,21 +19,17 @@ onMounted(() => {
 
 <template>
   <main class="home">
-    <section class="key-visual" :class="{ 'is-entrance': entrance }">
-      <figure class="frame"></figure>
+    <section id="top" class="key-visual" :class="{ 'is-entrance': entrance }">
+      <figure class="frame">
+        <img src="/home/lpf-2026-key-visual - 01.jpg" :alt="t('home.keyVisual.label')" />
+      </figure>
     </section>
 
-    <section class="about">
+    <section id="about" class="about">
       <h2 class="title">{{ t('home.about.title') }}</h2>
-      <p class="lead">{{ t('home.about.lead') }}</p>
-      <button class="search-entry" :aria-label="t('search.label')" @click="open">
-        <SearchIcon />
-        <span class="search-text">{{ t('home.about.search') }}</span>
-        <kbd class="search-key">/</kbd>
-      </button>
     </section>
 
-    <section class="details">
+    <section id="information" class="details">
       <h2 class="title">{{ t('home.details.title') }}</h2>
       <dl class="list">
         <div v-for="item in detailItems" :key="item" class="row">
@@ -43,7 +39,7 @@ onMounted(() => {
       </dl>
     </section>
 
-    <section class="contact">
+    <section id="contact" class="contact">
       <h2 class="title">{{ t('home.contact.title') }}</h2>
       <p class="lead">{{ t('home.contact.lead') }}</p>
       <div class="links">
@@ -56,6 +52,11 @@ onMounted(() => {
         </a>
       </div>
     </section>
+
+    <HomeFooter />
+
+    <HomeSidebar :entrance="entrance" />
+    <HomeDock />
   </main>
 </template>
 
@@ -63,10 +64,13 @@ onMounted(() => {
 .home {
   row-gap: 32px;
   padding-top: 0;
-  padding-bottom: 96px;
 
   & > *:not(.key-visual) {
     padding-inline: 16px;
+  }
+
+  & > section[id] {
+    scroll-margin-top: var(--header-height);
   }
 }
 
@@ -132,49 +136,8 @@ onMounted(() => {
 .about {
   text-align: center;
 
-  .lead {
-    margin-top: 12px;
-    color: var(--color-text-mute);
-  }
-
-  .search-entry {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    max-width: 360px;
-    margin: 24px auto 0;
-    padding: 12px 16px;
-    border: 1px solid var(--color-border);
-    border-radius: 999px;
-    background: var(--color-background-soft);
-    color: var(--color-text-mute);
-    cursor: pointer;
-    transition:
-      border-color 0.15s,
-      color 0.15s;
-
-    &:hover {
-      border-color: var(--color-border-hover);
-      color: var(--color-heading);
-    }
-
-    .search-text {
-      flex: 1;
-      text-align: left;
-    }
-
-    .search-key {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 20px;
-      padding: 2px 6px;
-      border: 1px solid var(--color-border);
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-family: inherit;
-    }
+  .title {
+    font-size: clamp(2rem, 6vw, 3rem);
   }
 }
 

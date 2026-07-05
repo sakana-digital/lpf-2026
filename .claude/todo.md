@@ -1,7 +1,8 @@
 1. Pages
-   - /:
+   - /: Bookmarks
    - 複数の画像タイルが斜めにスライドするアニメーション
-   - /Explore: filter by {Maps, Types}, Schedule, Bookmarks
+   - /explore: Schedule
      - Absynth 6
      - Suno AI
      - Ableton
+   - /gallery

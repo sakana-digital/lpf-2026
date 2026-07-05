@@ -43,22 +43,33 @@
     "keyVisual": {
       "label": "キービジュアル"
     },
+    "toc": {
+      "top": "トップ",
+      "information": "開催概要",
+      "contact": "お問い合わせ",
+      "toggle": "目次を開閉"
+    },
     "about": {
-      "title": "八宝祭 - LiSA Papillon Festival 2026",
-      "lead": "神奈川総合産業高校の文化祭。二日間にわたり、展示・ステージ・模擬店をお届けします。",
-      "search": "ページを検索…"
+      "title": "八宝祭 - LiSA Papillon Festival 2026"
+    },
+    "dock": {
+      "explore": "イベントを探す"
     },
     "details": {
-      "title": "Information",
+      "title": "開催概要",
       "date": { "label": "日程", "value": "Day 1 – Day 2" },
       "venue": { "label": "会場", "value": "神奈川県立神奈川総合産業高等学校" },
       "admission": { "label": "入場", "value": "一般公開" }
     },
     "contact": {
-      "title": "Contact",
+      "title": "お問い合わせ",
       "lead": "最新情報は各リンクから。",
       "instagram": "Instagram",
       "school": "高校公式サイト"
+    },
+    "footer": {
+      "copyright": "© 2026 LiSA Papillon Festival",
+      "home": "ホーム"
     }
   },
   "siteLinks": {
