@@ -21,6 +21,9 @@ function jumpTo(id: string) {
   const el = document.getElementById(id)
   if (!el) return
   select(id)
+  // Reflect the target in the URL without letting the router treat the hash as a
+  // navigation, which would fight the smooth scroll below.
+  history.replaceState(history.state, '', `#${id}`)
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
 }
