@@ -1,9 +1,9 @@
 1. Pages
-   - /: Contact, About, Details, Search
-     - 画面が回転してもサイドバーの場所を固定する
-     - 複数の画像タイルが斜めにスライドするアニメーション
-     - /Explore: filter by {Maps, Types}, Schedule, Bookmarks
-       - Absynth 6
-       - Suno AI
-       - Ableton ぽい何か
-     - /News
+   - /: Bookmarks
+   - 複数の画像タイルが斜めにスライドするアニメーション
+   - /explore: Schedule
+     - Absynth 6
+     - Suno AI
+     - Ableton
+   - /news: [高校公式サイトの情報も追加する](https://www.pen-kanagawa.ed.jp/kanagawasogosangyo-h/zennichi/seikatsu/bunkasai.html)
+   - /gallery

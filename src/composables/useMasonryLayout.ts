@@ -1,7 +1,10 @@
 import { computed, onMounted, onUnmounted, ref, type Ref } from 'vue'
 
 interface MasonryOptions {
+  /** Minimum lane width; also decides how many lanes fit. */
   laneWidth: number
+  /** Lanes stretch up to this width when the container has room. Defaults to laneWidth (fixed lanes). */
+  maxLaneWidth?: number
   gap: number
   maxLanes: number
   /** Selector (within the container) matching each item; items must carry data-index. */
@@ -27,8 +30,9 @@ export function useMasonryLayout(
   itemCount: number,
   options: MasonryOptions,
 ) {
-  const { laneWidth, gap, maxLanes, itemSelector } = options
-  const count = ref(1)
+  const { laneWidth: minLaneWidth, gap, maxLanes, itemSelector } = options
+  const maxLaneWidth = options.maxLaneWidth ?? options.laneWidth
+  const containerWidth = ref(0)
   const heights = ref<number[]>(new Array(itemCount).fill(ESTIMATED_HEIGHT))
 
   let widthObserver: ResizeObserver | undefined
@@ -37,17 +41,12 @@ export function useMasonryLayout(
   let pendingWidth: number | null = null
   const pendingHeights = new Map<number, number>()
 
-  const setCount = (width: number) => {
-    const fit = Math.floor((width + gap) / (laneWidth + gap))
-    count.value = Math.max(1, Math.min(maxLanes, fit))
-  }
-
   // Coalesce observer notifications into a single rAF so a measurement never
   // triggers another synchronous layout in the same delivery cycle.
   const flush = () => {
     frame = 0
     if (pendingWidth !== null) {
-      setCount(pendingWidth)
+      containerWidth.value = pendingWidth
       pendingWidth = null
     }
     if (pendingHeights.size > 0) {
@@ -59,6 +58,19 @@ export function useMasonryLayout(
     if (!frame) frame = requestAnimationFrame(flush)
   }
 
+  const count = computed(() => {
+    const fit = Math.floor((containerWidth.value + gap) / (minLaneWidth + gap))
+    return Math.max(1, Math.min(maxLanes, fit))
+  })
+
+  // Distribute leftover space across lanes, capped at maxLaneWidth. On containers
+  // narrower than a single minimum lane, the lane shrinks to the container width.
+  const laneWidth = computed(() => {
+    if (containerWidth.value <= 0) return minLaneWidth
+    const available = (containerWidth.value - (count.value - 1) * gap) / count.value
+    return Math.min(maxLaneWidth, available)
+  })
+
   const columnOf = (index: number) => index % count.value
 
   const positions = computed<Position[]>(() => {
@@ -67,11 +79,11 @@ export function useMasonryLayout(
       const col = columnOf(i)
       const y = columnHeights[col] ?? 0
       columnHeights[col] = y + (heights.value[i] ?? ESTIMATED_HEIGHT) + gap
-      return { x: col * (laneWidth + gap), y }
+      return { x: col * (laneWidth.value + gap), y }
     })
   })
 
-  const gridWidth = computed(() => count.value * laneWidth + (count.value - 1) * gap)
+  const gridWidth = computed(() => count.value * laneWidth.value + (count.value - 1) * gap)
 
   const gridHeight = computed(() => {
     const columnHeights: number[] = new Array(count.value).fill(0)
@@ -88,7 +100,7 @@ export function useMasonryLayout(
 
     const style = getComputedStyle(el)
     const padX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
-    setCount(el.clientWidth - padX)
+    containerWidth.value = el.clientWidth - padX
 
     widthObserver = new ResizeObserver((entries) => {
       const entry = entries[0]
@@ -114,5 +126,5 @@ export function useMasonryLayout(
     if (frame) cancelAnimationFrame(frame)
   })
 
-  return { positions, gridWidth, gridHeight }
+  return { positions, gridWidth, gridHeight, laneWidth }
 }

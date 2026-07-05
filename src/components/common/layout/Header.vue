@@ -8,21 +8,25 @@ import DayBadge from './DayBadge.vue'
 import MenuDropdown from './MenuDropdown.vue'
 import ProgressiveBlur from './ProgressiveBlur.vue'
 import { useSearch } from '@/composables/useSearch'
-import { useIsRoot } from '@/composables/useIsRoot'
+import { isDirectRootEntrance } from '@/composables/useRootEntrance'
 
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 const { t, locale } = useI18n()
 const { open } = useSearch()
-const isRoot = useIsRoot()
+
+const entrance = ref(false)
+onMounted(() => {
+  entrance.value = isDirectRootEntrance()
+})
 
 const homePath = computed(() => (locale.value === 'en' ? '/en' : '/'))
 const explorePath = computed(() => (locale.value === 'en' ? '/en/explore' : '/explore'))
 </script>
 
 <template>
-  <header class="header">
-    <ProgressiveBlur v-if="!isRoot" class="header-blur" :blur="3" />
+  <header class="header" :class="{ 'is-entrance': entrance }">
+    <ProgressiveBlur class="header-blur" :blur="3" />
     <nav class="global-nav">
       <div class="header-breadcrumb">
         <RouterLink :to="homePath" class="logo"><Logo /></RouterLink>
@@ -51,6 +55,7 @@ const explorePath = computed(() => (locale.value === 'en' ? '/en/explore' : '/ex
   z-index: 100;
   display: flex;
   justify-content: center;
+  min-width: 320px;
   height: var(--header-height);
 
   .header-blur {
@@ -72,6 +77,7 @@ const explorePath = computed(() => (locale.value === 'en' ? '/en/explore' : '/ex
       bottom: 0;
       left: 0;
       right: auto;
+      min-width: 0;
       width: var(--header-height);
       height: auto;
     }
@@ -80,6 +86,29 @@ const explorePath = computed(() => (locale.value === 'en' ? '/en/explore' : '/ex
       left: auto;
       right: 0;
     }
+  }
+}
+
+.header.is-entrance .global-nav {
+  animation: header-reveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes header-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header.is-entrance .global-nav {
+    animation: none;
   }
 }
 

@@ -22,11 +22,12 @@ const props = defineProps<{
 <style scoped>
 .instagram-embed {
   width: 100%;
+}
 
-  .instagram-media {
-    max-width: 540px;
-    margin-left: auto;
-    margin-right: auto;
-  }
+.instagram-embed :deep(.instagram-media) {
+  width: calc(100% - 2px) !important;
+  min-width: 0 !important;
+  max-width: 540px !important;
+  margin: 0 auto !important;
 }
 </style>

@@ -6,18 +6,24 @@ import InstagramEmbed from '@/components/news/InstagramEmbed.vue'
 import { processInstagramEmbeds } from '@/composables/useInstagramEmbed'
 import { useMasonryLayout } from '@/composables/useMasonryLayout'
 
-const LANE_WIDTH = 328
-const LANE_GAP = 0
+const LANE_MIN_WIDTH = 318
+const LANE_MAX_WIDTH = 540
+const LANE_GAP = 16
 
 const { t } = useI18n()
 
 const wrapper = ref<HTMLElement | null>(null)
-const { positions, gridWidth, gridHeight } = useMasonryLayout(wrapper, newsLinks.length, {
-  laneWidth: LANE_WIDTH,
-  gap: LANE_GAP,
-  maxLanes: Math.min(3, newsLinks.length),
-  itemSelector: '.lane-item',
-})
+const { positions, gridWidth, gridHeight, laneWidth } = useMasonryLayout(
+  wrapper,
+  newsLinks.length,
+  {
+    laneWidth: LANE_MIN_WIDTH,
+    maxLaneWidth: LANE_MAX_WIDTH,
+    gap: LANE_GAP,
+    maxLanes: Math.min(3, newsLinks.length),
+    itemSelector: '.lane-item',
+  },
+)
 
 const gridStyle = computed(() => ({
   width: `${gridWidth.value}px`,
@@ -27,7 +33,7 @@ const gridStyle = computed(() => ({
 const itemStyle = (i: number) => {
   const pos = positions.value[i] ?? { x: 0, y: 0 }
   return {
-    width: `${LANE_WIDTH}px`,
+    width: `${laneWidth.value}px`,
     transform: `translate(${pos.x}px, ${pos.y}px)`,
   }
 }
