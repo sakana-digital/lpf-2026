@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import InstagramIcon from '@/components/common/icons/instagram.vue'
 import HomeSidebar from '@/components/home/HomeSidebar.vue'
 import HomeDock from '@/components/home/HomeDock.vue'
 import HomeFooter from '@/components/home/HomeFooter.vue'
 import { consumeDirectRootEntrance } from '@/composables/useRootEntrance'
-import { instagramUrl, schoolUrl } from '@/config/social'
+import { formatFestivalPeriod } from '@/config/festival'
 
-const { t } = useI18n()
+const { t, tm, rt, locale } = useI18n()
 const detailItems = ['date', 'venue', 'admission'] as const
+
+const festivalPeriod = computed(() => formatFestivalPeriod(locale.value))
+const notes = computed(() => (tm('home.notes.items') as string[]).map((note) => rt(note)))
 
 const entrance = ref(false)
 onMounted(() => {
@@ -21,36 +23,39 @@ onMounted(() => {
   <main class="home">
     <section id="top" class="key-visual" :class="{ 'is-entrance': entrance }">
       <figure class="frame">
-        <img src="/home/lpf-2026-key-visual - 01.jpg" :alt="t('home.keyVisual.label')" />
+        <img src="/posters/lpf-2026-main.jpg" :alt="t('home.keyVisual.label')" />
       </figure>
     </section>
 
     <section id="about" class="about">
       <h2 class="title">{{ t('home.about.title') }}</h2>
+      <p class="period">{{ festivalPeriod }}</p>
     </section>
 
-    <section id="information" class="details">
+    <section id="overview" class="details split">
       <h2 class="title">{{ t('home.details.title') }}</h2>
       <dl class="list">
         <div v-for="item in detailItems" :key="item" class="row">
           <dt>{{ t(`home.details.${item}.label`) }}</dt>
-          <dd>{{ t(`home.details.${item}.value`) }}</dd>
+          <dd>
+            <span class="value">{{
+              item === 'date' ? festivalPeriod : t(`home.details.${item}.value`)
+            }}</span>
+            <span class="note">{{ t(`home.details.${item}.note`) }}</span>
+          </dd>
         </div>
       </dl>
     </section>
 
-    <section id="contact" class="contact">
+    <section id="notes" class="notes split">
+      <h2 class="title">{{ t('home.notes.title') }}</h2>
+      <ul class="notes-list">
+        <li v-for="(note, index) in notes" :key="index">{{ note }}</li>
+      </ul>
+    </section>
+
+    <section id="contact" class="contact split">
       <h2 class="title">{{ t('home.contact.title') }}</h2>
-      <p class="lead">{{ t('home.contact.lead') }}</p>
-      <div class="links">
-        <a class="link" :href="instagramUrl" target="_blank" rel="noopener noreferrer">
-          <InstagramIcon />
-          <span>{{ t('home.contact.instagram') }}</span>
-        </a>
-        <a class="link" :href="schoolUrl" target="_blank" rel="noopener noreferrer">
-          <span>{{ t('home.contact.school') }}</span>
-        </a>
-      </div>
     </section>
 
     <HomeFooter />
@@ -62,15 +67,15 @@ onMounted(() => {
 
 <style scoped>
 .home {
-  row-gap: 32px;
+  row-gap: 128px;
   padding-top: 0;
 
-  & > *:not(.key-visual) {
+  & > *:not(.key-visual):not(.toc) {
     padding-inline: 16px;
   }
 
   & > section[id] {
-    scroll-margin-top: var(--header-height);
+    scroll-margin-top: calc(var(--header-height) + 72px);
   }
 }
 
@@ -139,15 +144,29 @@ onMounted(() => {
   .title {
     font-size: clamp(2rem, 6vw, 3rem);
   }
+
+  .period {
+    margin-top: 12px;
+    font-size: clamp(1rem, 3vw, 1.25rem);
+    letter-spacing: 0.04em;
+    color: var(--color-text-mute);
+  }
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
+  column-gap: 48px;
+  align-items: center;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+    row-gap: 16px;
+  }
 }
 
 .details {
-  text-align: center;
-
   .list {
-    max-width: 400px;
-    margin: 20px auto 0;
-
     .row {
       display: grid;
       grid-template-columns: 120px 1fr;
@@ -164,8 +183,19 @@ onMounted(() => {
       }
 
       dd {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
         margin: 0;
-        color: var(--color-heading);
+
+        .value {
+          color: var(--color-heading);
+        }
+
+        .note {
+          font-size: 13px;
+          color: var(--color-text-mute);
+        }
       }
     }
   }
@@ -178,36 +208,32 @@ onMounted(() => {
   }
 }
 
-.contact {
-  text-align: center;
+.notes {
+  align-items: start;
 
-  .lead {
-    margin-top: 12px;
-    color: var(--color-text-mute);
-  }
-
-  .links {
+  .notes-list {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: column;
     gap: 12px;
-    margin-top: 20px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
 
-    .link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 18px;
-      border: 1px solid var(--color-border);
-      border-radius: 999px;
+    li {
+      position: relative;
+      padding-left: 20px;
+      line-height: 1.7;
       color: var(--color-text);
-      transition:
-        border-color 0.15s,
-        color 0.15s;
 
-      &:hover {
-        border-color: var(--color-border-hover);
-        color: var(--color-heading);
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0.7em;
+        left: 0;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--color-text-mute);
       }
     }
   }

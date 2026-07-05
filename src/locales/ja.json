@@ -45,7 +45,8 @@
     },
     "toc": {
       "top": "トップ",
-      "information": "開催概要",
+      "overview": "概要",
+      "notes": "注意事項",
       "contact": "お問い合わせ",
       "toggle": "目次を開閉"
     },
@@ -56,19 +57,34 @@
       "explore": "イベントを探す"
     },
     "details": {
-      "title": "開催概要",
-      "date": { "label": "日程", "value": "Day 1 – Day 2" },
-      "venue": { "label": "会場", "value": "神奈川県立神奈川総合産業高等学校" },
-      "admission": { "label": "入場", "value": "一般公開" }
+      "title": "概要",
+      "date": { "label": "日程", "note": "1日目 10:30–15:30 ／ 2日目 10:00–15:00" },
+      "venue": {
+        "label": "会場",
+        "value": "神奈川県立神奈川総合産業高等学校",
+        "note": "神奈川県相模原市南区文京1-11-1"
+      },
+      "admission": {
+        "label": "入場",
+        "value": "一般公開",
+        "note": "予約は不要です"
+      }
+    },
+    "notes": {
+      "title": "注意事項",
+      "items": [
+        "校舎内は禁煙・禁酒です。",
+        "ご来場は公共交通機関または自転車をご利用ください。",
+        "ゴミ箱の用意はありません。ゴミはお持ち帰りください。",
+        "⚠️ TBD: 現金が利用できるかは現在検討中です。",
+        "⚠️ TBD: 写真・動画の撮影ルールは現在検討中です。"
+      ]
     },
     "contact": {
-      "title": "お問い合わせ",
-      "lead": "最新情報は各リンクから。",
-      "instagram": "Instagram",
-      "school": "高校公式サイト"
+      "title": "お問い合わせ"
     },
     "footer": {
-      "copyright": "© 2026 LiSA Papillon Festival",
+      "copyright": "© 2026 神奈川県立神奈川総合産業高等学校 全日制 実行委員会",
       "home": "ホーム"
     }
   },

@@ -24,8 +24,7 @@ const homePath = computed(() => (locale.value === 'en' ? '/en' : '/'))
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding-top: 32px;
-  padding-bottom: 120px;
+  padding: 160px 0;
 
   .brand {
     display: inline-flex;

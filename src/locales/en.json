@@ -50,24 +50,40 @@
       "explore": "Explore"
     },
     "details": {
-      "title": "Information",
-      "date": { "label": "Date", "value": "Day 1 – Day 2" },
-      "venue": { "label": "Venue", "value": "Kanagawa Sogo Sangyo High School" },
-      "admission": { "label": "Admission", "value": "Open to the public" }
+      "title": "Overview",
+      "date": { "label": "Date", "note": "Day 1 10:30–15:30 / Day 2 10:00–15:00" },
+      "venue": {
+        "label": "Venue",
+        "value": "Kanagawa Sogo Sangyo High School",
+        "note": "1-11-1 Bunkyo, Minami-ku, Sagamihara, Kanagawa"
+      },
+      "admission": {
+        "label": "Admission",
+        "value": "Open to the public",
+        "note": "No reservation required"
+      }
+    },
+    "notes": {
+      "title": "Notes",
+      "items": [
+        "Smoking and alcohol are prohibited within the school buildings.",
+        "Please come by public transportation or bicycle.",
+        "No trash bins are provided. Please take your trash home with you.",
+        "⚠️ TBD: Whether cash will be accepted is still undefined.",
+        "⚠️ TBD: Photography and video recording rules are still undefined."
+      ]
     },
     "contact": {
-      "title": "Contact",
-      "lead": "Follow the links below for the latest updates.",
-      "instagram": "Instagram",
-      "school": "High School Official Site"
+      "title": "Contact"
     },
     "footer": {
-      "copyright": "© 2026 LiSA Papillon Festival",
+      "copyright": "© 2026 Kanagawa Sogo Sangyo High School (Full-time) Executive Committee",
       "home": "Home"
     },
     "toc": {
       "top": "Top",
-      "information": "Information",
+      "overview": "Overview",
+      "notes": "Notes",
       "contact": "Contact",
       "toggle": "Toggle table of contents"
     }
