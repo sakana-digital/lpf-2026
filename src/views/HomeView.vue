@@ -4,18 +4,26 @@ import { useI18n } from 'vue-i18n'
 import HomeSidebar from '@/components/home/HomeSidebar.vue'
 import HomeDock from '@/components/home/HomeDock.vue'
 import HomeFooter from '@/components/home/HomeFooter.vue'
+import InstagramEmbed from '@/components/news/InstagramEmbed.vue'
 import { consumeDirectRootEntrance } from '@/composables/useRootEntrance'
+import { processInstagramEmbeds } from '@/composables/useInstagramEmbed'
 import { formatFestivalPeriod } from '@/config/festival'
+import { newsLinks } from '@/config/newsLinks'
 
 const { t, tm, rt, locale } = useI18n()
 const detailItems = ['date', 'venue', 'admission'] as const
+const contactItems = ['school', 'address', 'phone'] as const
+const mapUrl = 'https://maps.app.goo.gl/HMdtfGcyfxPd2hUT8'
+const newsPreview = newsLinks.slice(0, 3)
 
 const festivalPeriod = computed(() => formatFestivalPeriod(locale.value))
 const notes = computed(() => (tm('home.notes.items') as string[]).map((note) => rt(note)))
+const newsPath = computed(() => (locale.value === 'en' ? '/en/news' : '/news'))
 
 const entrance = ref(false)
 onMounted(() => {
   entrance.value = consumeDirectRootEntrance()
+  if (newsPreview.length > 0) processInstagramEmbeds()
 })
 </script>
 
@@ -29,6 +37,7 @@ onMounted(() => {
 
     <section id="about" class="about">
       <h2 class="title">{{ t('home.about.title') }}</h2>
+      <p class="subtitle">{{ t('home.about.subtitle') }}</p>
       <p class="period">{{ festivalPeriod }}</p>
     </section>
 
@@ -47,6 +56,30 @@ onMounted(() => {
       </dl>
     </section>
 
+    <section id="access" class="access split">
+      <h2 class="title">{{ t('home.access.title') }}</h2>
+      <div class="access-body">
+        <p class="venue">{{ t('home.access.venue') }}</p>
+        <p class="address">{{ t('home.access.address') }}</p>
+        <a class="pill-button" :href="mapUrl" target="_blank" rel="noopener noreferrer">
+          {{ t('home.access.map') }}
+        </a>
+      </div>
+    </section>
+
+    <section id="news" class="news-section split">
+      <h2 class="title">{{ t('home.news.title') }}</h2>
+      <div class="news-body">
+        <div v-if="newsPreview.length > 0" class="news-grid">
+          <InstagramEmbed v-for="url in newsPreview" :key="url" :url="url" />
+        </div>
+        <p v-else class="empty">{{ t('home.news.empty') }}</p>
+        <RouterLink class="pill-button" :to="newsPath">
+          {{ t('home.news.more') }}
+        </RouterLink>
+      </div>
+    </section>
+
     <section id="notes" class="notes split">
       <h2 class="title">{{ t('home.notes.title') }}</h2>
       <ul class="notes-list">
@@ -56,6 +89,15 @@ onMounted(() => {
 
     <section id="contact" class="contact split">
       <h2 class="title">{{ t('home.contact.title') }}</h2>
+      <div class="contact-body">
+        <p class="lead">{{ t('home.contact.lead') }}</p>
+        <dl class="list">
+          <div v-for="item in contactItems" :key="item" class="row">
+            <dt>{{ t(`home.contact.${item}.label`) }}</dt>
+            <dd>{{ t(`home.contact.${item}.value`) }}</dd>
+          </div>
+        </dl>
+      </div>
     </section>
 
     <HomeFooter />
@@ -145,6 +187,13 @@ onMounted(() => {
     font-size: clamp(2rem, 6vw, 3rem);
   }
 
+  .subtitle {
+    margin-top: 16px;
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    letter-spacing: 0.02em;
+    color: var(--color-text);
+  }
+
   .period {
     margin-top: 12px;
     font-size: clamp(1rem, 3vw, 1.25rem);
@@ -208,6 +257,74 @@ onMounted(() => {
   }
 }
 
+.pill-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: var(--color-heading);
+  color: var(--color-background);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.access {
+  align-items: start;
+
+  .access-body {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 6px;
+  }
+
+  .venue {
+    margin: 0;
+    color: var(--color-heading);
+  }
+
+  .address {
+    margin: 0;
+    font-size: 13px;
+    color: var(--color-text-mute);
+  }
+
+  .pill-button {
+    margin-top: 14px;
+  }
+}
+
+.news-section {
+  align-items: start;
+
+  .news-body {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 24px;
+    width: 100%;
+  }
+
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(326px, 100%), 1fr));
+    gap: 16px;
+    width: 100%;
+  }
+
+  .empty {
+    margin: 0;
+    color: var(--color-text-mute);
+  }
+}
+
 .notes {
   align-items: start;
 
@@ -235,6 +352,43 @@ onMounted(() => {
         border-radius: 50%;
         background: var(--color-text-mute);
       }
+    }
+  }
+}
+
+.contact {
+  align-items: start;
+
+  .contact-body {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .lead {
+    margin: 0;
+    line-height: 1.7;
+    color: var(--color-text);
+  }
+
+  .list .row {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 16px;
+    padding: 16px 0;
+    border-top: 1px solid var(--color-border);
+
+    &:last-child {
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    dt {
+      color: var(--color-text-mute);
+    }
+
+    dd {
+      margin: 0;
+      color: var(--color-heading);
     }
   }
 }

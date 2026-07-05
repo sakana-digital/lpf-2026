@@ -10,6 +10,8 @@ defineProps<{ entrance?: boolean }>()
 const items = [
   { id: 'top', labelKey: 'home.toc.top' },
   { id: 'overview', labelKey: 'home.toc.overview' },
+  { id: 'access', labelKey: 'home.toc.access' },
+  { id: 'news', labelKey: 'home.toc.news' },
   { id: 'notes', labelKey: 'home.toc.notes' },
   { id: 'contact', labelKey: 'home.toc.contact' },
 ] as const

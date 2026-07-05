@@ -46,19 +46,22 @@
     "toc": {
       "top": "トップ",
       "overview": "概要",
+      "access": "アクセス",
+      "news": "ニュース",
       "notes": "注意事項",
       "contact": "お問い合わせ",
       "toggle": "目次を開閉"
     },
     "about": {
-      "title": "八宝祭 - LiSA Papillon Festival 2026"
+      "title": "八宝祭 - LiSA Papillon Festival 2026",
+      "subtitle": "神奈川県立神奈川総合産業高等学校 全日制 の文化祭"
     },
     "dock": {
       "explore": "イベントを探す"
     },
     "details": {
       "title": "概要",
-      "date": { "label": "日程", "note": "1日目 10:30–15:30 ／ 2日目 10:00–15:00" },
+      "date": { "label": "日程", "note": "⚠️ TBD: 1日目 10:30–15:30 ／ 2日目 10:00–15:00" },
       "venue": {
         "label": "会場",
         "value": "神奈川県立神奈川総合産業高等学校",
@@ -67,8 +70,19 @@
       "admission": {
         "label": "入場",
         "value": "一般公開",
-        "note": "予約は不要です"
+        "note": "予約は不要，入場無料です"
       }
+    },
+    "access": {
+      "title": "アクセス",
+      "venue": "神奈川県立神奈川総合産業高等学校",
+      "address": "神奈川県相模原市南区文京1-11-1",
+      "map": "Google マップで確認"
+    },
+    "news": {
+      "title": "ニュース",
+      "more": "ニュースをもっと見る",
+      "empty": "ニュースはまだありません"
     },
     "notes": {
       "title": "注意事項",
@@ -81,7 +95,11 @@
       ]
     },
     "contact": {
-      "title": "お問い合わせ"
+      "title": "お問い合わせ",
+      "lead": "文化祭については学校にお問い合わせください。",
+      "school": { "label": "学校名", "value": "神奈川県立神奈川総合産業高等学校" },
+      "address": { "label": "住所", "value": "〒252-0307 神奈川県相模原市南区文京1-11-1" },
+      "phone": { "label": "電話番号", "value": "042-742-6111" }
     },
     "footer": {
       "copyright": "© 2026 神奈川県立神奈川総合産業高等学校 全日制 実行委員会",

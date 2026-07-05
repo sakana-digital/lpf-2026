@@ -44,14 +44,15 @@
       "label": "Key Visual"
     },
     "about": {
-      "title": "Happo-sai - LiSA Papillon Festival 2026"
+      "title": "Happo-sai - LiSA Papillon Festival 2026",
+      "subtitle": "The school festival of Kanagawa Sogo Sangyo High School (Full-time)"
     },
     "dock": {
       "explore": "Explore"
     },
     "details": {
       "title": "Overview",
-      "date": { "label": "Date", "note": "Day 1 10:30–15:30 / Day 2 10:00–15:00" },
+      "date": { "label": "Date", "note": "⚠️ TBD: Day 1 10:30–15:30 / Day 2 10:00–15:00" },
       "venue": {
         "label": "Venue",
         "value": "Kanagawa Sogo Sangyo High School",
@@ -60,8 +61,19 @@
       "admission": {
         "label": "Admission",
         "value": "Open to the public",
-        "note": "No reservation required"
+        "note": "No reservation required · Free admission"
       }
+    },
+    "access": {
+      "title": "Access",
+      "venue": "Kanagawa Sogo Sangyo High School",
+      "address": "1-11-1 Bunkyo, Minami-ku, Sagamihara, Kanagawa",
+      "map": "View on Google Maps"
+    },
+    "news": {
+      "title": "News",
+      "more": "See all news",
+      "empty": "There is no news yet."
     },
     "notes": {
       "title": "Notes",
@@ -74,7 +86,14 @@
       ]
     },
     "contact": {
-      "title": "Contact"
+      "title": "Contact",
+      "lead": "For inquiries about the festival, please contact the school.",
+      "school": { "label": "School", "value": "Kanagawa Sogo Sangyo High School" },
+      "address": {
+        "label": "Address",
+        "value": "1-11-1 Bunkyo, Minami-ku, Sagamihara, Kanagawa 252-0307"
+      },
+      "phone": { "label": "Phone", "value": "+81-42-742-6111" }
     },
     "footer": {
       "copyright": "© 2026 Kanagawa Sogo Sangyo High School (Full-time) Executive Committee",
@@ -83,6 +102,8 @@
     "toc": {
       "top": "Top",
       "overview": "Overview",
+      "access": "Access",
+      "news": "News",
       "notes": "Notes",
       "contact": "Contact",
       "toggle": "Toggle table of contents"
