@@ -9,16 +9,18 @@ defineProps<{ entrance?: boolean }>()
 
 const items = [
   { id: 'top', labelKey: 'home.toc.top' },
-  { id: 'information', labelKey: 'home.toc.information' },
+  { id: 'overview', labelKey: 'home.toc.overview' },
+  { id: 'notes', labelKey: 'home.toc.notes' },
   { id: 'contact', labelKey: 'home.toc.contact' },
 ] as const
 
-const activeId = useScrollSpy(items.map((item) => item.id))
+const { activeId, select } = useScrollSpy(items.map((item) => item.id))
 const isOpen = ref(true)
 
 function jumpTo(id: string) {
   const el = document.getElementById(id)
   if (!el) return
+  select(id)
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
 }
@@ -35,7 +37,7 @@ function jumpTo(id: string) {
             :aria-current="activeId === item.id ? 'true' : undefined"
             @click="jumpTo(item.id)"
           >
-            <span class="toc-tick"></span>
+            <span class="toc-tick"><span class="toc-tick-bar"></span></span>
             <span class="toc-label">{{ t(item.labelKey) }}</span>
           </button>
         </li>
@@ -135,14 +137,22 @@ function jumpTo(id: string) {
   }
 
   .toc-tick {
-    width: 24px;
-    height: 2px;
-    border-radius: 999px;
-    background: currentColor;
-    opacity: 0.5;
-    transition:
-      opacity 0.2s,
-      width 0.2s;
+    display: flex;
+    align-items: center;
+    /* Fixed slot: the bar grows inside it so the label never shifts and the
+       centered nav keeps a constant width. */
+    width: 32px;
+
+    .toc-tick-bar {
+      width: 24px;
+      height: 2px;
+      border-radius: 999px;
+      background: currentColor;
+      opacity: 0.5;
+      transition:
+        opacity 0.2s,
+        width 0.2s;
+    }
   }
 
   .toc-label {
@@ -152,7 +162,7 @@ function jumpTo(id: string) {
   &.is-active {
     color: var(--color-heading);
 
-    .toc-tick {
+    .toc-tick .toc-tick-bar {
       width: 32px;
       opacity: 1;
     }
@@ -199,7 +209,7 @@ function jumpTo(id: string) {
 
   .toc-nav,
   .toc-link,
-  .toc-link .toc-tick,
+  .toc-link .toc-tick-bar,
   .toc-toggle,
   .toc-toggle svg {
     transition: none;
