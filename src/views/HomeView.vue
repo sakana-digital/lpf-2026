@@ -319,6 +319,10 @@ onMounted(() => {
     width: 100%;
   }
 
+  .pill-button {
+    align-self: center;
+  }
+
   .empty {
     margin: 0;
     color: var(--color-text-mute);
