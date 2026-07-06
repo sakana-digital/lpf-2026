@@ -50,6 +50,10 @@
       "noImage": "No Image",
       "location": "{floor}F"
     },
+    "nodes": {
+      "graphLabel": "団体ノードグラフ",
+      "hint": "ドラッグで回転"
+    },
     "schedule": {
       "daySwitch": "日程切り替え",
       "dayLabel": "Day {day} · {date}",

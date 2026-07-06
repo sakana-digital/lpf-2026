@@ -50,6 +50,10 @@
       "noImage": "No Image",
       "location": "{floor}F"
     },
+    "nodes": {
+      "graphLabel": "Organization node graph",
+      "hint": "Drag to rotate"
+    },
     "schedule": {
       "daySwitch": "Switch day",
       "dayLabel": "Day {day} · {date}",
