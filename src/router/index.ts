@@ -7,7 +7,6 @@ import type { ExploreTab } from '@/composables/useExploreTab'
 import HomeView from '@/views/HomeView.vue'
 import NewsView from '@/views/NewsView.vue'
 import ExploreView from '@/views/ExploreView.vue'
-import ExploreMapTab from '@/components/explore/ExploreMapTab.vue'
 import ExploreEventsTab from '@/components/explore/ExploreEventsTab.vue'
 import ExploreScheduleTab from '@/components/explore/ExploreScheduleTab.vue'
 import ExploreNodesTab from '@/components/explore/ExploreNodesTab.vue'
@@ -23,7 +22,7 @@ function exploreRoutes(suffix: string): RouteRecordRaw {
       {
         path: 'map',
         name: `explore-map${suffix}`,
-        component: ExploreMapTab,
+        component: () => import('@/components/explore/ExploreMapTab.vue'),
         meta: { title: 'explore.tabs.map' },
       },
       {

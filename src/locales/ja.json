@@ -35,6 +35,11 @@
       "schedule": "スケジュール",
       "nodes": "ノードグラフ"
     },
+    "map": {
+      "floorSwitch": "階の切り替え",
+      "floor": "{floor}F",
+      "overview": "全体"
+    },
     "events": {
       "gridLabel": "企画一覧",
       "classHeader": "{classNo}組",

@@ -35,6 +35,11 @@
       "schedule": "Schedule",
       "nodes": "Node Graph"
     },
+    "map": {
+      "floorSwitch": "Switch floor",
+      "floor": "{floor}F",
+      "overview": "All"
+    },
     "events": {
       "gridLabel": "Event list",
       "classHeader": "{classNo}",
