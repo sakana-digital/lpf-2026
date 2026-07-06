@@ -78,7 +78,9 @@ function slotStyle(slot: ScheduleSlot) {
 
 <style scoped>
 .schedule {
-  padding: 24px 0 48px;
+  width: min(1024px, 100%);
+  margin-inline: auto;
+  padding: 24px 16px 48px;
 
   .day-switch {
     display: flex;

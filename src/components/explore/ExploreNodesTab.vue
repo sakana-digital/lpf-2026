@@ -94,7 +94,7 @@ function nodeStyle(p: (typeof projected.value)[number]) {
       >
         {{ nodeLabel(p.id) }}
       </button>
-      <span class="hint">{{ t('explore.nodes.hint') }}</span>
+      <span v-if="!selectedOrg" class="hint">{{ t('explore.nodes.hint') }}</span>
     </div>
 
     <div v-if="selectedOrg" class="detail">
@@ -114,16 +114,22 @@ function nodeStyle(p: (typeof projected.value)[number]) {
 
 <style scoped>
 .nodes {
-  padding: 24px 0 48px;
+  position: relative;
 
   .viewport {
     position: relative;
-    height: min(60vh, 560px);
-    border: 1px solid var(--color-border);
+    height: calc(100svh - var(--header-height) - var(--page-title-height));
     overflow: hidden;
     touch-action: none;
     cursor: grab;
     user-select: none;
+
+    @media (max-height: 500px) {
+      html[data-orientation='landscape-left'] &,
+      html[data-orientation='landscape-right'] & {
+        height: 100svh;
+      }
+    }
 
     &.dragging {
       cursor: grabbing;
@@ -186,13 +192,17 @@ function nodeStyle(p: (typeof projected.value)[number]) {
   }
 
   .detail {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    margin-top: 16px;
     padding: 12px 16px;
     border: 1px solid var(--color-border);
+    background: var(--color-background);
 
     .info {
       display: flex;

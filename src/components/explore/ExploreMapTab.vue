@@ -43,7 +43,6 @@ const { floor, setFloor } = useIsoMap(canvasRef)
   .viewport {
     position: relative;
     height: min(60vh, 560px);
-    border: 1px solid var(--color-border);
     overflow: hidden;
 
     canvas {

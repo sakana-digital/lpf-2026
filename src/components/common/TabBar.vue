@@ -63,9 +63,18 @@ watch(
   flex-shrink: 0;
   align-items: center;
   gap: 12px;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
   .tab {
+    flex-shrink: 0;
     padding-bottom: 2px;
+    white-space: nowrap;
     color: var(--color-text-mute);
     transition: color 0.15s;
 

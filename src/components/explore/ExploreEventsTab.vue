@@ -30,6 +30,7 @@ function onSelect(id: string | null) {
 
 <style scoped>
 .events {
-  padding: 24px 0 48px;
+  padding: 24px 16px 48px;
+  overflow-x: auto;
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { classNumbers, organizations } from '@/config/organizations'
 import type { Organization } from '@/config/organizations'
@@ -31,10 +31,28 @@ function onSelect(org: Organization | null) {
 function isExpanded(rowIndex: number, colIndex: number): boolean {
   return selectedPos.value?.row === rowIndex && selectedPos.value?.col === colIndex
 }
+
+const gridRef = useTemplateRef<HTMLElement>('gridRef')
+
+// グリッドトラックの遷移後に呼ばれ，展開セルを可視範囲へ収める
+function scrollSelectedIntoView() {
+  if (!props.selectedId) return
+  gridRef.value
+    ?.querySelector('.cell.expanded')
+    ?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
+}
+
+onMounted(scrollSelectedIntoView)
 </script>
 
 <template>
-  <div class="events-grid" :style="gridStyle" :aria-label="t('explore.events.gridLabel')">
+  <div
+    ref="gridRef"
+    class="events-grid"
+    :style="gridStyle"
+    :aria-label="t('explore.events.gridLabel')"
+    @transitionend.self="scrollSelectedIntoView"
+  >
     <div class="gutter corner" aria-hidden="true"></div>
     <div v-for="classNo in classNumbers" :key="classNo" class="gutter col-head">
       {{ t('explore.events.classHeader', { classNo }) }}
