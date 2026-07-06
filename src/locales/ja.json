@@ -37,7 +37,11 @@
   },
   "news": {
     "instagramLink": "Instagram で見る",
-    "noPosts": "no posts yet"
+    "noPosts": "no posts yet",
+    "links": {
+      "setsumeikai": "学校説明会",
+      "bunkasai": "文化祭の開催が決定しました"
+    }
   },
   "home": {
     "keyVisual": {

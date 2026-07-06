@@ -1,6 +1,18 @@
-export const newsLinks: string[] = [
-  'https://www.instagram.com/p/DaaLdsfypB5/',
-  'https://www.instagram.com/p/DaHRKF9Sh_k/',
-  'https://www.instagram.com/p/DaCxgl5Slr6/',
-  'https://www.instagram.com/p/DaCxQjrEkIi/',
+export type NewsItem =
+  | { type: 'instagram'; url: string }
+  | { type: 'link'; url: string; titleKey: string; source: 'school' }
+
+export const newsLinks: NewsItem[] = [
+  {
+    type: 'link',
+    url: 'https://www.pen-kanagawa.ed.jp/kanagawasogosangyo-h/zennichi/nyugaku/setsumeikai.html',
+    titleKey: 'news.links.setsumeikai',
+    source: 'school',
+  },
+  {
+    type: 'link',
+    url: 'https://www.pen-kanagawa.ed.jp/kanagawasogosangyo-h/zennichi/seikatsu/bunkasai.html',
+    titleKey: 'news.links.bunkasai',
+    source: 'school',
+  },
 ]

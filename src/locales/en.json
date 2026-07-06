@@ -37,7 +37,11 @@
   },
   "news": {
     "instagramLink": "View on Instagram",
-    "noPosts": "no posts yet"
+    "noPosts": "no posts yet",
+    "links": {
+      "setsumeikai": "School Information Session",
+      "bunkasai": "Festival Dates Have Been Announced"
+    }
   },
   "home": {
     "keyVisual": {

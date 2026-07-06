@@ -2,10 +2,11 @@
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import InstagramIcon from '@/components/common/icons/instagram.vue'
+import HomeIcon from '@/components/common/icons/home.vue'
 import CopyIcon from '@/components/common/icons/copy.vue'
 import CheckIcon from '@/components/common/icons/check.vue'
 import { useCopyLink } from '@/composables/useCopyLink'
-import { instagramUrl } from '@/config/social'
+import { instagramUrl, schoolUrl } from '@/config/social'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -28,6 +29,15 @@ function copyCurrentLink() {
         <CheckIcon v-if="copied" />
         <CopyIcon v-else />
       </button>
+      <a
+        class="icon-link"
+        :href="schoolUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        :aria-label="t('siteLinks.school')"
+      >
+        <HomeIcon />
+      </a>
       <a
         class="icon-link"
         :href="instagramUrl"
@@ -63,12 +73,8 @@ function copyCurrentLink() {
     border: none;
     border-radius: 50%;
     background: transparent;
-    color: inherit;
+    color: var(--color-text-mute);
     cursor: pointer;
-
-    &:hover {
-      color: var(--color-heading);
-    }
   }
 }
 </style>
