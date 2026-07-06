@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { newsLinks } from '@/config/newsLinks'
 import InstagramEmbed from '@/components/news/InstagramEmbed.vue'
+import NewsLinkCard from '@/components/news/NewsLinkCard.vue'
 import { processInstagramEmbeds } from '@/composables/useInstagramEmbed'
 import { useMasonryLayout } from '@/composables/useMasonryLayout'
 
@@ -45,13 +46,14 @@ onMounted(processInstagramEmbeds)
   <div ref="wrapper" class="news-links">
     <div v-if="newsLinks.length > 0" class="links-grid" :style="gridStyle">
       <div
-        v-for="(link, i) in newsLinks"
-        :key="link"
+        v-for="(item, i) in newsLinks"
+        :key="item.url"
         class="lane-item"
         :data-index="i"
         :style="itemStyle(i)"
       >
-        <InstagramEmbed :url="link" />
+        <InstagramEmbed v-if="item.type === 'instagram'" :url="item.url" />
+        <NewsLinkCard v-else :url="item.url" :title-key="item.titleKey" :source="item.source" />
       </div>
     </div>
     <p v-else class="no-posts">{{ t('news.noPosts') }}</p>
