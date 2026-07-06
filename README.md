@@ -1,4 +1,4 @@
-# 八宝祭 - LiSA Papillon Festival 2026 Official Website
+# 八宝祭 (Happo-sai) - LiSA Papillon Festival 2026 Official Website
 
 ## 主な機能
 
