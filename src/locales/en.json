@@ -32,7 +32,42 @@
     "tabs": {
       "map": "Venue Map",
       "events": "Events",
+      "schedule": "Schedule",
       "nodes": "Node Graph"
+    },
+    "map": {
+      "floorSwitch": "Switch floor",
+      "floor": "{floor}F",
+      "overview": "All"
+    },
+    "events": {
+      "gridLabel": "Event list",
+      "classHeader": "{classNo}",
+      "gradeHeader": "Y{grade}",
+      "clubHeader": "Clubs",
+      "classLabel": "{grade}-{classNo}",
+      "tbd": "⚠️ TBD",
+      "noImage": "No Image",
+      "location": "{floor}F"
+    },
+    "nodes": {
+      "graphLabel": "Organization node graph",
+      "hint": "Drag to rotate"
+    },
+    "schedule": {
+      "daySwitch": "Switch day",
+      "dayLabel": "Day {day} · {date}",
+      "empty": "No schedule has been announced yet.",
+      "venues": {
+        "courtyard": "Courtyard Stage",
+        "avRoom": "AV Room"
+      },
+      "slots": {
+        "opening": "Opening Ceremony",
+        "closing": "Closing Ceremony",
+        "liveStage": "⚠️ TBD: Stage Act",
+        "screening": "⚠️ TBD: Screening"
+      }
     }
   },
   "news": {
@@ -116,6 +151,13 @@
   },
   "siteLinks": {
     "school": "High School Official Site"
+  },
+  "bookmarks": {
+    "title": "Bookmarks",
+    "toggle": "Toggle bookmarks",
+    "empty": "No bookmarks yet",
+    "add": "Add bookmark",
+    "remove": "Remove bookmark"
   },
   "notFound": {
     "title": "Page not found",

@@ -10,6 +10,7 @@ const tabs = computed(() => {
   return [
     { to: `${prefix}/explore/map`, label: t('explore.tabs.map') },
     { to: `${prefix}/explore/events`, label: t('explore.tabs.events') },
+    { to: `${prefix}/explore/schedule`, label: t('explore.tabs.schedule') },
     { to: `${prefix}/explore/nodes`, label: t('explore.tabs.nodes') },
   ]
 })

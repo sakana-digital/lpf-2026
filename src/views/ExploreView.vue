@@ -14,5 +14,10 @@ import ExploreTabBar from '@/components/explore/ExploreTabBar.vue'
 <style scoped>
 .explore {
   min-height: 100svh;
+
+  .content {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
 }
 </style>

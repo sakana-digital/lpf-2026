@@ -2,12 +2,13 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import type { WritableComputedRef } from 'vue'
 import { i18n } from '@/i18n'
-import { getLastExploreTab, setLastExploreTab } from '@/composables/useExploreTab'
+import { EXPLORE_TABS, getLastExploreTab, setLastExploreTab } from '@/composables/useExploreTab'
+import type { ExploreTab } from '@/composables/useExploreTab'
 import HomeView from '@/views/HomeView.vue'
 import NewsView from '@/views/NewsView.vue'
 import ExploreView from '@/views/ExploreView.vue'
-import ExploreMapTab from '@/components/explore/ExploreMapTab.vue'
 import ExploreEventsTab from '@/components/explore/ExploreEventsTab.vue'
+import ExploreScheduleTab from '@/components/explore/ExploreScheduleTab.vue'
 import ExploreNodesTab from '@/components/explore/ExploreNodesTab.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 
@@ -21,7 +22,7 @@ function exploreRoutes(suffix: string): RouteRecordRaw {
       {
         path: 'map',
         name: `explore-map${suffix}`,
-        component: ExploreMapTab,
+        component: () => import('@/components/explore/ExploreMapTab.vue'),
         meta: { title: 'explore.tabs.map' },
       },
       {
@@ -29,6 +30,12 @@ function exploreRoutes(suffix: string): RouteRecordRaw {
         name: `explore-events${suffix}`,
         component: ExploreEventsTab,
         meta: { title: 'explore.tabs.events' },
+      },
+      {
+        path: 'schedule',
+        name: `explore-schedule${suffix}`,
+        component: ExploreScheduleTab,
+        meta: { title: 'explore.tabs.schedule' },
       },
       {
         path: 'nodes',
@@ -98,8 +105,10 @@ router.afterEach((to) => {
   const suffix = i18n.global.t('pageTitle.suffix')
   document.title = key ? `${i18n.global.t(key)} | ${suffix}` : suffix
 
-  const tabMatch = to.name?.toString().match(/^explore-(map|events|nodes)(?:-en)?$/)
-  if (tabMatch) setLastExploreTab(tabMatch[1] as 'map' | 'events' | 'nodes')
+  const tabMatch = to.name?.toString().match(/^explore-([a-z]+)(?:-en)?$/)
+  if (tabMatch && (EXPLORE_TABS as readonly string[]).includes(tabMatch[1]!)) {
+    setLastExploreTab(tabMatch[1] as ExploreTab)
+  }
 })
 
 export default router

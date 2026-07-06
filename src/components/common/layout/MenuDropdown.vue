@@ -6,6 +6,7 @@ import ThemeToggle from './ThemeToggle.vue'
 import LanguageToggle from './LanguageToggle.vue'
 import PageTree from './PageTree.vue'
 import SiteLinks from './SiteLinks.vue'
+import BookmarksMenu from './BookmarksMenu.vue'
 import ProgressiveBlur from './ProgressiveBlur.vue'
 
 const { t } = useI18n()
@@ -49,6 +50,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
           <ThemeToggle />
           <LanguageToggle />
           <SiteLinks />
+          <BookmarksMenu />
           <PageTree />
         </div>
       </div>

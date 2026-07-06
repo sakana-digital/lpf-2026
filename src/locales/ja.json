@@ -32,7 +32,42 @@
     "tabs": {
       "map": "会場マップ",
       "events": "イベント",
+      "schedule": "スケジュール",
       "nodes": "ノードグラフ"
+    },
+    "map": {
+      "floorSwitch": "階の切り替え",
+      "floor": "{floor}F",
+      "overview": "全体"
+    },
+    "events": {
+      "gridLabel": "企画一覧",
+      "classHeader": "{classNo}組",
+      "gradeHeader": "{grade}年",
+      "clubHeader": "部活",
+      "classLabel": "{grade}-{classNo}",
+      "tbd": "⚠️ TBD",
+      "noImage": "No Image",
+      "location": "{floor}F"
+    },
+    "nodes": {
+      "graphLabel": "団体ノードグラフ",
+      "hint": "ドラッグで回転"
+    },
+    "schedule": {
+      "daySwitch": "日程切り替え",
+      "dayLabel": "Day {day} · {date}",
+      "empty": "スケジュールはまだありません",
+      "venues": {
+        "courtyard": "中庭ステージ",
+        "avRoom": "視聴覚室"
+      },
+      "slots": {
+        "opening": "開会式",
+        "closing": "閉会式",
+        "liveStage": "⚠️ TBD: ステージ企画",
+        "screening": "⚠️ TBD: 上映企画"
+      }
     }
   },
   "news": {
@@ -113,6 +148,13 @@
   },
   "siteLinks": {
     "school": "高校公式サイト"
+  },
+  "bookmarks": {
+    "title": "Bookmarks",
+    "toggle": "ブックマークを開閉",
+    "empty": "ブックマークはまだありません",
+    "add": "ブックマークに追加",
+    "remove": "ブックマークを解除"
   },
   "notFound": {
     "title": "ページが見つかりません",

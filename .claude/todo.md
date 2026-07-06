@@ -1,8 +1,1 @@
-- Pages
-  - /: Bookmarks on sidebar
-  - /explore: Schedule
-    - 画像斜めにスライド
-    - Absynth 6
-    - Suno AI
-    - Ableton
-  - /gallery
+- /gallery
