@@ -5,6 +5,7 @@ import HomeSidebar from '@/components/home/HomeSidebar.vue'
 import HomeDock from '@/components/home/HomeDock.vue'
 import HomeFooter from '@/components/home/HomeFooter.vue'
 import InstagramEmbed from '@/components/news/InstagramEmbed.vue'
+import NewsLinkCard from '@/components/news/NewsLinkCard.vue'
 import { consumeDirectRootEntrance } from '@/composables/useRootEntrance'
 import { processInstagramEmbeds } from '@/composables/useInstagramEmbed'
 import { formatFestivalPeriod } from '@/config/festival'
@@ -76,7 +77,10 @@ onMounted(() => {
       <h2 class="title">{{ t('home.news.title') }}</h2>
       <div class="news-body">
         <div v-if="newsPreview.length > 0" class="news-grid">
-          <InstagramEmbed v-for="url in newsPreview" :key="url" :url="url" />
+          <template v-for="item in newsPreview" :key="item.url">
+            <InstagramEmbed v-if="item.type === 'instagram'" :url="item.url" />
+            <NewsLinkCard v-else :url="item.url" :title-key="item.titleKey" :source="item.source" />
+          </template>
         </div>
         <p v-else class="empty">{{ t('home.news.empty') }}</p>
         <RouterLink class="pill-button" :to="newsPath">
