@@ -74,3 +74,7 @@ export const organizations: Organization[] = [
 export function getOrganization(id: string): Organization | undefined {
   return organizations.find((org) => org.id === id)
 }
+
+export function organizationName(org: Organization, locale: string): string {
+  return (locale === 'en' && org.nameEn) || org.name
+}

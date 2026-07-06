@@ -35,6 +35,16 @@
       "schedule": "Schedule",
       "nodes": "Node Graph"
     },
+    "events": {
+      "gridLabel": "Event list",
+      "classHeader": "{classNo}",
+      "gradeHeader": "Y{grade}",
+      "clubHeader": "Clubs",
+      "classLabel": "{grade}-{classNo}",
+      "tbd": "⚠️ TBD",
+      "noImage": "No Image",
+      "location": "{floor}F"
+    },
     "schedule": {
       "daySwitch": "Switch day",
       "dayLabel": "Day {day} · {date}",

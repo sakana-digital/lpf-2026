@@ -35,6 +35,16 @@
       "schedule": "スケジュール",
       "nodes": "ノードグラフ"
     },
+    "events": {
+      "gridLabel": "企画一覧",
+      "classHeader": "{classNo}組",
+      "gradeHeader": "{grade}年",
+      "clubHeader": "部活",
+      "classLabel": "{grade}-{classNo}",
+      "tbd": "⚠️ TBD",
+      "noImage": "No Image",
+      "location": "{floor}F"
+    },
     "schedule": {
       "daySwitch": "日程切り替え",
       "dayLabel": "Day {day} · {date}",

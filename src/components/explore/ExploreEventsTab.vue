@@ -1,15 +1,30 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { getOrganization } from '@/config/organizations'
+import EventsGrid from './EventsGrid.vue'
+
+const route = useRoute()
+const router = useRouter()
+
+const selectedId = computed(() => {
+  const org = route.query.org
+  return typeof org === 'string' && getOrganization(org) ? org : undefined
+})
+
+function onSelect(id: string | null) {
+  router.replace({ query: { ...route.query, org: id ?? undefined } })
+}
+</script>
 
 <template>
-  <div class="tab-content"></div>
+  <div class="events">
+    <EventsGrid :selected-id="selectedId" @select="onSelect" />
+  </div>
 </template>
 
 <style scoped>
-.tab-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 50vh;
-  color: var(--color-text-mute);
+.events {
+  padding: 24px 0 48px;
 }
 </style>
