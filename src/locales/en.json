@@ -32,6 +32,7 @@
     "tabs": {
       "map": "Venue Map",
       "events": "Events",
+      "schedule": "Schedule",
       "nodes": "Node Graph"
     }
   },
