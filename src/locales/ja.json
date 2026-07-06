@@ -63,7 +63,7 @@
     "dock": {
       "explore": "イベントを探す"
     },
-    "details": {
+    "overview": {
       "title": "概要",
       "date": { "label": "日程", "note": "⚠️ TBD: 1日目 10:30–15:30 ／ 2日目 10:00–15:00" },
       "venue": {
