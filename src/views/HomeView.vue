@@ -59,8 +59,13 @@ onMounted(() => {
     <section id="access" class="access split">
       <h2 class="title">{{ t('home.access.title') }}</h2>
       <div class="access-body">
-        <p class="venue">{{ t('home.access.venue') }}</p>
-        <p class="address">{{ t('home.access.address') }}</p>
+        <div class="location">
+          <div class="info">
+            <p class="venue">{{ t('home.access.venue') }}</p>
+            <p class="address">{{ t('home.access.address') }}</p>
+          </div>
+          <p class="station">{{ t('home.access.station') }}</p>
+        </div>
         <a class="pill-button" :href="mapUrl" target="_blank" rel="noopener noreferrer">
           {{ t('home.access.map') }}
         </a>
@@ -286,6 +291,23 @@ onMounted(() => {
     gap: 6px;
   }
 
+  .location {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+
+    @media (max-width: 600px) {
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+
+  .info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
   .venue {
     margin: 0;
     color: var(--color-heading);
@@ -297,7 +319,17 @@ onMounted(() => {
     color: var(--color-text-mute);
   }
 
+  .station {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding-left: 16px;
+    border-left: 2px solid var(--color-heading);
+    font-size: 15px;
+  }
+
   .pill-button {
+    align-self: center;
     margin-top: 14px;
   }
 }
