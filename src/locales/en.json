@@ -1,6 +1,6 @@
 {
   "pageTitle": {
-    "suffix": "Happōsai - LiSA Papillon Festival 2026"
+    "suffix": "Happo-sai - LiSA Papillon Festival 2026"
   },
   "dayBadge": {
     "day1": "Day 1",
@@ -33,6 +33,85 @@
       "map": "Venue Map",
       "events": "Events",
       "nodes": "Node Graph"
+    }
+  },
+  "news": {
+    "instagramLink": "View on Instagram",
+    "noPosts": "no posts yet",
+    "links": {
+      "setsumeikai": "School Information Session",
+      "bunkasai": "Festival Dates Have Been Announced"
+    }
+  },
+  "home": {
+    "keyVisual": {
+      "label": "Key Visual"
+    },
+    "about": {
+      "title": "Happo-sai\nLiSA Papillon Festival 2026",
+      "subtitle": "The school festival of Kanagawa Sogo Sangyo High School (Full-time)"
+    },
+    "dock": {
+      "explore": "Explore"
+    },
+    "details": {
+      "title": "Overview",
+      "date": { "label": "Date", "note": "⚠️ TBD: Day 1 10:30–15:30 / Day 2 10:00–15:00" },
+      "venue": {
+        "label": "Venue",
+        "value": "Kanagawa Sogo Sangyo High School",
+        "note": "1-11-1 Bunkyo, Minami-ku, Sagamihara, Kanagawa"
+      },
+      "admission": {
+        "label": "Admission",
+        "value": "Open to the public",
+        "note": "No reservation required · Free admission"
+      }
+    },
+    "access": {
+      "title": "Access",
+      "venue": "Kanagawa Sogo Sangyo High School",
+      "address": "1-11-1 Bunkyo, Minami-ku, Sagamihara, Kanagawa",
+      "station": "About 20 min walk from Odakyu Sagami-Ono Station",
+      "map": "View on Google Maps"
+    },
+    "news": {
+      "title": "News",
+      "more": "See all news",
+      "empty": "There is no news yet."
+    },
+    "notes": {
+      "title": "Notes",
+      "items": [
+        "Smoking and alcohol are prohibited within the school buildings.",
+        "Please come by public transportation or bicycle.",
+        "No trash bins are provided. Please take your trash home with you.",
+        "⚠️ TBD: Whether cash will be accepted is still undefined.",
+        "⚠️ TBD: Photography and video recording rules are still undefined."
+      ]
+    },
+    "contact": {
+      "title": "Contact",
+      "lead": "For inquiries about the festival, please contact the school.",
+      "school": { "label": "School", "value": "Kanagawa Sogo Sangyo High School" },
+      "address": {
+        "label": "Address",
+        "value": "1-11-1 Bunkyo, Minami-ku, Sagamihara, Kanagawa 252-0307"
+      },
+      "phone": { "label": "Phone", "value": "+81-42-742-6111" }
+    },
+    "footer": {
+      "copyright": "© 2026 Kanagawa Sogo Sangyo High School (Full-time) Executive Committee",
+      "home": "Home"
+    },
+    "toc": {
+      "top": "Top",
+      "overview": "Overview",
+      "access": "Access",
+      "news": "News",
+      "notes": "Notes",
+      "contact": "Contact",
+      "toggle": "Toggle table of contents"
     }
   },
   "siteLinks": {

@@ -2,8 +2,8 @@
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { pages } from '../config/pages'
-import { filterEntries, useSearch } from '../composables/useSearch'
+import { pages } from '@/config/pages'
+import { filterEntries, useSearch } from '@/composables/useSearch'
 
 const { t, locale, messages, availableLocales } = useI18n()
 const { isOpen, close } = useSearch()
@@ -131,7 +131,7 @@ watch(isOpen, (open) => {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 96px 16px 16px;
+  padding: 192px 16px 16px;
 
   .backdrop {
     position: absolute;

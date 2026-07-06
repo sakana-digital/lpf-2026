@@ -58,18 +58,10 @@ watch(
 
 <style scoped>
 .tab-bar {
-  position: fixed;
-  top: calc(var(--header-height) + var(--page-title-height));
-  left: 0;
-  right: 0;
-  z-index: 10;
+  position: relative;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
-  justify-content: flex-start;
-  width: min(1024px, 100%);
-  height: var(--tabbar-height);
-  margin: 0 auto;
-  padding: 0 16px;
   gap: 12px;
 
   .tab {

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import ExploreTabBar from '../components/ExploreTabBar.vue'
+import ExploreTabBar from '@/components/explore/ExploreTabBar.vue'
 </script>
 
 <template>
   <main class="explore">
+    <ExploreTabBar />
     <div class="content">
-      <ExploreTabBar />
       <RouterView />
     </div>
   </main>
@@ -13,10 +13,6 @@ import ExploreTabBar from '../components/ExploreTabBar.vue'
 
 <style scoped>
 .explore {
-  min-height: calc(100svh - var(--footer-height));
-}
-
-.content {
-  padding-top: calc(var(--page-title-height) + var(--tabbar-height));
+  min-height: 100svh;
 }
 </style>

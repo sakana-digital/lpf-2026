@@ -1,18 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { resolveFestivalDay } from '@/config/festival'
 
 const { t } = useI18n()
 
-const jstDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(new Date())
-
-const day =
-  jstDate === '2026-09-26'
-    ? 1
-    : jstDate === '2026-09-27'
-      ? 2
-      : jstDate > '2026-09-27'
-        ? 'ended'
-        : null
+const day = resolveFestivalDay()
 </script>
 
 <template>

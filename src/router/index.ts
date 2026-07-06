@@ -1,14 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import type { WritableComputedRef } from 'vue'
-import { i18n } from '../i18n'
-import { getLastExploreTab, setLastExploreTab } from '../composables/useExploreTab'
-import HomeView from '../views/HomeView.vue'
-import ExploreView from '../views/ExploreView.vue'
-import ExploreMapTab from '../components/ExploreMapTab.vue'
-import ExploreEventsTab from '../components/ExploreEventsTab.vue'
-import ExploreNodesTab from '../components/ExploreNodesTab.vue'
-import NotFoundView from '../views/NotFoundView.vue'
+import { i18n } from '@/i18n'
+import { getLastExploreTab, setLastExploreTab } from '@/composables/useExploreTab'
+import HomeView from '@/views/HomeView.vue'
+import NewsView from '@/views/NewsView.vue'
+import ExploreView from '@/views/ExploreView.vue'
+import ExploreMapTab from '@/components/explore/ExploreMapTab.vue'
+import ExploreEventsTab from '@/components/explore/ExploreEventsTab.vue'
+import ExploreNodesTab from '@/components/explore/ExploreNodesTab.vue'
+import NotFoundView from '@/views/NotFoundView.vue'
 
 function exploreRoutes(suffix: string): RouteRecordRaw {
   return {
@@ -47,6 +48,12 @@ const router = createRouter({
       name: 'home',
       component: HomeView,
     },
+    {
+      path: '/news',
+      name: 'news',
+      component: NewsView,
+      meta: { pageTitle: 'sitemap.news', title: 'search.titles.news' },
+    },
     { ...exploreRoutes(''), path: '/explore' },
     {
       path: '/en',
@@ -57,12 +64,18 @@ const router = createRouter({
           name: 'home-en',
           component: HomeView,
         },
+        {
+          path: 'news',
+          name: 'news-en',
+          component: NewsView,
+          meta: { pageTitle: 'sitemap.news', title: 'search.titles.news' },
+        },
         exploreRoutes('-en'),
         {
           path: ':pathMatch(.*)*',
           name: 'not-found-en',
           component: NotFoundView,
-          meta: { title: 'notFound.title', pageTitle: 'notFound.title' },
+          meta: { title: 'notFound.title' },
         },
       ],
     },
