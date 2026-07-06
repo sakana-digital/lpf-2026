@@ -140,6 +140,13 @@
   "siteLinks": {
     "school": "高校公式サイト"
   },
+  "bookmarks": {
+    "title": "Bookmarks",
+    "toggle": "ブックマークを開閉",
+    "empty": "ブックマークはまだありません",
+    "add": "ブックマークに追加",
+    "remove": "ブックマークを解除"
+  },
   "notFound": {
     "title": "ページが見つかりません",
     "description": "お探しのページは\n見つかりません。",

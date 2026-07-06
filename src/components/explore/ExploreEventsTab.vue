@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getOrganization } from '@/config/organizations'
+import BookmarkToggle from '@/components/common/BookmarkToggle.vue'
 import EventsGrid from './EventsGrid.vue'
 
 const route = useRoute()
@@ -19,7 +20,11 @@ function onSelect(id: string | null) {
 
 <template>
   <div class="events">
-    <EventsGrid :selected-id="selectedId" @select="onSelect" />
+    <EventsGrid :selected-id="selectedId" @select="onSelect">
+      <template #cell-actions="{ org }">
+        <BookmarkToggle v-if="org" :org-id="org.id" />
+      </template>
+    </EventsGrid>
   </div>
 </template>
 
