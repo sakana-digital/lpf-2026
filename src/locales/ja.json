@@ -34,6 +34,21 @@
       "events": "イベント",
       "schedule": "スケジュール",
       "nodes": "ノードグラフ"
+    },
+    "schedule": {
+      "daySwitch": "日程切り替え",
+      "dayLabel": "Day {day} · {date}",
+      "empty": "スケジュールはまだありません",
+      "venues": {
+        "courtyard": "中庭ステージ",
+        "avRoom": "視聴覚室"
+      },
+      "slots": {
+        "opening": "開会式",
+        "closing": "閉会式",
+        "liveStage": "⚠️ TBD: ステージ企画",
+        "screening": "⚠️ TBD: 上映企画"
+      }
     }
   },
   "news": {

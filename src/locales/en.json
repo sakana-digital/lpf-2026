@@ -34,6 +34,21 @@
       "events": "Events",
       "schedule": "Schedule",
       "nodes": "Node Graph"
+    },
+    "schedule": {
+      "daySwitch": "Switch day",
+      "dayLabel": "Day {day} · {date}",
+      "empty": "No schedule has been announced yet.",
+      "venues": {
+        "courtyard": "Courtyard Stage",
+        "avRoom": "AV Room"
+      },
+      "slots": {
+        "opening": "Opening Ceremony",
+        "closing": "Closing Ceremony",
+        "liveStage": "⚠️ TBD: Stage Act",
+        "screening": "⚠️ TBD: Screening"
+      }
     }
   },
   "news": {
