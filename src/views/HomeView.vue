@@ -12,7 +12,7 @@ import { formatFestivalPeriod } from '@/config/festival'
 import { newsLinks } from '@/config/newsLinks'
 
 const { t, tm, rt, locale } = useI18n()
-const detailItems = ['date', 'venue', 'admission'] as const
+const overviewItems = ['date', 'venue', 'admission'] as const
 const contactItems = ['school', 'address', 'phone'] as const
 const mapUrl = 'https://maps.app.goo.gl/HMdtfGcyfxPd2hUT8'
 const newsPreview = newsLinks.slice(0, 3)
@@ -42,16 +42,16 @@ onMounted(() => {
       <p class="period">{{ festivalPeriod }}</p>
     </section>
 
-    <section id="overview" class="details split">
-      <h2 class="title">{{ t('home.details.title') }}</h2>
+    <section id="overview" class="overview split">
+      <h2 class="title">{{ t('home.overview.title') }}</h2>
       <dl class="list">
-        <div v-for="item in detailItems" :key="item" class="row">
-          <dt>{{ t(`home.details.${item}.label`) }}</dt>
+        <div v-for="item in overviewItems" :key="item" class="row">
+          <dt>{{ t(`home.overview.${item}.label`) }}</dt>
           <dd>
             <span class="value">{{
-              item === 'date' ? festivalPeriod : t(`home.details.${item}.value`)
+              item === 'date' ? festivalPeriod : t(`home.overview.${item}.value`)
             }}</span>
-            <span class="note">{{ t(`home.details.${item}.note`) }}</span>
+            <span class="note">{{ t(`home.overview.${item}.note`) }}</span>
           </dd>
         </div>
       </dl>
@@ -224,7 +224,32 @@ onMounted(() => {
   }
 }
 
-.details {
+.pill-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: var(--color-heading);
+  color: var(--color-background);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.title {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--color-heading);
+}
+
+.overview {
   .list {
     .row {
       display: grid;
@@ -267,24 +292,6 @@ onMounted(() => {
   }
 }
 
-.pill-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border-radius: 999px;
-  background: var(--color-heading);
-  color: var(--color-background);
-  font-size: 14px;
-  letter-spacing: 0.02em;
-  text-decoration: none;
-  transition: opacity 0.15s;
-
-  &:hover {
-    opacity: 0.85;
-  }
-}
-
 .access {
   align-items: start;
 
@@ -293,12 +300,14 @@ onMounted(() => {
     flex-direction: column;
     align-items: start;
     gap: 6px;
+    width: 100%;
   }
 
   .location {
     display: flex;
     align-items: stretch;
     gap: 16px;
+    width: 100%;
 
     @media (max-width: 600px) {
       flex-direction: column;
@@ -310,6 +319,7 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    flex: 1;
   }
 
   .venue {
@@ -326,6 +336,7 @@ onMounted(() => {
   .station {
     display: flex;
     align-items: center;
+    flex: 1;
     margin: 0;
     padding-left: 16px;
     border-left: 2px solid var(--color-heading);
@@ -432,12 +443,5 @@ onMounted(() => {
       color: var(--color-heading);
     }
   }
-}
-
-.title {
-  font-size: clamp(1.5rem, 4vw, 2rem);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  color: var(--color-heading);
 }
 </style>
