@@ -22,7 +22,7 @@ const hasBookmarks = computed(() => bookmarkIds.value.length > 0)
   position: fixed;
   right: 0;
   bottom: 0;
-  z-index: 100;
+  z-index: 102;
   display: none;
   flex-direction: column;
   align-items: flex-start;
