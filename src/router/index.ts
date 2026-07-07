@@ -5,12 +5,13 @@ import { i18n } from '@/i18n'
 import { EXPLORE_TABS, getLastExploreTab, setLastExploreTab } from '@/composables/useExploreTab'
 import type { ExploreTab } from '@/composables/useExploreTab'
 import HomeView from '@/views/HomeView.vue'
-import NewsView from '@/views/NewsView.vue'
-import ExploreView from '@/views/ExploreView.vue'
-import ExploreEventsTab from '@/components/explore/ExploreEventsTab.vue'
-import ExploreScheduleTab from '@/components/explore/ExploreScheduleTab.vue'
-import ExploreNodesTab from '@/components/explore/ExploreNodesTab.vue'
-import NotFoundView from '@/views/NotFoundView.vue'
+
+const NewsView = () => import('@/views/NewsView.vue')
+const ExploreView = () => import('@/views/ExploreView.vue')
+const ExploreEventsTab = () => import('@/components/explore/ExploreEventsTab.vue')
+const ExploreScheduleTab = () => import('@/components/explore/ExploreScheduleTab.vue')
+const ExploreNodesTab = () => import('@/components/explore/ExploreNodesTab.vue')
+const NotFoundView = () => import('@/views/NotFoundView.vue')
 
 function exploreRoutes(suffix: string): RouteRecordRaw {
   return {
