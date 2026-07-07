@@ -20,7 +20,7 @@ const items = computed(() =>
           : t('explore.events.clubHeader'),
       name: organizationName(org, locale.value),
       to: {
-        path: `${locale.value === 'en' ? '/en' : ''}/explore/events`,
+        path: `${locale.value === 'en' ? '/en' : ''}/explore/events/`,
         query: { org: org.id },
       },
     })),

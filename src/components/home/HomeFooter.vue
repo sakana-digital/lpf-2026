@@ -5,7 +5,7 @@ import Logo from '@/components/common/icons/logo.vue'
 
 const { t, locale } = useI18n()
 
-const homePath = computed(() => (locale.value === 'en' ? '/en' : '/'))
+const homePath = computed(() => (locale.value === 'en' ? '/en/' : '/'))
 </script>
 
 <template>

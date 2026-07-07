@@ -8,10 +8,10 @@ const { t, locale } = useI18n()
 const tabs = computed(() => {
   const prefix = locale.value === 'en' ? '/en' : ''
   return [
-    { to: `${prefix}/explore/map`, label: t('explore.tabs.map') },
-    { to: `${prefix}/explore/events`, label: t('explore.tabs.events') },
-    { to: `${prefix}/explore/schedule`, label: t('explore.tabs.schedule') },
-    { to: `${prefix}/explore/nodes`, label: t('explore.tabs.nodes') },
+    { to: `${prefix}/explore/map/`, label: t('explore.tabs.map') },
+    { to: `${prefix}/explore/events/`, label: t('explore.tabs.events') },
+    { to: `${prefix}/explore/schedule/`, label: t('explore.tabs.schedule') },
+    { to: `${prefix}/explore/nodes/`, label: t('explore.tabs.nodes') },
   ]
 })
 </script>

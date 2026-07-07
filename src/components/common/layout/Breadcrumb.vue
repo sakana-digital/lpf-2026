@@ -11,7 +11,7 @@ const crumbs = computed(() => {
   return segments
     .map((segment, index) => ({
       label: segment,
-      to: prefix + '/' + segments.slice(0, index + 1).join('/'),
+      to: prefix + '/' + segments.slice(0, index + 1).join('/') + '/',
     }))
     .filter((crumb) => {
       const resolved = router.resolve(crumb.to)
