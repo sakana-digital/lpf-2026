@@ -90,7 +90,7 @@ const explorePath = computed(() => (locale.value === 'en' ? '/en/explore' : '/ex
 }
 
 .header.is-entrance .global-nav {
-  animation: header-reveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: header-reveal 0.9s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes header-reveal {
