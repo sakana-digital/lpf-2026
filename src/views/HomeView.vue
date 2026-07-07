@@ -32,7 +32,25 @@ onMounted(() => {
   <main class="home">
     <section id="top" class="key-visual" :class="{ 'is-entrance': entrance }">
       <figure class="frame">
-        <img src="/posters/lpf-2026-main.jpg" :alt="t('home.keyVisual.label')" />
+        <picture>
+          <source
+            type="image/avif"
+            srcset="/posters/lpf-2026-main-724.avif 724w, /posters/lpf-2026-main-1448.avif 1448w"
+            sizes="min(100vw, 724px)"
+          />
+          <source
+            type="image/webp"
+            srcset="/posters/lpf-2026-main-724.webp 724w, /posters/lpf-2026-main-1448.webp 1448w"
+            sizes="min(100vw, 724px)"
+          />
+          <img
+            src="/posters/lpf-2026-main.jpg"
+            width="1448"
+            height="2046"
+            fetchpriority="high"
+            :alt="t('home.keyVisual.label')"
+          />
+        </picture>
       </figure>
     </section>
 
@@ -150,6 +168,10 @@ onMounted(() => {
       html[data-orientation='landscape-right'] & {
         padding-block: 0;
       }
+    }
+
+    picture {
+      display: contents;
     }
 
     img {
