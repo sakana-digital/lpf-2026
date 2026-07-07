@@ -99,6 +99,7 @@ const router = createRouter({
 router.beforeEach((to) => {
   const isEn = to.path === '/en' || to.path.startsWith('/en/')
   ;(i18n.global.locale as WritableComputedRef<string>).value = isEn ? 'en' : 'ja'
+  document.documentElement.lang = isEn ? 'en' : 'ja'
 })
 
 router.afterEach((to) => {
