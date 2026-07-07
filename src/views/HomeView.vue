@@ -19,7 +19,7 @@ const newsPreview = newsLinks.slice(0, 3)
 
 const festivalPeriod = computed(() => formatFestivalPeriod(locale.value))
 const notes = computed(() => (tm('home.notes.items') as string[]).map((note) => rt(note)))
-const newsPath = computed(() => (locale.value === 'en' ? '/en/news' : '/news'))
+const newsPath = computed(() => (locale.value === 'en' ? '/en/news/' : '/news/'))
 
 const entrance = ref(false)
 const newsSection = useTemplateRef('newsSection')

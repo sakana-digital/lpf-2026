@@ -35,7 +35,7 @@ const entries = computed(() =>
       if (typeof title === 'string') keywords.push(title)
     }
     return {
-      to: locale.value === 'en' ? (page.path === '/' ? '/en' : `/en${page.path}`) : page.path,
+      to: locale.value === 'en' ? `/en${page.path}` : page.path,
       label: t(page.titleKey ?? page.labelKey),
       keywords,
     }

@@ -8,7 +8,7 @@ const { t, locale } = useI18n()
 const nodes = computed(() =>
   pages.map((page) => ({
     ...page,
-    to: locale.value === 'en' ? (page.path === '/' ? '/en' : `/en${page.path}`) : page.path,
+    to: locale.value === 'en' ? `/en${page.path}` : page.path,
   })),
 )
 

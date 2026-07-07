@@ -6,7 +6,7 @@ import { useScrolledPast } from '@/composables/useScrolledPast'
 
 const { t, locale } = useI18n()
 
-const explorePath = computed(() => (locale.value === 'en' ? '/en/explore' : '/explore'))
+const explorePath = computed(() => (locale.value === 'en' ? '/en/explore/' : '/explore/'))
 
 const visible = useScrolledPast(160)
 </script>

@@ -8,7 +8,7 @@ const { locale } = useI18n()
 
 // /en プレフィックスを除いた ja 用パス
 const jaPath = computed(() => route.path.replace(/^\/en(?=\/|$)/, '') || '/')
-const enPath = computed(() => (jaPath.value === '/' ? '/en' : `/en${jaPath.value}`))
+const enPath = computed(() => `/en${jaPath.value}`)
 </script>
 
 <template>

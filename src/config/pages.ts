@@ -13,13 +13,13 @@ export const pages: PageNode[] = [
     keywordsKey: 'search.keywords.home',
   },
   {
-    path: '/explore',
+    path: '/explore/',
     labelKey: 'sitemap.explore',
     titleKey: 'search.titles.explore',
     keywordsKey: 'search.keywords.explore',
   },
   {
-    path: '/news',
+    path: '/news/',
     labelKey: 'sitemap.news',
     titleKey: 'search.titles.news',
     keywordsKey: 'search.keywords.news',

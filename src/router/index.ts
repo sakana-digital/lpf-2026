@@ -97,6 +97,12 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
+  if (!to.path.endsWith('/')) {
+    return { path: `${to.path}/`, query: to.query, hash: to.hash, replace: true }
+  }
+})
+
+router.beforeEach((to) => {
   const isEn = to.path === '/en' || to.path.startsWith('/en/')
   ;(i18n.global.locale as WritableComputedRef<string>).value = isEn ? 'en' : 'ja'
   document.documentElement.lang = isEn ? 'en' : 'ja'

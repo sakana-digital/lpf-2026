@@ -20,8 +20,8 @@ onMounted(() => {
   entrance.value = isDirectRootEntrance()
 })
 
-const homePath = computed(() => (locale.value === 'en' ? '/en' : '/'))
-const explorePath = computed(() => (locale.value === 'en' ? '/en/explore' : '/explore'))
+const homePath = computed(() => (locale.value === 'en' ? '/en/' : '/'))
+const explorePath = computed(() => (locale.value === 'en' ? '/en/explore/' : '/explore/'))
 </script>
 
 <template>

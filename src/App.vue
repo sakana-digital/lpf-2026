@@ -17,13 +17,18 @@ watchEffect(() => {
 })
 
 watchEffect(() => {
-  document.querySelectorAll('link[hreflang]').forEach((el) => el.remove())
+  document.querySelectorAll('link[rel="canonical"], link[hreflang]').forEach((el) => el.remove())
 
   const path = route.path
   const isEn = path === '/en' || path.startsWith('/en/')
   const jaPath = isEn ? path.slice(3) || '/' : path
-  const enPath = '/en' + (jaPath === '/' ? '' : jaPath)
+  const enPath = `/en${jaPath}`
   const origin = window.location.origin
+
+  const canonical = document.createElement('link')
+  canonical.rel = 'canonical'
+  canonical.href = `${origin}${path}`
+  document.head.appendChild(canonical)
 
   for (const { hreflang, href } of [
     { hreflang: 'ja', href: `${origin}${jaPath}` },
