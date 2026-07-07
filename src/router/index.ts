@@ -98,7 +98,7 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   if (!to.path.endsWith('/')) {
-    return { path: `${to.path}/`, query: to.query, hash: to.hash, replace: true }
+    return { path: `${to.path}/`, query: to.query, hash: to.hash }
   }
 })
 
