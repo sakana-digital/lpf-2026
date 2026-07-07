@@ -28,3 +28,23 @@ export async function processInstagramEmbeds() {
   await loadEmbedScript()
   window.instgrm?.Embeds.process()
 }
+
+export function processInstagramEmbedsNear(el: Element, rootMargin = '400px') {
+  if (!('IntersectionObserver' in window)) {
+    processInstagramEmbeds()
+    return () => {}
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        observer.disconnect()
+        processInstagramEmbeds()
+      }
+    },
+    { rootMargin },
+  )
+  observer.observe(el)
+
+  return () => observer.disconnect()
+}

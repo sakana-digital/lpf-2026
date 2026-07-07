@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import HomeSidebar from '@/components/home/HomeSidebar.vue'
 import HomeDock from '@/components/home/HomeDock.vue'
@@ -7,7 +7,7 @@ import HomeFooter from '@/components/home/HomeFooter.vue'
 import InstagramEmbed from '@/components/news/InstagramEmbed.vue'
 import NewsLinkCard from '@/components/news/NewsLinkCard.vue'
 import { consumeDirectRootEntrance } from '@/composables/useRootEntrance'
-import { processInstagramEmbeds } from '@/composables/useInstagramEmbed'
+import { processInstagramEmbedsNear } from '@/composables/useInstagramEmbed'
 import { formatFestivalPeriod } from '@/config/festival'
 import { newsLinks } from '@/config/newsLinks'
 
@@ -22,9 +22,18 @@ const notes = computed(() => (tm('home.notes.items') as string[]).map((note) => 
 const newsPath = computed(() => (locale.value === 'en' ? '/en/news' : '/news'))
 
 const entrance = ref(false)
+const newsSection = useTemplateRef('newsSection')
+let stopEmbedObserver: (() => void) | undefined
+
 onMounted(() => {
   entrance.value = consumeDirectRootEntrance()
-  if (newsPreview.length > 0) processInstagramEmbeds()
+  if (newsPreview.length > 0 && newsSection.value) {
+    stopEmbedObserver = processInstagramEmbedsNear(newsSection.value)
+  }
+})
+
+onBeforeUnmount(() => {
+  stopEmbedObserver?.()
 })
 </script>
 
@@ -91,7 +100,7 @@ onMounted(() => {
       </div>
     </section>
 
-    <section id="news" class="news-section split">
+    <section id="news" ref="newsSection" class="news-section split">
       <h2 class="title">{{ t('home.news.title') }}</h2>
       <div class="news-body">
         <div v-if="newsPreview.length > 0" class="news-grid">
