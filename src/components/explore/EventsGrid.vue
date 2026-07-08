@@ -4,9 +4,13 @@ import { useI18n } from 'vue-i18n'
 import { classNumbers, organizations } from '@/config/organizations'
 import type { Organization } from '@/config/organizations'
 import { buildEventRows, columnTracks, findCellPosition, rowTracks } from '@/lib/eventsGrid'
+import type { OrgStatus } from '../../../shared/status'
 import EventsGridCell from './EventsGridCell.vue'
 
-const props = defineProps<{ selectedId?: string }>()
+const props = defineProps<{
+  selectedId?: string
+  statuses?: ReadonlyMap<string, OrgStatus>
+}>()
 
 const emit = defineEmits<{ select: [id: string | null] }>()
 
@@ -67,6 +71,7 @@ onMounted(scrollSelectedIntoView)
         :key="cell?.id ?? `${row.id}-${colIndex}`"
         :org="cell"
         :expanded="isExpanded(rowIndex, colIndex)"
+        :status="cell ? statuses?.get(cell.id) : undefined"
         @select="onSelect(cell)"
       >
         <template #actions>

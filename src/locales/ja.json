@@ -176,5 +176,17 @@
       "news": ["ニュース", "お知らせ", "新着", "news"],
       "explore": ["探索", "地図", "マップ", "会場", "アクセス", "explore", "maps", "access"]
     }
+  },
+  "status": {
+    "sales": {
+      "available": "販売中",
+      "low": "残りわずか",
+      "soldout": "完売"
+    },
+    "congestion": {
+      "low": "空いている",
+      "medium": "やや混雑",
+      "high": "混雑"
+    }
   }
 }

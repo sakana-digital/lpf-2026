@@ -37,3 +37,7 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+
+# Wrangler
+.wrangler
+apps/status/seed.sql

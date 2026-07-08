@@ -1,0 +1,40 @@
+html[data-theme='light'] {
+  --color-background: oklch(100% 0 0);
+  --color-background-soft: oklch(97.91% 0 0);
+  --color-border: oklch(35.62% 0 0 / 0.12);
+  --color-text: oklch(0% 0 0);
+  --color-text-mute: oklch(35.62% 0 0 / 0.66);
+  --color-accent: oklch(61.528% 0.19605 260.671);
+  --color-on-accent: oklch(100% 0 0);
+}
+
+html[data-theme='dark'] {
+  --color-background: oklch(0% 0 0);
+  --color-background-soft: oklch(25.2% 0 0);
+  --color-border: oklch(44.59% 0 0 / 0.48);
+  --color-text: oklch(100% 0 0);
+  --color-text-mute: oklch(94.01% 0 0 / 0.64);
+  --color-accent: oklch(61.528% 0.19605 260.671);
+  --color-on-accent: oklch(100% 0 0);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  min-height: 100svh;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Hiragino Kaku Gothic ProN',
+    'Noto Sans JP',
+    sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}

@@ -179,5 +179,17 @@
       "news": ["news", "updates", "announcements"],
       "explore": ["explore", "maps", "venue", "access", "location"]
     }
+  },
+  "status": {
+    "sales": {
+      "available": "On sale",
+      "low": "Almost sold out",
+      "soldout": "Sold out"
+    },
+    "congestion": {
+      "low": "Not busy",
+      "medium": "Somewhat busy",
+      "high": "Busy"
+    }
   }
 }

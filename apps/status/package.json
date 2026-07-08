@@ -1,0 +1,27 @@
+{
+  "name": "lpf-2026-status",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev",
+    "build": "vp build",
+    "dev:worker": "wrangler dev",
+    "type-check": "vue-tsc -p tsconfig.json --noEmit && tsc -p tsconfig.worker.json --noEmit",
+    "deploy": "vp build && wrangler deploy"
+  },
+  "dependencies": {
+    "vue": "beta",
+    "vue-i18n": "^11.4.6"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250705.0",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "@vue/tsconfig": "^0.9.1",
+    "typescript": "~6.0.3",
+    "vite": "npm:@voidzero-dev/vite-plus-core@^0.2.4",
+    "vite-plus": "latest",
+    "vue-tsc": "^3.3.7",
+    "wrangler": "^4.24.0"
+  }
+}
