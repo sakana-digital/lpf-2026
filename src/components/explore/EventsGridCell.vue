@@ -3,9 +3,10 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { organizationName } from '@/config/organizations'
 import type { Organization } from '@/config/organizations'
+import type { OrgStatus } from '../../../shared/status'
 import OrgImage from './OrgImage.vue'
 
-const props = defineProps<{ org: Organization | null; expanded: boolean }>()
+const props = defineProps<{ org: Organization | null; expanded: boolean; status?: OrgStatus }>()
 
 defineEmits<{ select: [] }>()
 
@@ -38,6 +39,14 @@ const cellLabel = computed(() => {
     <Transition name="detail">
       <span v-if="expanded" class="detail">
         <OrgImage :src="org.image" :alt="displayName || cellLabel" />
+        <span v-if="status" class="status">
+          <span class="badge" :class="`sales-${status.sales}`">
+            {{ t(`status.sales.${status.sales}`) }}
+          </span>
+          <span class="badge" :class="`congestion-${status.congestion}`">
+            {{ t(`status.congestion.${status.congestion}`) }}
+          </span>
+        </span>
         <span class="meta">
           <span v-if="org.location" class="location">
             {{ t('explore.events.location', { floor: org.location.floor }) }}
@@ -114,6 +123,27 @@ const cellLabel = computed(() => {
     gap: 8px;
     flex: 1;
     min-height: 0;
+
+    .status {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+
+      .badge {
+        padding: 2px 8px;
+        border: 1px solid var(--color-border);
+        font-size: 10px;
+        line-height: 1.4;
+        white-space: nowrap;
+
+        &.sales-soldout,
+        &.congestion-high {
+          border-color: var(--color-heading);
+          background: var(--color-heading);
+          color: var(--color-background);
+        }
+      }
+    }
 
     .meta {
       display: flex;
