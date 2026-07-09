@@ -2,7 +2,7 @@
 
 ## 主な機能
 
-### src/: 公開サイト
+### apps/web/: 公開サイト
 
 - 文化祭の模擬店の状況を表示
 
@@ -61,22 +61,26 @@ bun run format
 
 ## ディレクトリ構成
 
-Bun workspaces によるモノレポ構成です。ルートが本体サイト（Cloudflare Pages）、`apps/` 配下に付随アプリを配置しています。
+Bun workspaces によるモノレポ構成。各アプリを `apps/` 配下に置き、`shared/` を全アプリで共有する。
 
 ```
-src/                # 本体サイト（Cloudflare Pages）
-├── assets/         # CSS, SVG, 画像
-├── components/     # UI コンポーネント
-├── composables/    # useSearch, useTheme
-├── config/         # ページ定義（pages.ts）
-├── locales/        # 多言語リソース（ja.json / en.json）
-├── router/         # ルーティング定義
-└── views/          # 各ページ
-functions/          # Pages Functions（/api を Worker へプロキシ）
-shared/             # 本体と apps/ で共有する型・定数
+shared/                 # 全アプリで共有する型・定数
 apps/
-└── status/         # 模擬店ステータス入力アプリ（Cloudflare Workers + D1）
+├── web/                # 本体サイト（Cloudflare Pages）
+│   ├── src/
+│   │   ├── assets/     # CSS, SVG, 画像
+│   │   ├── components/ # UI コンポーネント
+│   │   ├── composables/# useSearch, useTheme
+│   │   ├── config/     # ページ定義（pages.ts）
+│   │   ├── locales/    # 多言語リソース（ja.json / en.json）
+│   │   ├── router/     # ルーティング定義
+│   │   └── views/      # 各ページ
+│   ├── functions/      # Pages Functions（/api を Worker へプロキシ）
+│   └── public/         # 静的アセット
+└── status/             # 模擬店ステータス入力アプリ（Cloudflare Workers + D1）
 ```
+
+ルートには workspace 設定と、`bun dev` などを `apps/web` へ委譲するスクリプトのみを置く。
 
 ## デプロイ
 

@@ -7,33 +7,17 @@
   ],
   "type": "module",
   "scripts": {
-    "dev": "vp dev",
-    "build": "run-p type-check \"build-only {@}\" --",
-    "preview": "vp preview",
-    "build-only": "vp build",
-    "type-check": "vue-tsc --build",
-    "format": "vp fmt src/",
+    "dev": "bun --filter lpf-2026-web dev",
+    "build": "bun --filter lpf-2026-web build",
+    "preview": "bun --filter lpf-2026-web preview",
+    "type-check": "bun --filter lpf-2026-web type-check",
+    "format": "bun --filter lpf-2026-web format",
     "prepare": "vp config"
   },
-  "dependencies": {
-    "three": "^0.185.1",
-    "vitest": "^4.1.9",
-    "vue": "beta",
-    "vue-i18n": "^11.4.6",
-    "vue-router": "^5.1.0"
-  },
   "devDependencies": {
-    "@tsconfig/node24": "^24.0.4",
-    "@types/node": "^24.13.3",
-    "@types/three": "^0.185.0",
-    "@vitejs/plugin-vue": "^6.0.7",
-    "@vue/tsconfig": "^0.9.1",
-    "npm-run-all2": "^8.0.4",
     "typescript": "~6.0.3",
     "vite": "npm:@voidzero-dev/vite-plus-core@^0.2.4",
-    "vite-plugin-vue-devtools": "^8.1.5",
-    "vite-plus": "latest",
-    "vue-tsc": "^3.3.7"
+    "vite-plus": "latest"
   },
   "overrides": {
     "@vue/compat": "beta",

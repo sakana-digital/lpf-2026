@@ -1,7 +1,7 @@
 # lpf-2026-status — 模擬店ステータス入力アプリ
 
 模擬店団体が「販売状況」「混雑状況」を各 3 択で送信する WebApp と、その API（Cloudflare Workers + D1）。
-本体サイト（Cloudflare Pages）の `/explore` は、Pages Functions（[functions/api/[[path]].ts](../../functions/api/%5B%5Bpath%5D%5D.ts)）の Service Binding 経由で同一ドメインの `/api/status` からデータを取得する。
+本体サイト（Cloudflare Pages）の `/explore` は、Pages Functions（[apps/web/functions/api/[[path]].ts](../web/functions/api/%5B%5Bpath%5D%5D.ts)）の Service Binding 経由で同一ドメインの `/api/status` からデータを取得する。
 
 ## アーキテクチャ
 
@@ -78,11 +78,11 @@ wrangler 未ログインなら先に `bunx wrangler login`。以下すべて `ap
 
 ## 2 回目以降のデプロイ
 
-| 変更した場所                            | 操作                                                                            |
-| --------------------------------------- | ------------------------------------------------------------------------------- |
-| `apps/status/`（入力 SPA / Worker API） | `bun run deploy`                                                                |
-| 本体 SPA・`functions/`・`shared/`       | `git push` のみ（Pages が自動ビルド）                                           |
-| `migrations/` に SQL を追加             | `bunx wrangler d1 migrations apply lpf-2026-status --remote` → `bun run deploy` |
+| 変更した場所                                     | 操作                                                                            |
+| ------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `apps/status/`（入力 SPA / Worker API）          | `bun run deploy`                                                                |
+| `apps/web/`（本体 SPA・`functions/`）・`shared/` | `git push` のみ（Pages が自動ビルド）                                           |
+| `migrations/` に SQL を追加                      | `bunx wrangler d1 migrations apply lpf-2026-status --remote` → `bun run deploy` |
 
 ## デプロイ後の確認
 
