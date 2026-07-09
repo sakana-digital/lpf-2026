@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { organizationName } from '@/config/organizations'
 import type { Organization } from '@/config/organizations'
-import type { OrgStatus } from '../../../shared/status'
+import type { OrgStatus } from '../../../../../shared/status'
 import OrgImage from './OrgImage.vue'
 
 const props = defineProps<{ org: Organization | null; expanded: boolean; status?: OrgStatus }>()

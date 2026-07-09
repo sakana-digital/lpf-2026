@@ -1,10 +1,7 @@
-import { fileURLToPath, URL } from 'node:url'
+import { defineConfig } from 'vite-plus'
 
-import { defineConfig, lazyPlugins } from 'vite-plus'
-import vue from '@vitejs/plugin-vue'
-import vueDevTools from 'vite-plugin-vue-devtools'
-
-// https://vite.dev/config/
+// Repo-wide vite-plus tooling config (pre-commit staged check, lint, format).
+// Per-app build/dev config lives in each workspace's own vite.config.ts.
 export default defineConfig({
   staged: {
     '*': 'vp check --fix',
@@ -17,17 +14,5 @@ export default defineConfig({
   fmt: {
     semi: false,
     singleQuote: true,
-  },
-  server: {
-    host: true,
-    proxy: {
-      '/api': 'http://localhost:8787',
-    },
-  },
-  plugins: lazyPlugins(() => [vue(), vueDevTools()]),
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
-    },
   },
 })

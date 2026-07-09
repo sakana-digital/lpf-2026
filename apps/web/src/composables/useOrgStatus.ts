@@ -1,5 +1,5 @@
 import { onMounted, onUnmounted, ref } from 'vue'
-import type { OrgStatus } from '../../shared/status'
+import type { OrgStatus } from '../../../../shared/status'
 
 const POLL_INTERVAL_MS = 60_000
 
