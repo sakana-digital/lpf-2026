@@ -56,13 +56,24 @@ bun run format
 
 ## ディレクトリ構成
 
+Bun workspaces によるモノレポ構成。ルートが本体サイト（Cloudflare Pages）、`apps/` 配下に付随アプリを置く。
+
 ```
-src/
-├── assets/       # CSS, SVG, 画像
-├── components/   # UI コンポーネント
-├── composables/  # useSearch, useTheme
-├── config/       # ページ定義（pages.ts）
-├── locales/      # 多言語リソース（ja.json / en.json）
-├── router/       # ルーティング定義
-└── views/        # 各ページ
+src/                # 本体サイト（Cloudflare Pages）
+├── assets/         # CSS, SVG, 画像
+├── components/     # UI コンポーネント
+├── composables/    # useSearch, useTheme
+├── config/         # ページ定義（pages.ts）
+├── locales/        # 多言語リソース（ja.json / en.json）
+├── router/         # ルーティング定義
+└── views/          # 各ページ
+functions/          # Pages Functions（/api を Worker へプロキシ）
+shared/             # 本体と apps/ で共有する型・定数
+apps/
+└── status/         # 模擬店ステータス入力アプリ（Cloudflare Workers + D1）
 ```
+
+## デプロイ
+
+- 本体（Pages）: main に push すると Git 連携で自動ビルド・デプロイ
+- 模擬店ステータスアプリ（Workers）: 手順は [apps/status/README.md](apps/status/README.md) を参照
