@@ -1,21 +1,13 @@
-html[data-theme='light'] {
+html {
   --color-background: oklch(100% 0 0);
-  --color-background-soft: oklch(97.91% 0 0);
   --color-border: oklch(35.62% 0 0 / 0.12);
   --color-text: oklch(0% 0 0);
   --color-text-mute: oklch(35.62% 0 0 / 0.66);
-  --color-accent: oklch(61.528% 0.19605 260.671);
+  --color-accent: oklch(60.918% 0.19952 261.464);
   --color-on-accent: oklch(100% 0 0);
-}
-
-html[data-theme='dark'] {
-  --color-background: oklch(0% 0 0);
-  --color-background-soft: oklch(25.2% 0 0);
-  --color-border: oklch(44.59% 0 0 / 0.48);
-  --color-text: oklch(100% 0 0);
-  --color-text-mute: oklch(94.01% 0 0 / 0.64);
-  --color-accent: oklch(61.528% 0.19605 260.671);
-  --color-on-accent: oklch(100% 0 0);
+  --color-status-good: oklch(60.415% 0.15726 152.505);
+  --color-status-warn: oklch(95.145% 0.20428 107.337);
+  --color-status-bad: oklch(63.873% 0.25541 10.492);
 }
 
 *,

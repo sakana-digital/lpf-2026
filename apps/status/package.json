@@ -11,8 +11,7 @@
     "deploy": "vp build && wrangler deploy"
   },
   "dependencies": {
-    "vue": "beta",
-    "vue-i18n": "^11.4.6"
+    "vue": "beta"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250705.0",
