@@ -2,8 +2,13 @@
 
 ## 主な機能
 
-- 日本語 / 英語の多言語対応（vue-i18n、`/` が日本語・`/en` が英語）
-- three.js を用いた演出
+### src/: 公開サイト
+
+- 文化祭の模擬店の状況を表示
+
+### apps/status/: ステータス送信
+
+- 混雑状況，販売状況を表示
 
 ## 技術スタック
 
@@ -28,7 +33,7 @@
 bun install
 ```
 
-### 開発サーバー（ホットリロード）
+### 開発サーバーの起動
 
 ```sh
 bun dev
@@ -56,7 +61,7 @@ bun run format
 
 ## ディレクトリ構成
 
-Bun workspaces によるモノレポ構成。ルートが本体サイト（Cloudflare Pages）、`apps/` 配下に付随アプリを置く。
+Bun workspaces によるモノレポ構成です。ルートが本体サイト（Cloudflare Pages）、`apps/` 配下に付随アプリを配置しています。
 
 ```
 src/                # 本体サイト（Cloudflare Pages）
