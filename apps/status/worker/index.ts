@@ -1,6 +1,18 @@
 /// <reference types="@cloudflare/workers-types" />
-import { hidesCongestion, isCongestionLevel, isSalesStatus } from '../../../shared/status'
-import type { CongestionLevel, OrgStatus, SalesStatus } from '../../../shared/status'
+import {
+  SUBMIT_DAYS,
+  hidesCongestion,
+  isCongestionLevel,
+  isSalesStatus,
+  isSubmitOpen,
+} from '../../../shared/status'
+import type {
+  CongestionLevel,
+  OrgStatus,
+  SalesStatus,
+  SubmitWindow,
+  SubmitWindows,
+} from '../../../shared/status'
 
 interface Env {
   DB: D1Database
@@ -49,48 +61,57 @@ async function authorize(request: Request, env: Env): Promise<Auth | null> {
   return admin ? { kind: 'admin' } : null
 }
 
-interface SubmitWindow {
-  from: number | null
-  until: number | null
+interface WindowRow {
+  day: number
+  accept_from: number | null
+  accept_until: number | null
 }
 
-async function getWindow(env: Env): Promise<SubmitWindow> {
-  const row = await env.DB.prepare(
-    'SELECT accept_from, accept_until FROM app_settings WHERE id = 1',
-  ).first<{ accept_from: number | null; accept_until: number | null }>()
-  return { from: row?.accept_from ?? null, until: row?.accept_until ?? null }
+async function getWindows(env: Env): Promise<SubmitWindows> {
+  const { results } = await env.DB.prepare(
+    'SELECT day, accept_from, accept_until FROM submit_windows',
+  ).all<WindowRow>()
+  const windows: SubmitWindows = {
+    day1: { from: null, until: null },
+    day2: { from: null, until: null },
+  }
+  for (const row of results) {
+    const key = row.day === 1 ? 'day1' : row.day === 2 ? 'day2' : null
+    if (key) windows[key] = { from: row.accept_from, until: row.accept_until }
+  }
+  return windows
 }
 
-function isWindowOpen(window: SubmitWindow): boolean {
-  const now = Math.floor(Date.now() / 1000)
-  if (window.from !== null && now < window.from) return false
-  if (window.until !== null && now > window.until) return false
-  return true
-}
-
-async function getAllStatuses(env: Env): Promise<Response> {
+async function fetchStatuses(env: Env): Promise<OrgStatus[]> {
   const { results } = await env.DB.prepare(
     'SELECT org_id, sales, congestion, updated_at FROM org_status',
   ).all<StatusRow>()
-  return json(results.map(toOrgStatus))
+  return results.map(toOrgStatus)
+}
+
+async function getAllStatuses(env: Env): Promise<Response> {
+  const windows = await getWindows(env)
+  if (!isSubmitOpen(windows, Math.floor(Date.now() / 1000))) return json([])
+  return json(await fetchStatuses(env))
 }
 
 async function getMe(request: Request, env: Env): Promise<Response> {
   const auth = await authorize(request, env)
   if (!auth) return json({ error: 'unauthorized' }, 401)
-  const window = await getWindow(env)
+  const windows = await getWindows(env)
   if (auth.kind === 'admin') {
     const { results } = await env.DB.prepare('SELECT org_id FROM org_tokens ORDER BY org_id').all<{
       org_id: string
     }>()
-    return json({ admin: true, orgs: results.map((row) => row.org_id), window })
+    const statuses = await fetchStatuses(env)
+    return json({ admin: true, orgs: results.map((row) => row.org_id), windows, statuses })
   }
   const row = await env.DB.prepare(
     'SELECT org_id, sales, congestion, updated_at FROM org_status WHERE org_id = ?1',
   )
     .bind(auth.orgId)
     .first<StatusRow>()
-  return json({ orgId: auth.orgId, status: row ? toOrgStatus(row) : null, window })
+  return json({ orgId: auth.orgId, status: row ? toOrgStatus(row) : null, windows })
 }
 
 async function postStatus(request: Request, env: Env): Promise<Response> {
@@ -126,7 +147,9 @@ async function postStatus(request: Request, env: Env): Promise<Response> {
     if (!org) return json({ error: 'unknown_org' }, 400)
     orgId = bodyOrgId
   } else {
-    if (!isWindowOpen(await getWindow(env))) return json({ error: 'closed' }, 403)
+    if (!isSubmitOpen(await getWindows(env), Math.floor(Date.now() / 1000))) {
+      return json({ error: 'closed' }, 403)
+    }
     orgId = auth.orgId
   }
 
@@ -154,25 +177,27 @@ async function putWindow(request: Request, env: Env): Promise<Response> {
   } catch {
     return json({ error: 'invalid_json' }, 400)
   }
-  const { from, until } = (body ?? {}) as Record<string, unknown>
   const isEpochOrNull = (value: unknown): value is number | null =>
     value === null || (typeof value === 'number' && Number.isSafeInteger(value))
-  if (!isEpochOrNull(from) || !isEpochOrNull(until)) {
-    return json({ error: 'invalid_value' }, 400)
+  const parseWindow = (value: unknown): SubmitWindow | null => {
+    const { from, until } = (value ?? {}) as Record<string, unknown>
+    if (!isEpochOrNull(from) || !isEpochOrNull(until)) return null
+    if (from !== null && until !== null && from > until) return null
+    return { from, until }
   }
-  if (from !== null && until !== null && from > until) {
-    return json({ error: 'invalid_value' }, 400)
-  }
+  const raw = (body ?? {}) as Record<string, unknown>
+  const day1 = parseWindow(raw.day1)
+  const day2 = parseWindow(raw.day2)
+  if (!day1 || !day2) return json({ error: 'invalid_value' }, 400)
 
-  await env.DB.prepare(
-    `INSERT INTO app_settings (id, accept_from, accept_until)
-     VALUES (1, ?1, ?2)
-     ON CONFLICT (id) DO UPDATE
+  const upsert = env.DB.prepare(
+    `INSERT INTO submit_windows (day, accept_from, accept_until)
+     VALUES (?1, ?2, ?3)
+     ON CONFLICT (day) DO UPDATE
      SET accept_from = excluded.accept_from, accept_until = excluded.accept_until`,
   )
-    .bind(from, until)
-    .run()
-  return json({ from, until })
+  await env.DB.batch([upsert.bind(1, day1.from, day1.until), upsert.bind(2, day2.from, day2.until)])
+  return json({ day1, day2 })
 }
 
 export default {

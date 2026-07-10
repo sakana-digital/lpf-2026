@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { CONGESTION_LEVELS, SALES_STATUSES, hidesCongestion } from '../../../shared/status'
-import type { CongestionLevel, OrgStatus, SalesStatus } from '../../../shared/status'
-import { ApiError, getAllStatuses, getMe, updateStatus } from '@/lib/api'
-import type { SubmitWindow } from '@/lib/api'
+import {
+  CONGESTION_LEVELS,
+  SALES_STATUSES,
+  hidesCongestion,
+  isSubmitOpen,
+} from '../../../shared/status'
+import type { CongestionLevel, OrgStatus, SalesStatus, SubmitWindows } from '../../../shared/status'
+import { ApiError, getMe, updateStatus } from '@/lib/api'
 import { resolveToken } from '@/lib/token'
 import { classOrgParams } from '@/lib/orgLabel'
 import { formatElapsed } from '@/lib/relativeTime'
@@ -41,7 +45,10 @@ const now = ref(Date.now())
 const isAdmin = ref(false)
 const orgs = ref<string[]>([])
 const selectedOrg = ref('')
-const submitWindow = ref<SubmitWindow>({ from: null, until: null })
+const submitWindows = ref<SubmitWindows>({
+  day1: { from: null, until: null },
+  day2: { from: null, until: null },
+})
 const orgStatuses = ref(new Map<string, OrgStatus>())
 
 function orgOptionLabel(id: string) {
@@ -66,11 +73,7 @@ const elapsedLabel = computed(() => {
 
 const windowClosed = computed(() => {
   if (isAdmin.value) return false
-  const { from, until } = submitWindow.value
-  const nowSec = Math.floor(now.value / 1000)
-  if (from !== null && nowSec < from) return true
-  if (until !== null && nowSec > until) return true
-  return false
+  return !isSubmitOpen(submitWindows.value, Math.floor(now.value / 1000))
 })
 
 const canSubmit = computed(
@@ -83,6 +86,17 @@ const canSubmit = computed(
 )
 
 const confirmingSoldout = ref(false)
+
+const RESULT_TIMEOUT_MS = 10000
+let resultTimer: ReturnType<typeof setTimeout> | undefined
+
+function scheduleResultClear() {
+  clearTimeout(resultTimer)
+  resultTimer = setTimeout(() => {
+    justSaved.value = false
+    saveError.value = null
+  }, RESULT_TIMEOUT_MS)
+}
 
 function selectSales(value: SalesStatus) {
   if (value === 'soldout' && sales.value !== 'soldout') {
@@ -107,12 +121,11 @@ onMounted(async () => {
   if (!token) return
   try {
     const me = await getMe(token)
-    submitWindow.value = me.window
+    submitWindows.value = me.windows
     if ('admin' in me) {
       isAdmin.value = true
       orgs.value = me.orgs
-      const statuses = await getAllStatuses()
-      orgStatuses.value = new Map(statuses.map((status) => [status.orgId, status]))
+      orgStatuses.value = new Map(me.statuses.map((status) => [status.orgId, status]))
       selectedOrg.value = me.orgs[0] ?? ''
       applyOrgStatus()
     } else {
@@ -138,6 +151,7 @@ function applyOrgStatus() {
 
 onUnmounted(() => {
   clearInterval(tickTimer)
+  clearTimeout(resultTimer)
 })
 
 async function submit() {
@@ -156,11 +170,13 @@ async function submit() {
     savedAt.value = updated.updatedAt
     if (isAdmin.value) orgStatuses.value.set(updated.orgId, updated)
     justSaved.value = true
+    scheduleResultClear()
   } catch (error) {
     saveError.value =
       error instanceof ApiError && error.status === 403
-        ? '現在は送信できる時間ではありません。'
-        : '送信に失敗しました。通信環境を確認して再度お試しください。'
+        ? '文化祭時間外です。'
+        : '送信に失敗しました。'
+    scheduleResultClear()
   } finally {
     saving.value = false
   }
@@ -233,11 +249,9 @@ async function submit() {
             </div>
           </fieldset>
 
-          <p v-if="windowClosed" class="result error" role="status">
-            現在は送信できる時間ではありません
-          </p>
+          <p v-if="windowClosed" class="result error" role="status">文化祭時間外です。</p>
           <p v-else-if="saveError" class="result error" role="status">{{ saveError }}</p>
-          <p v-else-if="justSaved" class="result" role="status">更新しました</p>
+          <p v-else-if="justSaved" class="result" role="status">更新しました。</p>
 
           <button type="submit" class="submit" :disabled="!canSubmit">
             {{ saving ? '送信中…' : '更新する' }}
@@ -249,8 +263,8 @@ async function submit() {
     <SubmitWindowEditor
       v-if="phase === 'ready' && isAdmin && token"
       :token="token"
-      :window="submitWindow"
-      @updated="submitWindow = $event"
+      :windows="submitWindows"
+      @updated="submitWindows = $event"
     />
 
     <ConfirmDialog
@@ -367,6 +381,8 @@ async function submit() {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
+    max-width: 360px;
+    margin-inline: auto;
   }
 
   .col {
@@ -392,19 +408,20 @@ async function submit() {
   .choices {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
     padding: 4px;
     background: var(--color-surface-soft);
 
     button {
+      position: relative;
       display: inline-flex;
       align-items: center;
-      justify-content: flex-start;
-      gap: 6px;
+      justify-content: center;
       padding: 13px 14px;
       border: 1px solid var(--c);
       font-size: 14px;
       font-weight: 600;
+      text-wrap: nowrap;
       cursor: pointer;
       color: var(--color-text-mute);
       transition:
@@ -415,7 +432,8 @@ async function submit() {
 
       &::before {
         content: '';
-        flex: none;
+        position: absolute;
+        left: 14px;
         width: 8px;
         height: 8px;
         border-radius: 999px;
@@ -437,14 +455,7 @@ async function submit() {
         --c: var(--color-status-good);
       }
 
-      &.sales-paused {
-        --c: var(--color-status-pause);
-      }
-
-      &.sales-partial {
-        --c: var(--color-status-partial);
-      }
-
+      &.sales-partial,
       &.congestion-medium {
         --c: var(--color-status-warn);
       }
@@ -452,6 +463,10 @@ async function submit() {
       &.sales-low,
       &.congestion-high {
         --c: var(--color-status-bad);
+      }
+
+      &.sales-paused {
+        --c: var(--color-status-pause);
       }
 
       &.sales-soldout {

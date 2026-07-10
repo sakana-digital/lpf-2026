@@ -15,6 +15,34 @@ export interface OrgStatus {
   updatedAt: number
 }
 
+export interface SubmitWindow {
+  from: number | null
+  until: number | null
+}
+
+export interface SubmitWindows {
+  day1: SubmitWindow
+  day2: SubmitWindow
+}
+
+export const SUBMIT_DAYS = ['day1', 'day2'] as const
+
+function isWindowSet(window: SubmitWindow): boolean {
+  return window.from !== null || window.until !== null
+}
+
+function containsNow(window: SubmitWindow, nowSec: number): boolean {
+  if (window.from !== null && nowSec < window.from) return false
+  if (window.until !== null && nowSec > window.until) return false
+  return true
+}
+
+export function isSubmitOpen(windows: SubmitWindows, nowSec: number): boolean {
+  const set = SUBMIT_DAYS.map((day) => windows[day]).filter(isWindowSet)
+  if (set.length === 0) return true
+  return set.some((window) => containsNow(window, nowSec))
+}
+
 export function isSalesStatus(value: unknown): value is SalesStatus {
   return typeof value === 'string' && (SALES_STATUSES as readonly string[]).includes(value)
 }

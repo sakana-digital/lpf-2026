@@ -1,20 +1,21 @@
-import type { CongestionLevel, OrgStatus, SalesStatus } from '../../../../shared/status'
-
-export interface SubmitWindow {
-  from: number | null
-  until: number | null
-}
+import type {
+  CongestionLevel,
+  OrgStatus,
+  SalesStatus,
+  SubmitWindows,
+} from '../../../../shared/status'
 
 export interface OrgMeResponse {
   orgId: string
   status: OrgStatus | null
-  window: SubmitWindow
+  windows: SubmitWindows
 }
 
 export interface AdminMeResponse {
   admin: true
   orgs: string[]
-  window: SubmitWindow
+  windows: SubmitWindows
+  statuses: OrgStatus[]
 }
 
 export type MeResponse = OrgMeResponse | AdminMeResponse
@@ -50,16 +51,10 @@ export function updateStatus(
   })
 }
 
-export function updateWindow(token: string, window: SubmitWindow): Promise<SubmitWindow> {
+export function updateWindows(token: string, windows: SubmitWindows): Promise<SubmitWindows> {
   return request('/api/window', token, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(window),
+    body: JSON.stringify(windows),
   })
-}
-
-export async function getAllStatuses(): Promise<OrgStatus[]> {
-  const res = await fetch('/api/status')
-  if (!res.ok) throw new ApiError(res.status)
-  return res.json() as Promise<OrgStatus[]>
 }
