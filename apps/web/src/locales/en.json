@@ -183,6 +183,8 @@
   "status": {
     "sales": {
       "available": "On sale",
+      "paused": "Sales paused",
+      "partial": "Partially sold out",
       "low": "Almost sold out",
       "soldout": "Sold out"
     },

@@ -1,4 +1,4 @@
-export const SALES_STATUSES = ['available', 'low', 'soldout'] as const
+export const SALES_STATUSES = ['available', 'paused', 'partial', 'low', 'soldout'] as const
 export type SalesStatus = (typeof SALES_STATUSES)[number]
 
 export const CONGESTION_LEVELS = ['low', 'medium', 'high'] as const

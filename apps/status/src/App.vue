@@ -9,6 +9,8 @@ import { formatElapsed } from '@/lib/relativeTime'
 
 const SALES_LABELS: Record<SalesStatus, string> = {
   available: '販売中',
+  paused: '販売休止中',
+  partial: '一部完売',
   low: '残りわずか',
   soldout: '完売',
 }
@@ -118,46 +120,50 @@ async function submit() {
     <p v-else-if="phase === 'loading'" class="notice mute">読み込み中…</p>
 
     <form v-else @submit.prevent="submit">
-      <fieldset>
-        <legend>販売状況</legend>
-        <div class="choices">
-          <button
-            v-for="value in SALES_STATUSES"
-            :key="value"
-            type="button"
-            :class="[`sales-${value}`, { selected: sales === value }]"
-            :aria-pressed="sales === value"
-            @click="sales = value"
-          >
-            {{ SALES_LABELS[value] }}
+      <div class="groups">
+        <fieldset>
+          <legend>販売状況</legend>
+          <div class="choices">
+            <button
+              v-for="value in SALES_STATUSES"
+              :key="value"
+              type="button"
+              :class="[`sales-${value}`, { selected: sales === value }]"
+              :aria-pressed="sales === value"
+              @click="sales = value"
+            >
+              {{ SALES_LABELS[value] }}
+            </button>
+          </div>
+        </fieldset>
+
+        <div class="col">
+          <fieldset>
+            <legend>混雑状況</legend>
+            <div class="choices">
+              <button
+                v-for="value in CONGESTION_LEVELS"
+                :key="value"
+                type="button"
+                :class="[`congestion-${value}`, { selected: congestion === value }]"
+                :aria-pressed="congestion === value"
+                @click="congestion = value"
+              >
+                {{ CONGESTION_LABELS[value] }}
+              </button>
+            </div>
+          </fieldset>
+
+          <p v-if="saveFailed" class="result error" role="status">
+            送信に失敗しました。通信環境を確認して再度お試しください。
+          </p>
+          <p v-else-if="justSaved" class="result" role="status">更新しました</p>
+
+          <button type="submit" class="submit" :disabled="!canSubmit">
+            {{ saving ? '送信中…' : '更新する' }}
           </button>
         </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>混雑状況</legend>
-        <div class="choices">
-          <button
-            v-for="value in CONGESTION_LEVELS"
-            :key="value"
-            type="button"
-            :class="[`congestion-${value}`, { selected: congestion === value }]"
-            :aria-pressed="congestion === value"
-            @click="congestion = value"
-          >
-            {{ CONGESTION_LABELS[value] }}
-          </button>
-        </div>
-      </fieldset>
-
-      <button type="submit" class="submit" :disabled="!canSubmit">
-        {{ saving ? '送信中…' : '更新する' }}
-      </button>
-
-      <p v-if="saveFailed" class="result error" role="status">
-        送信に失敗しました。通信環境を確認して再度お試しください。
-      </p>
-      <p v-else-if="justSaved" class="result" role="status">更新しました</p>
+      </div>
     </form>
   </main>
 </template>
@@ -236,10 +242,21 @@ async function submit() {
     border: 1px solid var(--color-border);
   }
 
+  .groups {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+  }
+
   fieldset {
     border: none;
     padding: 0;
-    margin: 0 0 24px;
+    margin: 0;
 
     legend {
       padding: 0 2px;
@@ -253,12 +270,12 @@ async function submit() {
 
   .choices {
     display: flex;
+    flex-direction: column;
     gap: 4px;
     padding: 4px;
     background: var(--color-surface-soft);
 
     button {
-      flex: 1;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -299,6 +316,11 @@ async function submit() {
         --c: var(--color-status-good);
       }
 
+      &.sales-paused {
+        --c: var(--color-status-pause);
+      }
+
+      &.sales-partial,
       &.sales-low,
       &.congestion-medium {
         --c: var(--color-status-warn);
@@ -313,8 +335,11 @@ async function submit() {
         background: var(--c);
         color: var(--color-on-status);
         font-weight: 700;
-        box-shadow: 0 0 14px oklch(from var(--c) l c h / 0.5);
+        box-shadow:
+          0 0 10px oklch(from var(--c) l c h / 0.6),
+          0 0 28px oklch(from var(--c) l c h / 0.4);
 
+        &.sales-partial,
         &.sales-low,
         &.congestion-medium {
           color: var(--color-on-status-warn);
@@ -329,16 +354,18 @@ async function submit() {
 
   .submit {
     display: block;
-    width: fit-content;
-    margin: 4px auto 0;
-    padding: 15px 40px;
+    margin: auto 4px 4px;
+    padding: 13px 4px;
+    border: 1px solid var(--color-accent);
     background: var(--color-accent);
     color: var(--color-on-accent);
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
     letter-spacing: 0.04em;
     cursor: pointer;
-    box-shadow: 0 0 14px oklch(100% 0 0 / 0.35);
+    box-shadow:
+      0 0 10px oklch(100% 0 0 / 0.4),
+      0 0 28px oklch(100% 0 0 / 0.3);
     transition:
       background 0.18s ease,
       box-shadow 0.18s ease,
@@ -365,12 +392,12 @@ async function submit() {
   }
 
   .result {
-    margin: 14px auto 0;
-    padding: 8px 16px;
+    margin: auto auto 0;
+    padding: 6px 12px;
     width: fit-content;
     background: var(--color-status-good-soft);
     color: var(--color-status-good);
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
     text-align: center;
     animation: pop-in 0.25s ease;
@@ -378,6 +405,10 @@ async function submit() {
     &.error {
       background: var(--color-status-bad-soft);
       color: var(--color-status-bad);
+    }
+
+    + .submit {
+      margin-top: 10px;
     }
   }
 }
