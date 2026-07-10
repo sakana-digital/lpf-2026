@@ -1,5 +1,5 @@
 /// <reference types="@cloudflare/workers-types" />
-import { isCongestionLevel, isSalesStatus } from '../../../shared/status'
+import { hidesCongestion, isCongestionLevel, isSalesStatus } from '../../../shared/status'
 import type { CongestionLevel, OrgStatus, SalesStatus } from '../../../shared/status'
 
 interface Env {
@@ -76,7 +76,7 @@ async function postStatus(request: Request, env: Env): Promise<Response> {
     return json({ error: 'invalid_value' }, 400)
   }
   let congestionValue: CongestionLevel | null = null
-  if (sales === 'soldout') {
+  if (hidesCongestion(sales)) {
     if (congestion != null) return json({ error: 'invalid_value' }, 400)
   } else {
     if (!isCongestionLevel(congestion)) return json({ error: 'invalid_value' }, 400)

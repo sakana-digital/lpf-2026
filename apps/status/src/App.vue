@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { CONGESTION_LEVELS, SALES_STATUSES } from '../../../shared/status'
+import { CONGESTION_LEVELS, SALES_STATUSES, hidesCongestion } from '../../../shared/status'
 import type { CongestionLevel, SalesStatus } from '../../../shared/status'
 import { ApiError, getMe, updateStatus } from '@/lib/api'
 import { resolveToken } from '@/lib/token'
@@ -57,7 +57,7 @@ const elapsedLabel = computed(() => {
 const canSubmit = computed(
   () =>
     sales.value !== null &&
-    (sales.value === 'soldout' || congestion.value !== null) &&
+    (hidesCongestion(sales.value) || congestion.value !== null) &&
     !saving.value,
 )
 
@@ -106,7 +106,7 @@ async function submit() {
   saveFailed.value = false
   justSaved.value = false
   try {
-    const congestionValue = sales.value === 'soldout' ? null : congestion.value
+    const congestionValue = hidesCongestion(sales.value) ? null : congestion.value
     const updated = await updateStatus(token, sales.value, congestionValue)
     savedAt.value = updated.updatedAt
     justSaved.value = true
@@ -169,7 +169,7 @@ async function submit() {
                 type="button"
                 :class="[`congestion-${value}`, { selected: congestion === value }]"
                 :aria-pressed="congestion === value"
-                :disabled="sales === 'soldout'"
+                :disabled="sales !== null && hidesCongestion(sales)"
                 @click="congestion = value"
               >
                 {{ CONGESTION_LABELS[value] }}

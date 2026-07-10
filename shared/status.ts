@@ -1,5 +1,9 @@
-export const SALES_STATUSES = ['available', 'paused', 'partial', 'low', 'soldout'] as const
+export const SALES_STATUSES = ['available', 'partial', 'low', 'paused', 'soldout'] as const
 export type SalesStatus = (typeof SALES_STATUSES)[number]
+
+export function hidesCongestion(sales: SalesStatus): boolean {
+  return sales === 'paused' || sales === 'soldout'
+}
 
 export const CONGESTION_LEVELS = ['low', 'medium', 'high'] as const
 export type CongestionLevel = (typeof CONGESTION_LEVELS)[number]
