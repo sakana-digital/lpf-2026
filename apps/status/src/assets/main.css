@@ -1,13 +1,23 @@
 html {
-  --color-background: oklch(100% 0 0);
-  --color-border: oklch(35.62% 0 0 / 0.12);
-  --color-text: oklch(0% 0 0);
-  --color-text-mute: oklch(35.62% 0 0 / 0.66);
-  --color-accent: oklch(60.918% 0.19952 261.464);
-  --color-on-accent: oklch(100% 0 0);
-  --color-status-good: oklch(60.415% 0.15726 152.505);
-  --color-status-warn: oklch(95.145% 0.20428 107.337);
-  --color-status-bad: oklch(63.873% 0.25541 10.492);
+  --color-background: #000;
+  --color-surface: #000;
+  --color-surface-soft: oklch(100% 0 0 / 0.08);
+  --color-border: oklch(100% 0 0 / 0.25);
+  --color-text: #fff;
+  --color-text-mute: oklch(100% 0 0 / 0.6);
+  --color-accent: #fff;
+  --color-accent-strong: oklch(100% 0 0 / 0.85);
+  --color-on-accent: #000;
+  --color-status-good: oklch(72.428% 0.15175 158.84);
+  --color-status-good-soft: oklch(72% 0.17 152.505 / 0.16);
+  --color-status-warn: oklch(82% 0.16 75);
+  --color-status-warn-soft: oklch(82% 0.16 75 / 0.18);
+  --color-status-bad: oklch(68% 0.23 10.492);
+  --color-status-bad-soft: oklch(68% 0.23 10.492 / 0.16);
+  --color-status-soldout: oklch(52% 0.22 27);
+  --color-status-pause: oklch(72% 0.19 55);
+  --color-on-status: oklch(15% 0.02 260);
+  --color-on-status-warn: oklch(25% 0.06 75);
 }
 
 *,
@@ -15,10 +25,20 @@ html {
 *::after {
   box-sizing: border-box;
   margin: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+  border: none;
+  background: transparent;
+  appearance: none;
 }
 
 body {
   min-height: 100svh;
+  min-width: 320px;
   background: var(--color-background);
   color: var(--color-text);
   font-family:

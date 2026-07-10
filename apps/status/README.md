@@ -97,3 +97,26 @@ wrangler 未ログインなら先に `bunx wrangler login`。以下すべて `ap
 - トークン → 団体の対応は D1 の `org_tokens` テーブル
 - 追加・差し替えは SQL で（例: `INSERT OR REPLACE INTO org_tokens (token, org_id) VALUES ('<新トークン>', 'c1-1');` を `--remote` で実行）
 - 団体には `https://<Worker ドメイン>/?t=<トークン>` を配布。初回アクセスで localStorage に保存され、URL からは自動で除去される
+
+## 管理者モード
+
+管理者トークンは D1 の `admin_tokens` テーブルで管理する。管理者トークンでアクセスすると入力 SPA が管理者モードになり、以下ができる。
+
+- 団体をセレクトから選んで任意の団体のステータスを代理更新（送信時間の制限を受けない）
+- 送信可能時間（submission window）を Day 1 / Day 2 それぞれ設定・解除
+
+送信可能時間の扱い:
+
+- 両日とも未設定なら常に送信可。設定済みの日のいずれかの時間内なら送信可
+- 時間外は団体トークンの `POST /api/status` が 403、公開の `GET /api/status` は空配列を返す（本体サイトにステータスが表示されない）
+
+使い方:
+
+```sh
+# トークンを注入（ローカルは seed.example.sql の dev-token-admin 済み）
+bunx wrangler d1 execute lpf-2026-status --remote \
+  --command "INSERT OR REPLACE INTO admin_tokens (token) VALUES ('<openssl rand -hex 16 で生成>');"
+```
+
+- アクセスは団体と同じく `https://<Worker ドメイン>/?t=<管理者トークン>`（ローカルは `http://localhost:8787/?t=dev-token-admin`）
+- 削除は `DELETE FROM admin_tokens WHERE token = '<トークン>';`

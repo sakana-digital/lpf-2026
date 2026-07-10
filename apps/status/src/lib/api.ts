@@ -1,9 +1,24 @@
-import type { CongestionLevel, OrgStatus, SalesStatus } from '../../../../shared/status'
+import type {
+  CongestionLevel,
+  OrgStatus,
+  SalesStatus,
+  SubmitWindows,
+} from '../../../../shared/status'
 
-export interface MeResponse {
+export interface OrgMeResponse {
   orgId: string
   status: OrgStatus | null
+  windows: SubmitWindows
 }
+
+export interface AdminMeResponse {
+  admin: true
+  orgs: string[]
+  windows: SubmitWindows
+  statuses: OrgStatus[]
+}
+
+export type MeResponse = OrgMeResponse | AdminMeResponse
 
 export class ApiError extends Error {
   constructor(readonly status: number) {
@@ -26,11 +41,20 @@ export function getMe(token: string): Promise<MeResponse> {
 export function updateStatus(
   token: string,
   sales: SalesStatus,
-  congestion: CongestionLevel,
+  congestion: CongestionLevel | null,
+  orgId?: string,
 ): Promise<OrgStatus> {
   return request('/api/status', token, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sales, congestion }),
+    body: JSON.stringify(orgId ? { sales, congestion, orgId } : { sales, congestion }),
+  })
+}
+
+export function updateWindows(token: string, windows: SubmitWindows): Promise<SubmitWindows> {
+  return request('/api/window', token, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(windows),
   })
 }

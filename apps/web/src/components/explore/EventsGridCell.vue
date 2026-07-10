@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { organizationName } from '@/config/organizations'
 import type { Organization } from '@/config/organizations'
+import { hidesCongestion } from '../../../../../shared/status'
 import type { OrgStatus } from '../../../../../shared/status'
 import OrgImage from './OrgImage.vue'
 
@@ -43,7 +44,11 @@ const cellLabel = computed(() => {
           <span class="badge" :class="`sales-${status.sales}`">
             {{ t(`status.sales.${status.sales}`) }}
           </span>
-          <span class="badge" :class="`congestion-${status.congestion}`">
+          <span
+            v-if="!hidesCongestion(status.sales) && status.congestion"
+            class="badge"
+            :class="`congestion-${status.congestion}`"
+          >
             {{ t(`status.congestion.${status.congestion}`) }}
           </span>
         </span>

@@ -19,20 +19,33 @@ async function fetchStatuses() {
   }
 }
 
+function startPolling() {
+  void fetchStatuses()
+  timer = setInterval(fetchStatuses, POLL_INTERVAL_MS)
+}
+
+function stopPolling() {
+  clearInterval(timer)
+  timer = undefined
+}
+
 function onVisibilityChange() {
-  if (document.visibilityState === 'visible') void fetchStatuses()
+  if (document.visibilityState === 'visible') {
+    if (subscribers > 0 && timer === undefined) startPolling()
+  } else {
+    stopPolling()
+  }
 }
 
 function subscribe() {
   if (subscribers++ > 0) return
-  void fetchStatuses()
-  timer = setInterval(fetchStatuses, POLL_INTERVAL_MS)
+  if (document.visibilityState === 'visible') startPolling()
   document.addEventListener('visibilitychange', onVisibilityChange)
 }
 
 function unsubscribe() {
   if (--subscribers > 0) return
-  clearInterval(timer)
+  stopPolling()
   document.removeEventListener('visibilitychange', onVisibilityChange)
 }
 
