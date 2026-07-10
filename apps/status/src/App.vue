@@ -164,51 +164,76 @@ async function submit() {
 
 <style scoped>
 .status-app {
-  max-width: 480px;
+  max-width: 440px;
   margin: 0 auto;
-  padding: 24px 16px 48px;
+  padding: 32px 20px 56px;
 
   header {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    margin-bottom: 24px;
+    gap: 6px;
+    margin-bottom: 20px;
+    padding: 0 4px;
 
     .heading {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
       gap: 8px;
 
       h1 {
-        font-size: 20px;
-        font-weight: 700;
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: 0.01em;
       }
 
       .org {
-        font-size: 16px;
-        font-weight: 500;
-        color: var(--color-text-mute);
+        padding: 4px 14px;
+        background: var(--color-accent);
+        color: var(--color-on-accent);
+        font-size: 14px;
+        font-weight: 700;
+        white-space: nowrap;
       }
     }
 
     .updated {
+      display: flex;
+      align-items: center;
+      gap: 6px;
       font-size: 12px;
       color: var(--color-text-mute);
       font-variant-numeric: tabular-nums;
+
+      &::before {
+        content: '';
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: var(--color-status-good);
+        animation: pulse 2.4s ease-in-out infinite;
+      }
     }
   }
 
   .notice {
-    padding: 16px;
+    padding: 20px;
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: 8px;
     font-size: 14px;
 
     &.mute {
+      background: transparent;
       border: none;
       color: var(--color-text-mute);
+      text-align: center;
     }
+  }
+
+  form {
+    padding: 24px 20px 20px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
   }
 
   fieldset {
@@ -217,64 +242,86 @@ async function submit() {
     margin: 0 0 24px;
 
     legend {
-      padding: 0;
-      margin-bottom: 8px;
-      font-size: 14px;
+      padding: 0 2px;
+      margin-bottom: 10px;
+      font-size: 13px;
       font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--color-text-mute);
     }
   }
 
   .choices {
     display: flex;
-    gap: 6px;
+    gap: 4px;
     padding: 4px;
-    border-radius: 999px;
+    background: var(--color-surface-soft);
 
     button {
       flex: 1;
-      padding: 14px 4px;
-      border: 1.5px solid transparent;
-      border-radius: 999px;
-      background: transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 13px 4px;
+      border: 1px solid var(--c);
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
+      color: var(--color-text-mute);
+      transition:
+        background 0.18s ease,
+        color 0.18s ease,
+        box-shadow 0.18s ease,
+        transform 0.1s ease;
+
+      &::before {
+        content: '';
+        flex: none;
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--c);
+        transition: background 0.18s ease;
+      }
+
+      &:active {
+        transform: scale(0.96);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+      }
 
       &.sales-available,
       &.congestion-low {
-        border-color: var(--color-status-good);
-        color: var(--color-status-good);
+        --c: var(--color-status-good);
       }
 
       &.sales-low,
       &.congestion-medium {
-        border-color: var(--color-status-warn);
-        color: var(--color-status-warn);
+        --c: var(--color-status-warn);
       }
 
       &.sales-soldout,
       &.congestion-high {
-        border-color: var(--color-status-bad);
-        color: var(--color-status-bad);
+        --c: var(--color-status-bad);
       }
 
       &.selected {
-        color: var(--color-on-accent);
+        background: var(--c);
+        color: var(--color-on-status);
         font-weight: 700;
-
-        &.sales-available,
-        &.congestion-low {
-          background: var(--color-status-good);
-        }
+        box-shadow: 0 0 14px oklch(from var(--c) l c h / 0.5);
 
         &.sales-low,
         &.congestion-medium {
-          background: var(--color-status-warn);
+          color: var(--color-on-status-warn);
         }
 
-        &.sales-soldout,
-        &.congestion-high {
-          background: var(--color-status-bad);
+        &::before {
+          background: currentColor;
         }
       }
     }
@@ -282,31 +329,69 @@ async function submit() {
 
   .submit {
     display: block;
-    width: auto;
-    margin: 24px auto 0;
-    padding: 14px 48px;
-    border: none;
-    border-radius: 999px;
+    width: fit-content;
+    margin: 4px auto 0;
+    padding: 15px 40px;
     background: var(--color-accent);
     color: var(--color-on-accent);
     font-size: 16px;
     font-weight: 700;
+    letter-spacing: 0.04em;
     cursor: pointer;
+    box-shadow: 0 0 14px oklch(100% 0 0 / 0.35);
+    transition:
+      background 0.18s ease,
+      box-shadow 0.18s ease,
+      transform 0.1s ease;
+
+    &:hover:not(:disabled) {
+      background: var(--color-accent-strong);
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
 
     &:disabled {
       opacity: 0.4;
       cursor: not-allowed;
+      box-shadow: none;
     }
   }
 
   .result {
-    margin-top: 16px;
+    margin: 14px auto 0;
+    padding: 8px 16px;
+    width: fit-content;
+    background: var(--color-status-good-soft);
+    color: var(--color-status-good);
     font-size: 14px;
+    font-weight: 700;
     text-align: center;
+    animation: pop-in 0.25s ease;
 
     &.error {
+      background: var(--color-status-bad-soft);
       color: var(--color-status-bad);
     }
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
   }
 }
 </style>
