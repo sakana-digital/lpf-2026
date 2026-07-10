@@ -186,7 +186,7 @@
       "paused": "Sales paused",
       "partial": "Partially sold out",
       "low": "Almost sold out",
-      "soldout": "Sold out"
+      "soldout": "All sold out"
     },
     "congestion": {
       "low": "Not busy",

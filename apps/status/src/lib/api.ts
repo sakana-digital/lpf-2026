@@ -26,7 +26,7 @@ export function getMe(token: string): Promise<MeResponse> {
 export function updateStatus(
   token: string,
   sales: SalesStatus,
-  congestion: CongestionLevel,
+  congestion: CongestionLevel | null,
 ): Promise<OrgStatus> {
   return request('/api/status', token, {
     method: 'POST',

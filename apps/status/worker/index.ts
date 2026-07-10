@@ -10,7 +10,7 @@ interface Env {
 interface StatusRow {
   org_id: string
   sales: SalesStatus
-  congestion: CongestionLevel
+  congestion: CongestionLevel | null
   updated_at: number
 }
 
@@ -72,8 +72,15 @@ async function postStatus(request: Request, env: Env): Promise<Response> {
     return json({ error: 'invalid_json' }, 400)
   }
   const { sales, congestion } = (body ?? {}) as Record<string, unknown>
-  if (!isSalesStatus(sales) || !isCongestionLevel(congestion)) {
+  if (!isSalesStatus(sales)) {
     return json({ error: 'invalid_value' }, 400)
+  }
+  let congestionValue: CongestionLevel | null = null
+  if (sales === 'soldout') {
+    if (congestion != null) return json({ error: 'invalid_value' }, 400)
+  } else {
+    if (!isCongestionLevel(congestion)) return json({ error: 'invalid_value' }, 400)
+    congestionValue = congestion
   }
 
   const row = await env.DB.prepare(
@@ -83,7 +90,7 @@ async function postStatus(request: Request, env: Env): Promise<Response> {
      SET sales = excluded.sales, congestion = excluded.congestion, updated_at = excluded.updated_at
      RETURNING org_id, sales, congestion, updated_at`,
   )
-    .bind(orgId, sales, congestion)
+    .bind(orgId, sales, congestionValue)
     .first<StatusRow>()
   if (!row) return json({ error: 'write_failed' }, 500)
   return json(toOrgStatus(row))

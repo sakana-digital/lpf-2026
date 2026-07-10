@@ -183,7 +183,7 @@
       "paused": "販売休止中",
       "partial": "一部完売",
       "low": "残りわずか",
-      "soldout": "完売"
+      "soldout": "全て完売"
     },
     "congestion": {
       "low": "空いている",

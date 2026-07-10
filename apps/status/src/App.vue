@@ -6,13 +6,14 @@ import { ApiError, getMe, updateStatus } from '@/lib/api'
 import { resolveToken } from '@/lib/token'
 import { classOrgParams } from '@/lib/orgLabel'
 import { formatElapsed } from '@/lib/relativeTime'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 const SALES_LABELS: Record<SalesStatus, string> = {
   available: '販売中',
   paused: '販売休止中',
   partial: '一部完売',
   low: '残りわずか',
-  soldout: '完売',
+  soldout: '全て完売',
 }
 
 const CONGESTION_LABELS: Record<CongestionLevel, string> = {
@@ -53,7 +54,27 @@ const elapsedLabel = computed(() => {
   return formatElapsed(savedAt.value, Math.floor(now.value / 1000))
 })
 
-const canSubmit = computed(() => sales.value !== null && congestion.value !== null && !saving.value)
+const canSubmit = computed(
+  () =>
+    sales.value !== null &&
+    (sales.value === 'soldout' || congestion.value !== null) &&
+    !saving.value,
+)
+
+const confirmingSoldout = ref(false)
+
+function selectSales(value: SalesStatus) {
+  if (value === 'soldout' && sales.value !== 'soldout') {
+    confirmingSoldout.value = true
+    return
+  }
+  sales.value = value
+}
+
+function confirmSoldout() {
+  sales.value = 'soldout'
+  confirmingSoldout.value = false
+}
 
 let tickTimer: ReturnType<typeof setInterval> | undefined
 
@@ -80,12 +101,13 @@ onUnmounted(() => {
 })
 
 async function submit() {
-  if (!token || sales.value === null || congestion.value === null || saving.value) return
+  if (!token || !canSubmit.value || sales.value === null) return
   saving.value = true
   saveFailed.value = false
   justSaved.value = false
   try {
-    const updated = await updateStatus(token, sales.value, congestion.value)
+    const congestionValue = sales.value === 'soldout' ? null : congestion.value
+    const updated = await updateStatus(token, sales.value, congestionValue)
     savedAt.value = updated.updatedAt
     justSaved.value = true
   } catch {
@@ -130,7 +152,7 @@ async function submit() {
               type="button"
               :class="[`sales-${value}`, { selected: sales === value }]"
               :aria-pressed="sales === value"
-              @click="sales = value"
+              @click="selectSales(value)"
             >
               {{ SALES_LABELS[value] }}
             </button>
@@ -147,6 +169,7 @@ async function submit() {
                 type="button"
                 :class="[`congestion-${value}`, { selected: congestion === value }]"
                 :aria-pressed="congestion === value"
+                :disabled="sales === 'soldout'"
                 @click="congestion = value"
               >
                 {{ CONGESTION_LABELS[value] }}
@@ -165,6 +188,14 @@ async function submit() {
         </div>
       </div>
     </form>
+
+    <ConfirmDialog
+      :open="confirmingSoldout"
+      message="本当に「全て完売」にしますか？"
+      confirm-label="全て完売にする"
+      @confirm="confirmSoldout"
+      @cancel="confirmingSoldout = false"
+    />
   </main>
 </template>
 
@@ -354,6 +385,18 @@ async function submit() {
 
         &::before {
           background: currentColor;
+        }
+      }
+
+      &:disabled {
+        --c: oklch(60% 0 0 / 0.5);
+        color: oklch(100% 0 0 / 0.35);
+        cursor: not-allowed;
+        box-shadow: none;
+
+        &.selected {
+          background: oklch(60% 0 0 / 0.35);
+          color: oklch(100% 0 0 / 0.6);
         }
       }
     }

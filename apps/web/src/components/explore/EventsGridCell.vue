@@ -43,7 +43,11 @@ const cellLabel = computed(() => {
           <span class="badge" :class="`sales-${status.sales}`">
             {{ t(`status.sales.${status.sales}`) }}
           </span>
-          <span class="badge" :class="`congestion-${status.congestion}`">
+          <span
+            v-if="status.sales !== 'soldout' && status.congestion"
+            class="badge"
+            :class="`congestion-${status.congestion}`"
+          >
             {{ t(`status.congestion.${status.congestion}`) }}
           </span>
         </span>

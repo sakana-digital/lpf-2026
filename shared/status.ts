@@ -7,7 +7,7 @@ export type CongestionLevel = (typeof CONGESTION_LEVELS)[number]
 export interface OrgStatus {
   orgId: string
   sales: SalesStatus
-  congestion: CongestionLevel
+  congestion: CongestionLevel | null
   updatedAt: number
 }
 
