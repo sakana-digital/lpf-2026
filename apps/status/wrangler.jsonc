@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "lpf-2026-status",
+  "name": "happo-sai-status",
   "main": "worker/index.ts",
   "compatibility_date": "2026-07-01",
   "assets": {
@@ -12,8 +12,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "lpf-2026-status",
-      // wrangler d1 create lpf-2026-status の出力で置き換える
+      "database_name": "happo-sai-status",
+      // wrangler d1 create happo-sai-status の出力で置き換える
       "database_id": "00000000-0000-0000-0000-000000000000",
     },
   ],
