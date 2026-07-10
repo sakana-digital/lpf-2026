@@ -1,4 +1,4 @@
-# lpf-2026-status — 模擬店ステータス入力アプリ
+# happo-sai-status — 模擬店ステータス入力アプリ
 
 模擬店団体が「販売状況」「混雑状況」を各 3 択で送信する WebApp と、その API（Cloudflare Workers + D1）。
 本体サイト（Cloudflare Pages）の `/explore` は、Pages Functions（[apps/web/functions/api/[[path]].ts](../web/functions/api/%5B%5Bpath%5D%5D.ts)）の Service Binding 経由で同一ドメインの `/api/status` からデータを取得する。
@@ -30,8 +30,8 @@
 
 ```sh
 # 初回: ローカル D1 にスキーマとダミートークンを投入
-bunx wrangler d1 migrations apply lpf-2026-status --local
-bunx wrangler d1 execute lpf-2026-status --local --file seed.example.sql
+bunx wrangler d1 migrations apply happo-sai-status --local
+bunx wrangler d1 execute happo-sai-status --local --file seed.example.sql
 
 # 入力 SPA をビルドしてから Worker を起動（:8787）
 bun run build
@@ -49,20 +49,20 @@ wrangler 未ログインなら先に `bunx wrangler login`。以下すべて `ap
 1. D1 を作成し、出力された `database_id` で [wrangler.jsonc](wrangler.jsonc) のプレースホルダーを置き換える（コミットして OK）
 
    ```sh
-   bunx wrangler d1 create lpf-2026-status
+   bunx wrangler d1 create happo-sai-status
    ```
 
 2. 本番 D1 にスキーマを適用
 
    ```sh
-   bunx wrangler d1 migrations apply lpf-2026-status --remote
+   bunx wrangler d1 migrations apply happo-sai-status --remote
    ```
 
 3. 本番用トークンを投入（`seed.example.sql` をコピーし、`openssl rand -hex 16` などで生成した推測不能な値に書き換える。**実トークンはコミットしない**）
 
    ```sh
    cp seed.example.sql seed.prod.sql
-   bunx wrangler d1 execute lpf-2026-status --remote --file seed.prod.sql
+   bunx wrangler d1 execute happo-sai-status --remote --file seed.prod.sql
    rm seed.prod.sql
    ```
 
@@ -72,24 +72,24 @@ wrangler 未ログインなら先に `bunx wrangler login`。以下すべて `ap
    bun run deploy
    ```
 
-5. Cloudflare ダッシュボード → Pages プロジェクト → Settings → Bindings（Functions）で Service Binding を追加: 変数名 `STATUS` → Worker `lpf-2026-status`（忘れると本体の `/api/status` が 500）
+5. Cloudflare ダッシュボード → Pages プロジェクト → Settings → Bindings（Functions）で Service Binding を追加: 変数名 `STATUS` → Worker `happo-sai-status`（忘れると本体の `/api/status` が 500）
 
 6. main を push（Git 連携で Pages が再ビルドされ `functions/` が有効化）
 
 ## 2 回目以降のデプロイ
 
-| 変更した場所                                     | 操作                                                                            |
-| ------------------------------------------------ | ------------------------------------------------------------------------------- |
-| `apps/status/`（入力 SPA / Worker API）          | `bun run deploy`                                                                |
-| `apps/web/`（本体 SPA・`functions/`）・`shared/` | `git push` のみ（Pages が自動ビルド）                                           |
-| `migrations/` に SQL を追加                      | `bunx wrangler d1 migrations apply lpf-2026-status --remote` → `bun run deploy` |
+| 変更した場所                                     | 操作                                                                             |
+| ------------------------------------------------ | -------------------------------------------------------------------------------- |
+| `apps/status/`（入力 SPA / Worker API）          | `bun run deploy`                                                                 |
+| `apps/web/`（本体 SPA・`functions/`）・`shared/` | `git push` のみ（Pages が自動ビルド）                                            |
+| `migrations/` に SQL を追加                      | `bunx wrangler d1 migrations apply happo-sai-status --remote` → `bun run deploy` |
 
 ## デプロイ後の確認
 
 - `https://<本体ドメイン>/api/status` が JSON を返す
   - index.html が返る → Pages Functions が未検出
   - 500 → Service Binding 未設定
-- `https://lpf-2026-status.<account>.workers.dev/?t=<実トークン>` で送信 → 本体 `/explore/events/` のセル展開でバッジに反映（ポーリングは 60 秒間隔）
+- `https://happo-sai-status.<account>.workers.dev/?t=<実トークン>` で送信 → 本体 `/explore/events/` のセル展開でバッジに反映（ポーリングは 60 秒間隔）
 - 本体ドメインへの `POST /api/status` が 405
 
 ## トークン運用
@@ -114,7 +114,7 @@ wrangler 未ログインなら先に `bunx wrangler login`。以下すべて `ap
 
 ```sh
 # トークンを注入（ローカルは seed.example.sql の dev-token-admin 済み）
-bunx wrangler d1 execute lpf-2026-status --remote \
+bunx wrangler d1 execute happo-sai-status --remote \
   --command "INSERT OR REPLACE INTO admin_tokens (token) VALUES ('<openssl rand -hex 16 で生成>');"
 ```
 
