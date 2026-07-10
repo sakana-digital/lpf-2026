@@ -351,7 +351,10 @@ async function submit() {
         --c: var(--color-status-pause);
       }
 
-      &.sales-partial,
+      &.sales-partial {
+        --c: var(--color-status-partial);
+      }
+
       &.congestion-medium {
         --c: var(--color-status-warn);
       }
