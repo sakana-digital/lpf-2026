@@ -4,3 +4,6 @@
 INSERT INTO org_tokens (token, org_id) VALUES
   ('dev-token-c1-1', 'c1-1'),
   ('dev-token-c1-2', 'c1-2');
+
+INSERT INTO admin_tokens (token) VALUES
+  ('dev-token-admin');
