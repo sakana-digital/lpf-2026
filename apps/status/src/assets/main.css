@@ -8,15 +8,14 @@ html {
   --color-accent: #fff;
   --color-accent-strong: oklch(100% 0 0 / 0.85);
   --color-on-accent: #000;
-  --color-status-good: oklch(72% 0.17 152.505);
+  --color-status-good: oklch(72.428% 0.15175 158.84);
   --color-status-good-soft: oklch(72% 0.17 152.505 / 0.16);
   --color-status-warn: oklch(82% 0.16 75);
   --color-status-warn-soft: oklch(82% 0.16 75 / 0.18);
-  --color-status-partial: oklch(72% 0.19 55);
   --color-status-bad: oklch(68% 0.23 10.492);
   --color-status-bad-soft: oklch(68% 0.23 10.492 / 0.16);
   --color-status-soldout: oklch(52% 0.22 27);
-  --color-status-pause: oklch(85% 0.16 95);
+  --color-status-pause: oklch(72% 0.19 55);
   --color-on-status: oklch(15% 0.02 260);
   --color-on-status-warn: oklch(25% 0.06 75);
 }
@@ -39,6 +38,7 @@ button {
 
 body {
   min-height: 100svh;
+  min-width: 320px;
   background: var(--color-background);
   color: var(--color-text);
   font-family:
