@@ -14,7 +14,7 @@
       "binding": "DB",
       "database_name": "happo-sai-status",
       // wrangler d1 create happo-sai-status の出力で置き換える
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "fc18c3cd-3601-40c3-802d-e989264e948a",
     },
   ],
 }
