@@ -14,7 +14,8 @@ html {
   --color-status-warn-soft: oklch(82% 0.16 75 / 0.18);
   --color-status-bad: oklch(68% 0.23 10.492);
   --color-status-bad-soft: oklch(68% 0.23 10.492 / 0.16);
-  --color-status-pause: oklch(70% 0 0);
+  --color-status-soldout: oklch(52% 0.22 27);
+  --color-status-pause: oklch(85% 0.16 95);
   --color-on-status: oklch(15% 0.02 260);
   --color-on-status-warn: oklch(25% 0.06 75);
 }

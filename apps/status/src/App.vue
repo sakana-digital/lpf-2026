@@ -278,9 +278,9 @@ async function submit() {
     button {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       gap: 6px;
-      padding: 13px 4px;
+      padding: 13px 14px;
       border: 1px solid var(--c);
       font-size: 14px;
       font-weight: 600;
@@ -321,14 +321,17 @@ async function submit() {
       }
 
       &.sales-partial,
-      &.sales-low,
       &.congestion-medium {
         --c: var(--color-status-warn);
       }
 
-      &.sales-soldout,
+      &.sales-low,
       &.congestion-high {
         --c: var(--color-status-bad);
+      }
+
+      &.sales-soldout {
+        --c: var(--color-status-soldout);
       }
 
       &.selected {
@@ -339,10 +342,14 @@ async function submit() {
           0 0 10px oklch(from var(--c) l c h / 0.6),
           0 0 28px oklch(from var(--c) l c h / 0.4);
 
+        &.sales-paused,
         &.sales-partial,
-        &.sales-low,
         &.congestion-medium {
           color: var(--color-on-status-warn);
+        }
+
+        &.sales-soldout {
+          color: #fff;
         }
 
         &::before {
