@@ -77,12 +77,13 @@ function cookieToken(request: Request): string {
 
 async function authorizeToken(token: string, env: Env): Promise<Auth | null> {
   if (!token) return null
-  const org = await env.DB.prepare('SELECT org_id FROM org_tokens WHERE token = ?1')
-    .bind(token)
+  const tokenHash = await sha256(token)
+  const org = await env.DB.prepare('SELECT org_id FROM org_tokens WHERE token_hash = ?1')
+    .bind(tokenHash)
     .first<{ org_id: string }>()
   if (org) return { kind: 'org', orgId: org.org_id }
-  const admin = await env.DB.prepare('SELECT token FROM admin_tokens WHERE token = ?1')
-    .bind(token)
+  const admin = await env.DB.prepare('SELECT token_hash FROM admin_tokens WHERE token_hash = ?1')
+    .bind(tokenHash)
     .first()
   return admin ? { kind: 'admin' } : null
 }

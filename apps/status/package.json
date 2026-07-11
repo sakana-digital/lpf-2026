@@ -9,6 +9,7 @@
     "dev:worker": "wrangler dev",
     "cf-typegen": "wrangler types",
     "test": "vitest run",
+    "token:generate": "bun scripts/generate-token.ts",
     "type-check": "vue-tsc -p tsconfig.json --noEmit && tsc -p tsconfig.worker.json --noEmit",
     "deploy": "vp build && wrangler deploy"
   },

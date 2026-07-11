@@ -4,6 +4,11 @@ import { env, SELF } from 'cloudflare:test'
 const origin = 'https://status.example.test'
 const adminHeaders = { Authorization: 'Bearer test-admin' }
 
+async function tokenHash(token: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token))
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('')
+}
+
 async function issueViewerCookie(): Promise<string> {
   const issued = await SELF.fetch(`${origin}/api/signage/viewer-token`, {
     method: 'POST',
@@ -15,6 +20,7 @@ async function issueViewerCookie(): Promise<string> {
 }
 
 beforeEach(async () => {
+  const [orgHash, adminHash] = await Promise.all([tokenHash('test-org'), tokenHash('test-admin')])
   await env.DB.batch([
     env.DB.prepare('DELETE FROM org_status'),
     env.DB.prepare('DELETE FROM org_tokens'),
@@ -26,8 +32,11 @@ beforeEach(async () => {
            alert_enabled = 0, alert_text = '', updated_at = unixepoch()
        WHERE id = 1`,
     ),
-    env.DB.prepare("INSERT INTO org_tokens (token, org_id) VALUES ('test-org', 'c1-1')"),
-    env.DB.prepare("INSERT INTO admin_tokens (token) VALUES ('test-admin')"),
+    env.DB.prepare('INSERT INTO org_tokens (token_hash, org_id) VALUES (?1, ?2)').bind(
+      orgHash,
+      'c1-1',
+    ),
+    env.DB.prepare('INSERT INTO admin_tokens (token_hash) VALUES (?1)').bind(adminHash),
   ])
 })
 
@@ -35,6 +44,17 @@ describe('signage authentication and configuration', () => {
   it('rejects unauthenticated requests', async () => {
     const response = await SELF.fetch(`${origin}/api/signage`)
     expect(response.status).toBe(401)
+  })
+
+  it('stores only token hashes in D1', async () => {
+    const columns = await env.DB.prepare('PRAGMA table_info(admin_tokens)').all<{ name: string }>()
+    const row = await env.DB.prepare('SELECT token_hash FROM admin_tokens').first<{
+      token_hash: string
+    }>()
+
+    expect(columns.results.map((column) => column.name)).toEqual(['token_hash'])
+    expect(row?.token_hash).toBe(await tokenHash('test-admin'))
+    expect(row?.token_hash).not.toContain('test-admin')
   })
 
   it('issues a cookie and invalidates it when the viewer URL is reissued', async () => {
@@ -53,8 +73,12 @@ describe('signage authentication and configuration', () => {
   })
 
   it('stores ordered organizations and returns statuses outside submission windows', async () => {
+    const secondOrgHash = await tokenHash('test-org-2')
     await env.DB.batch([
-      env.DB.prepare("INSERT INTO org_tokens (token, org_id) VALUES ('test-org-2', 'c1-2')"),
+      env.DB.prepare('INSERT INTO org_tokens (token_hash, org_id) VALUES (?1, ?2)').bind(
+        secondOrgHash,
+        'c1-2',
+      ),
       env.DB.prepare(
         `INSERT INTO org_status (org_id, sales, congestion, updated_at)
          VALUES ('c1-2', 'available', 'low', unixepoch())`,
