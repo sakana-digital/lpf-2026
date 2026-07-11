@@ -7,6 +7,9 @@
     "dev": "vp dev",
     "build": "vp build",
     "dev:worker": "wrangler dev",
+    "cf-typegen": "wrangler types",
+    "test": "vitest run",
+    "token:generate": "bun scripts/generate-token.ts",
     "type-check": "vue-tsc -p tsconfig.json --noEmit && tsc -p tsconfig.worker.json --noEmit",
     "deploy": "vp build && wrangler deploy"
   },
@@ -14,12 +17,14 @@
     "vue": "beta"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250705.0",
+    "@cloudflare/vitest-pool-workers": "^0.18.4",
+    "@cloudflare/workers-types": "^5.20260711.1",
     "@vitejs/plugin-vue": "^6.0.7",
     "@vue/tsconfig": "^0.9.1",
     "typescript": "~6.0.3",
     "vite": "npm:@voidzero-dev/vite-plus-core@^0.2.4",
     "vite-plus": "latest",
+    "vitest": "^4.1.0",
     "vue-tsc": "^3.3.7",
     "wrangler": "^4.24.0"
   }

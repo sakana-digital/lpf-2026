@@ -2,6 +2,11 @@ import type {
   CongestionLevel,
   OrgStatus,
   SalesStatus,
+  SignageConfig,
+  SignagePayload,
+  SignageUploadedPart,
+  SignageUploadStartResponse,
+  SignageVideo,
   SubmitWindows,
 } from '../../../../shared/status'
 
@@ -57,4 +62,82 @@ export function updateWindows(token: string, windows: SubmitWindows): Promise<Su
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(windows),
   })
+}
+
+export function getSignageAdmin(token: string): Promise<SignagePayload> {
+  return request('/api/signage', token)
+}
+
+export function updateSignageConfig(
+  token: string,
+  config: Omit<SignageConfig, 'updatedAt'>,
+): Promise<SignageConfig> {
+  return request('/api/signage', token, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(config),
+  })
+}
+
+export function issueSignageViewerToken(token: string): Promise<{ url: string }> {
+  return request('/api/signage/viewer-token', token, { method: 'POST' })
+}
+
+export function getSignageVideos(token: string): Promise<SignageVideo[]> {
+  return request('/api/signage/videos', token)
+}
+
+export async function deleteSignageVideo(token: string, key: string): Promise<void> {
+  const headers = new Headers({ Authorization: `Bearer ${token}` })
+  const response = await fetch(`/api/signage/videos/${encodeURIComponent(key)}`, {
+    method: 'DELETE',
+    headers,
+  })
+  if (!response.ok) throw new ApiError(response.status)
+}
+
+export function startSignageUpload(token: string, file: File): Promise<SignageUploadStartResponse> {
+  return request('/api/signage/uploads', token, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: file.name, size: file.size, type: file.type }),
+  })
+}
+
+export function uploadSignagePart(
+  token: string,
+  upload: SignageUploadStartResponse,
+  partNumber: number,
+  body: Blob,
+  signal?: AbortSignal,
+): Promise<SignageUploadedPart> {
+  return request(
+    `/api/signage/uploads/${encodeURIComponent(upload.uploadId)}/parts/${partNumber}?key=${encodeURIComponent(upload.key)}`,
+    token,
+    { method: 'PUT', body, signal },
+  )
+}
+
+export function completeSignageUpload(
+  token: string,
+  upload: SignageUploadStartResponse,
+  parts: SignageUploadedPart[],
+): Promise<{ key: string; etag: string }> {
+  return request(`/api/signage/uploads/${encodeURIComponent(upload.uploadId)}/complete`, token, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: upload.key, parts }),
+  })
+}
+
+export async function abortSignageUpload(
+  token: string,
+  upload: SignageUploadStartResponse,
+): Promise<void> {
+  const headers = new Headers({ Authorization: `Bearer ${token}` })
+  const response = await fetch(
+    `/api/signage/uploads/${encodeURIComponent(upload.uploadId)}?key=${encodeURIComponent(upload.key)}`,
+    { method: 'DELETE', headers },
+  )
+  if (!response.ok) throw new ApiError(response.status)
 }
