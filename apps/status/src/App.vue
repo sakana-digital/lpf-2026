@@ -13,6 +13,7 @@ import { classOrgParams } from '@/lib/orgLabel'
 import { formatElapsed } from '@/lib/relativeTime'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import SubmitWindowEditor from '@/components/SubmitWindowEditor.vue'
+import SignageAdminEditor from '@/components/SignageAdminEditor.vue'
 
 const SALES_LABELS: Record<SalesStatus, string> = {
   available: '販売中',
@@ -50,6 +51,8 @@ const submitWindows = ref<SubmitWindows>({
   day2: { from: null, until: null },
 })
 const orgStatuses = ref(new Map<string, OrgStatus>())
+const adminTab = ref<'status' | 'window' | 'signage'>('status')
+const adminStatuses = computed(() => [...orgStatuses.value.values()])
 
 function orgOptionLabel(id: string) {
   const params = classOrgParams(id)
@@ -184,7 +187,7 @@ async function submit() {
 </script>
 
 <template>
-  <main class="status-app">
+  <main class="status-app" :class="{ admin: isAdmin }">
     <header>
       <div class="heading">
         <h1>{{ isAdmin ? 'ステータスを管理' : 'ステータスを送信' }}</h1>
@@ -193,6 +196,21 @@ async function submit() {
       <p v-if="phase === 'ready' && savedAt !== null" class="updated">
         最終更新 {{ savedTime }}（{{ elapsedLabel }}）
       </p>
+      <nav v-if="phase === 'ready' && isAdmin" class="admin-tabs" aria-label="管理メニュー">
+        <button
+          v-for="item in [
+            { id: 'status', label: '団体ステータス' },
+            { id: 'window', label: '受付時間' },
+            { id: 'signage', label: 'サイネージ設定' },
+          ] as const"
+          :key="item.id"
+          type="button"
+          :class="{ active: adminTab === item.id }"
+          @click="adminTab = item.id"
+        >
+          {{ item.label }}
+        </button>
+      </nav>
     </header>
 
     <p v-if="phase === 'missing'" class="notice">
@@ -206,7 +224,7 @@ async function submit() {
     </p>
     <p v-else-if="phase === 'loading'" class="notice mute">読み込み中…</p>
 
-    <form v-else @submit.prevent="submit">
+    <form v-else v-show="!isAdmin || adminTab === 'status'" @submit.prevent="submit">
       <label v-if="isAdmin" class="org-select">
         <span>団体</span>
         <select v-model="selectedOrg" @change="applyOrgStatus">
@@ -261,10 +279,17 @@ async function submit() {
     </form>
 
     <SubmitWindowEditor
-      v-if="phase === 'ready' && isAdmin && token"
+      v-if="phase === 'ready' && isAdmin && token && adminTab === 'window'"
       :token="token"
       :windows="submitWindows"
       @updated="submitWindows = $event"
+    />
+
+    <SignageAdminEditor
+      v-if="phase === 'ready' && isAdmin && token && adminTab === 'signage'"
+      :token="token"
+      :orgs="orgs"
+      :statuses="adminStatuses"
     />
 
     <ConfirmDialog
@@ -282,6 +307,10 @@ async function submit() {
   max-width: 440px;
   margin: 0 auto;
   padding: 32px 20px 56px;
+
+  &.admin {
+    max-width: 1180px;
+  }
 
   header {
     display: flex;
@@ -327,6 +356,32 @@ async function submit() {
         border-radius: 999px;
         background: var(--color-status-good);
         animation: pulse 2.4s ease-in-out infinite;
+      }
+    }
+  }
+
+  .admin-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-top: 14px;
+    border: 1px solid var(--color-border);
+
+    button {
+      padding: 10px 6px;
+      border-right: 1px solid var(--color-border);
+      color: var(--color-text-mute);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+
+      &:last-child {
+        border-right: 0;
+      }
+
+      &.active {
+        background: var(--color-text);
+        color: var(--color-background);
       }
     }
   }

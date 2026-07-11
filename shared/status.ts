@@ -25,6 +25,39 @@ export interface SubmitWindows {
   day2: SubmitWindow
 }
 
+export interface SignageConfig {
+  orgIds: string[]
+  activeVideoKey: string | null
+  footerText: string
+  alertEnabled: boolean
+  alertText: string
+  updatedAt: number
+}
+
+export interface SignageVideo {
+  key: string
+  name: string
+  size: number
+  uploadedAt: number
+}
+
+export interface SignagePayload {
+  config: SignageConfig
+  statuses: OrgStatus[]
+  version: number
+}
+
+export interface SignageUploadStartResponse {
+  key: string
+  uploadId: string
+  partSize: number
+}
+
+export interface SignageUploadedPart {
+  partNumber: number
+  etag: string
+}
+
 export const SUBMIT_DAYS = ['day1', 'day2'] as const
 
 function isWindowSet(window: SubmitWindow): boolean {

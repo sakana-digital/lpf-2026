@@ -2,13 +2,18 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "happo-sai-status",
   "main": "worker/index.ts",
-  "compatibility_date": "2026-07-01",
+  "compatibility_date": "2026-07-11",
+  "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+  },
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*"],
+    "run_worker_first": ["/api/*", "/signage*"],
   },
   "d1_databases": [
     {
@@ -16,6 +21,16 @@
       "database_name": "happo-sai-status",
       // wrangler d1 create happo-sai-status の出力で置き換える
       "database_id": "fc18c3cd-3601-40c3-802d-e989264e948a",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "SIGNAGE_MEDIA",
+      "bucket_name": "happo-sai-signage",
+    },
+    {
+      "bucket_name": "happo-sai-signage",
+      "binding": "happo_sai_signage",
     },
   ],
 }

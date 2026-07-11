@@ -1,9 +1,21 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "../../shared/**/*"],
+  "include": [
+    "env.d.ts",
+    "worker-configuration.d.ts",
+    "src/**/*",
+    "src/**/*.vue",
+    "test/**/*",
+    "../../shared/**/*"
+  ],
   "compilerOptions": {
     "noEmit": true,
     "noUncheckedIndexedAccess": true,
+    "types": [
+      "vite-plus/client",
+      "@cloudflare/vitest-pool-workers/types",
+      "@cloudflare/workers-types"
+    ],
     "paths": {
       "@/*": ["./src/*"]
     }
