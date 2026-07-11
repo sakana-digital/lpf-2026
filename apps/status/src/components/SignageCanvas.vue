@@ -145,7 +145,7 @@ onUnmounted(() => clearInterval(timer))
   overflow: hidden;
   background: #050505;
   color: #f7f7f2;
-  font-family: 'Arial Narrow', 'Noto Sans JP', sans-serif;
+  font-family: 'futura-pt', 'Futura', 'Noto Sans JP', sans-serif;
 
   &.preview {
     width: 100%;
