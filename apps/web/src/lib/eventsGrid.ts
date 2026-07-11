@@ -37,14 +37,25 @@ export function buildEventRows(orgs: Organization[]): EventRow[] {
   return rows
 }
 
+const EXPANDED_COLUMN = 'min(560px, 100vw - 32px)'
+
+// セル内余白 18px を除いた 4:3 画像の高さ + 見出し・ステータス・メタ分
+const EXPANDED_ROW = `calc((${EXPANDED_COLUMN} - 18px) * 3 / 4 + 110px)`
+
+// 非選択時の 1fr 相当幅（ガター 40px + 左右余白 32px + 8px ギャップ）を
+// px 系で表し，grid-template のトラック補間を効かせる
+function baseColumn(count: number): string {
+  return `max(56px, calc((100vw - ${40 + 32 + 8 * count}px) / ${count}))`
+}
+
 export function columnTracks(count: number, selected: number | null): string {
   return Array.from({ length: count }, (_, i) =>
-    i === selected ? 'minmax(240px, 4fr)' : 'minmax(56px, 1fr)',
+    i === selected ? `calc(${EXPANDED_COLUMN})` : baseColumn(count),
   ).join(' ')
 }
 
 export function rowTracks(count: number, selected: number | null): string {
-  return Array.from({ length: count }, (_, i) => (i === selected ? '280px' : '56px')).join(' ')
+  return Array.from({ length: count }, (_, i) => (i === selected ? EXPANDED_ROW : '56px')).join(' ')
 }
 
 export function findCellPosition(
