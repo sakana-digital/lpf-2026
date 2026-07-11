@@ -38,13 +38,14 @@ export function buildEventRows(orgs: Organization[]): EventRow[] {
 }
 
 export function columnTracks(count: number, selected: number | null): string {
+  if (selected === null) return Array.from({ length: count }, () => 'minmax(56px, 1fr)').join(' ')
   return Array.from({ length: count }, (_, i) =>
-    i === selected ? 'minmax(240px, 4fr)' : 'minmax(56px, 1fr)',
+    i === selected ? 'min(560px, calc(100vw - 32px))' : '48px',
   ).join(' ')
 }
 
 export function rowTracks(count: number, selected: number | null): string {
-  return Array.from({ length: count }, (_, i) => (i === selected ? '280px' : '56px')).join(' ')
+  return Array.from({ length: count }, (_, i) => (i === selected ? 'auto' : '56px')).join(' ')
 }
 
 export function findCellPosition(

@@ -20,8 +20,8 @@ const { t } = useI18n()
 <style scoped>
 .org-image {
   overflow: hidden;
-  flex: 1;
-  min-height: 0;
+  width: 100%;
+  aspect-ratio: 4 / 3;
 
   img,
   .placeholder {
