@@ -29,6 +29,9 @@
 html {
   /* Safari を含め、縦スクロールの有無でレイアウト幅を変えない */
   overflow-y: scroll;
+  /* レイアウト幅の変化による iOS Safari の文字自動拡大を防ぐ */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 /* semantic color variables for this project */
