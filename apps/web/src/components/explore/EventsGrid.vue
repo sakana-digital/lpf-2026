@@ -24,7 +24,7 @@ const selectedPos = computed(() =>
 
 const gridStyle = computed(() => ({
   gridTemplateColumns: `40px ${columnTracks(classNumbers.length, selectedPos.value?.col ?? null)}`,
-  gridTemplateRows: `32px ${rowTracks(rows.value.length, selectedPos.value?.row ?? null)}`,
+  gridTemplateRows: `32px ${rowTracks(rows.value, selectedPos.value?.row ?? null)}`,
 }))
 
 function onSelect(org: Organization | null) {
@@ -63,21 +63,27 @@ onMounted(scrollSelectedIntoView)
     </div>
 
     <template v-for="(row, rowIndex) in rows" :key="row.id">
-      <div class="gutter row-head">
-        {{ t(row.labelKey, row.labelParams ?? {}) }}
-      </div>
-      <EventsGridCell
-        v-for="(cell, colIndex) in row.cells"
-        :key="cell?.id ?? `${row.id}-${colIndex}`"
-        :org="cell"
-        :expanded="isExpanded(rowIndex, colIndex)"
-        :status="cell ? statuses?.get(cell.id) : undefined"
-        @select="onSelect(cell)"
-      >
-        <template #actions>
-          <slot name="cell-actions" :org="cell"></slot>
-        </template>
-      </EventsGridCell>
+      <template v-if="row.spacer">
+        <div class="gutter corner" aria-hidden="true"></div>
+        <div v-for="classNo in classNumbers" :key="classNo" class="gutter" aria-hidden="true"></div>
+      </template>
+      <template v-else>
+        <div class="gutter row-head">
+          {{ row.labelKey ? t(row.labelKey, row.labelParams ?? {}) : '' }}
+        </div>
+        <EventsGridCell
+          v-for="(cell, colIndex) in row.cells"
+          :key="cell?.id ?? `${row.id}-${colIndex}`"
+          :org="cell"
+          :expanded="isExpanded(rowIndex, colIndex)"
+          :status="cell ? statuses?.get(cell.id) : undefined"
+          @select="onSelect(cell)"
+        >
+          <template #actions>
+            <slot name="cell-actions" :org="cell"></slot>
+          </template>
+        </EventsGridCell>
+      </template>
     </template>
   </div>
 </template>

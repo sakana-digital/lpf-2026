@@ -28,6 +28,7 @@ export const scheduleSlots: ScheduleSlot[] = [
     start: '13:00',
     end: '14:00',
     titleKey: 'explore.schedule.slots.liveStage',
+    organizationId: 'club-1',
   },
   {
     id: 'd1-screening',
@@ -36,6 +37,7 @@ export const scheduleSlots: ScheduleSlot[] = [
     start: '11:30',
     end: '12:30',
     titleKey: 'explore.schedule.slots.screening',
+    organizationId: 'com-1',
   },
   {
     id: 'd2-live',
@@ -44,6 +46,7 @@ export const scheduleSlots: ScheduleSlot[] = [
     start: '11:00',
     end: '12:00',
     titleKey: 'explore.schedule.slots.liveStage',
+    organizationId: 'club-2',
   },
   {
     id: 'd2-closing',

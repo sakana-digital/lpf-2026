@@ -82,7 +82,14 @@ function spherePoint(latDeg: number, lonDeg: number): Vec3 {
   }
 }
 
-// 学年ごとに緯度帯のリングを作り、その少し上にグループノードを置く
+interface SphereRing {
+  id: string
+  labelKey: string
+  labelParams?: Record<string, unknown>
+  members: Organization[]
+}
+
+// カテゴリごとに緯度帯のリングを作り、その少し上にグループノードを置く
 export function buildOrganizationSphere(orgs: Organization[]): {
   nodes: SphereNode[]
   edges: SphereEdge[]
@@ -90,29 +97,46 @@ export function buildOrganizationSphere(orgs: Organization[]): {
   const nodes: SphereNode[] = []
   const edges: SphereEdge[] = []
 
-  grades.forEach((grade, gi) => {
-    const lat = (gi - 1) * 42
-    const groupId = `grade-${grade}`
-    nodes.push({
-      id: groupId,
-      kind: 'group',
+  const rings: SphereRing[] = [
+    ...grades.map((grade) => ({
+      id: `grade-${grade}`,
       labelKey: 'explore.events.gradeHeader',
       labelParams: { grade },
-      position: spherePoint(lat + 16, gi * 120 + 45),
+      members: orgs.filter((org) => org.kind === 'class' && org.grade === grade),
+    })),
+    {
+      id: 'clubs',
+      labelKey: 'explore.events.clubHeader',
+      members: orgs.filter((org) => org.kind === 'club'),
+    },
+    {
+      id: 'committees',
+      labelKey: 'explore.events.committeeHeader',
+      members: orgs.filter((org) => org.kind === 'committee'),
+    },
+  ].filter((ring) => ring.members.length > 0)
+
+  rings.forEach((ring, ri) => {
+    const lat = (ri - (rings.length - 1) / 2) * 28
+    nodes.push({
+      id: ring.id,
+      kind: 'group',
+      labelKey: ring.labelKey,
+      labelParams: ring.labelParams,
+      position: spherePoint(lat + 16, ri * 120 + 45),
     })
 
-    const classes = orgs.filter((org) => org.kind === 'class' && org.grade === grade)
-    classes.forEach((org, j) => {
-      const lon = (360 / classes.length) * j + gi * 22
+    ring.members.forEach((org, j) => {
+      const lon = (360 / ring.members.length) * j + ri * 22
       nodes.push({
         id: org.id,
         kind: 'leaf',
         orgId: org.id,
-        labelKey: 'explore.events.classLabel',
-        labelParams: { grade, classNo: org.kind === 'class' ? org.classNo : 0 },
+        labelKey: org.kind === 'class' ? 'explore.events.classLabel' : 'explore.events.tbd',
+        labelParams: org.kind === 'class' ? { grade: org.grade, classNo: org.classNo } : undefined,
         position: spherePoint(lat, lon),
       })
-      edges.push({ from: groupId, to: org.id })
+      edges.push({ from: ring.id, to: org.id })
     })
   })
 

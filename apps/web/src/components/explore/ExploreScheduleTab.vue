@@ -1,18 +1,64 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, useTemplateRef } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { scheduleSlots, scheduleVenues } from '@/config/schedule'
 import type { ScheduleSlot } from '@/config/schedule'
 import { festivalDates, resolveFestivalDay } from '@/config/festival'
+import { getOrganization, organizationName } from '@/config/organizations'
 import { buildTimeAxis, slotRows } from '@/lib/scheduleGrid'
+import { useOrgStatus } from '@/composables/useOrgStatus'
+import BookmarkToggle from '@/components/common/BookmarkToggle.vue'
+import SegmentedSwitch from '@/components/common/SegmentedSwitch.vue'
+import OrgDetail from './OrgDetail.vue'
 
-const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
+
+const { t, locale } = useI18n()
+const { statuses } = useOrgStatus()
 
 const days = [1, 2] as const
 const day = ref<1 | 2>(resolveFestivalDay() === 2 ? 2 : 1)
 
+const dayOptions = computed(() => days.map((d) => ({ value: d, label: dayLabel(d) })))
+
 const daySlots = computed(() => scheduleSlots.filter((slot) => slot.day === day.value))
 const axis = computed(() => buildTimeAxis(daySlots.value))
+
+const selectedId = computed(() => {
+  const org = route.query.org
+  return typeof org === 'string' && getOrganization(org) ? org : undefined
+})
+
+function isExpanded(slot: ScheduleSlot): boolean {
+  return slot.organizationId != null && slot.organizationId === selectedId.value
+}
+
+function slotOrg(slot: ScheduleSlot) {
+  return slot.organizationId ? getOrganization(slot.organizationId) : undefined
+}
+
+function slotOrgName(slot: ScheduleSlot): string {
+  const org = slotOrg(slot)
+  return org ? organizationName(org, locale.value) : ''
+}
+
+const gridRef = useTemplateRef<HTMLElement>('gridRef')
+
+// 閉じるアニメーション中も .active の高さ指定を維持するための ID
+const closingId = ref<string>()
+
+async function onSlotClick(slot: ScheduleSlot) {
+  if (!slot.organizationId) return
+  const next = slot.organizationId === selectedId.value ? undefined : slot.organizationId
+  await router.replace({ query: { ...route.query, org: next } })
+  if (!next) return
+  await nextTick()
+  gridRef.value
+    ?.querySelector('.slot.linked.active')
+    ?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
+}
 
 function dayLabel(d: 1 | 2): string {
   const [, month = '', dayNum = ''] = (festivalDates[d - 1] ?? '').split('-')
@@ -34,21 +80,17 @@ function slotStyle(slot: ScheduleSlot) {
 
 <template>
   <div class="schedule">
-    <div class="day-switch" role="group" :aria-label="t('explore.schedule.daySwitch')">
-      <button
-        v-for="d in days"
-        :key="d"
-        :class="{ active: day === d }"
-        :aria-pressed="day === d"
-        @click="day = d"
-      >
-        {{ dayLabel(d) }}
-      </button>
-    </div>
+    <SegmentedSwitch
+      v-model="day"
+      class="day-switch"
+      :options="dayOptions"
+      :aria-label="t('explore.schedule.daySwitch')"
+    />
 
     <p v-if="daySlots.length === 0" class="empty">{{ t('explore.schedule.empty') }}</p>
 
     <div
+      ref="gridRef"
       class="grid"
       :style="{ gridTemplateRows: `auto repeat(${axis.rowCount}, 10px)` }"
       role="table"
@@ -68,10 +110,41 @@ function slotStyle(slot: ScheduleSlot) {
         <span class="rule" :style="{ gridRow: mark.row + 1 }" aria-hidden="true"></span>
       </template>
 
-      <div v-for="slot in daySlots" :key="slot.id" class="slot" :style="slotStyle(slot)">
-        <span class="slot-title">{{ slotTitle(slot) }}</span>
-        <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
-      </div>
+      <template v-for="slot in daySlots" :key="slot.id">
+        <button
+          v-if="slot.organizationId"
+          class="slot linked"
+          :class="{ active: isExpanded(slot) || closingId === slot.organizationId }"
+          :style="slotStyle(slot)"
+          :aria-expanded="isExpanded(slot)"
+          @click="onSlotClick(slot)"
+        >
+          <span class="slot-title">{{ slotTitle(slot) }}</span>
+          <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
+          <Transition
+            name="detail"
+            @before-leave="closingId = slot.organizationId"
+            @after-leave="closingId = undefined"
+          >
+            <span v-if="isExpanded(slot) && slotOrg(slot)" class="slot-expand">
+              <span class="slot-expand-inner">
+                <span class="slot-org" :class="{ tbd: !slotOrgName(slot) }">
+                  {{ slotOrgName(slot) || t('explore.events.tbd') }}
+                </span>
+                <OrgDetail :org="slotOrg(slot)!" :status="statuses?.get(slot.organizationId)">
+                  <template #actions>
+                    <BookmarkToggle :org-id="slot.organizationId" />
+                  </template>
+                </OrgDetail>
+              </span>
+            </span>
+          </Transition>
+        </button>
+        <div v-else class="slot" :style="slotStyle(slot)">
+          <span class="slot-title">{{ slotTitle(slot) }}</span>
+          <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -83,34 +156,7 @@ function slotStyle(slot: ScheduleSlot) {
   padding: 24px 16px 48px;
 
   .day-switch {
-    display: flex;
-    gap: 8px;
     margin-bottom: 24px;
-
-    button {
-      padding: 6px 16px;
-      border: 1px solid var(--color-border);
-      background: transparent;
-      color: var(--color-text);
-      font: inherit;
-      font-size: 13px;
-      cursor: pointer;
-      transition:
-        background 0.15s,
-        color 0.15s,
-        border-color 0.15s;
-
-      &:hover {
-        border-color: var(--color-border-hover);
-        color: var(--color-heading);
-      }
-
-      &.active {
-        background: var(--color-heading);
-        border-color: var(--color-heading);
-        color: var(--color-background);
-      }
-    }
   }
 
   .empty {
@@ -154,13 +200,31 @@ function slotStyle(slot: ScheduleSlot) {
     .slot {
       display: flex;
       flex-direction: column;
-      gap: 2px;
       margin: 1px 0;
       padding: 6px 10px;
       border: 1px solid var(--color-text-mute);
       background: var(--color-background);
       overflow: hidden;
       z-index: 1;
+
+      &.linked {
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+        transition: border-color 0.15s;
+
+        &:hover {
+          border-color: var(--color-heading);
+        }
+
+        &.active {
+          align-self: start;
+          height: max-content;
+          min-height: calc(100% - 2px);
+          z-index: 2;
+          border-color: var(--color-heading);
+        }
+      }
 
       .slot-title {
         color: var(--color-heading);
@@ -169,9 +233,54 @@ function slotStyle(slot: ScheduleSlot) {
       }
 
       .slot-time {
+        margin-top: 2px;
         color: var(--color-text-mute);
         font-size: 11px;
         font-variant-numeric: tabular-nums;
+      }
+
+      .slot-expand {
+        display: grid;
+        grid-template-rows: 1fr;
+        margin-top: 10px;
+
+        .slot-expand-inner {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          min-height: 0;
+          overflow: hidden;
+        }
+
+        .slot-org {
+          color: var(--color-text);
+          font-size: 12px;
+
+          &.tbd {
+            color: var(--color-text-mute);
+          }
+        }
+
+        &.detail-enter-active {
+          transition:
+            grid-template-rows 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+            margin-top 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+            opacity 0.2s ease-out;
+        }
+
+        &.detail-leave-active {
+          transition:
+            grid-template-rows 0.4s cubic-bezier(0.33, 1, 0.68, 1),
+            margin-top 0.4s cubic-bezier(0.33, 1, 0.68, 1),
+            opacity 0.25s ease-out;
+        }
+
+        &.detail-enter-from,
+        &.detail-leave-to {
+          grid-template-rows: 0fr;
+          margin-top: 0;
+          opacity: 0;
+        }
       }
     }
   }

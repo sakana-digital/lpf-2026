@@ -32,8 +32,7 @@
     "tabs": {
       "map": "Venue Map",
       "events": "Events",
-      "schedule": "Schedule",
-      "nodes": "Node Graph"
+      "schedule": "Schedule"
     },
     "map": {
       "floorSwitch": "Switch floor",
@@ -45,14 +44,21 @@
       "classHeader": "{classNo}",
       "gradeHeader": "Y{grade}",
       "clubHeader": "Clubs",
+      "committeeHeader": "Committees",
       "classLabel": "{grade}-{classNo}",
       "tbd": "⚠️ TBD",
       "noImage": "No Image",
-      "location": "{floor}F"
+      "location": "{floor}F",
+      "viewSwitch": "Switch view",
+      "views": {
+        "grid": "List",
+        "graph": "Graph"
+      }
     },
     "nodes": {
       "graphLabel": "Organization node graph",
-      "hint": "Drag to rotate"
+      "hint": "Drag to rotate",
+      "close": "Close detail"
     },
     "schedule": {
       "daySwitch": "Switch day",

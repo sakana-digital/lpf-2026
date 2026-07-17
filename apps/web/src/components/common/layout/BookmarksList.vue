@@ -17,7 +17,9 @@ const items = computed(() =>
       label:
         org.kind === 'class'
           ? t('explore.events.classLabel', { grade: org.grade, classNo: org.classNo })
-          : t('explore.events.clubHeader'),
+          : org.kind === 'club'
+            ? t('explore.events.clubHeader')
+            : t('explore.events.committeeHeader'),
       name: organizationName(org, locale.value),
       to: {
         path: `${locale.value === 'en' ? '/en' : ''}/explore/events/`,

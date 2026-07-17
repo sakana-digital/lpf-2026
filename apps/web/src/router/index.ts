@@ -10,7 +10,6 @@ const NewsView = () => import('@/views/NewsView.vue')
 const ExploreView = () => import('@/views/ExploreView.vue')
 const ExploreEventsTab = () => import('@/components/explore/ExploreEventsTab.vue')
 const ExploreScheduleTab = () => import('@/components/explore/ExploreScheduleTab.vue')
-const ExploreNodesTab = () => import('@/components/explore/ExploreNodesTab.vue')
 const NotFoundView = () => import('@/views/NotFoundView.vue')
 
 function exploreRoutes(suffix: string): RouteRecordRaw {
@@ -20,12 +19,6 @@ function exploreRoutes(suffix: string): RouteRecordRaw {
     meta: { pageTitle: 'sitemap.explore' },
     children: [
       { path: '', redirect: () => ({ name: `explore-${getLastExploreTab()}${suffix}` }) },
-      {
-        path: 'map',
-        name: `explore-map${suffix}`,
-        component: () => import('@/components/explore/ExploreMapTab.vue'),
-        meta: { title: 'explore.tabs.map' },
-      },
       {
         path: 'events',
         name: `explore-events${suffix}`,
@@ -39,10 +32,17 @@ function exploreRoutes(suffix: string): RouteRecordRaw {
         meta: { title: 'explore.tabs.schedule' },
       },
       {
+        path: 'map',
+        name: `explore-map${suffix}`,
+        component: () => import('@/components/explore/ExploreMapTab.vue'),
+        meta: { title: 'explore.tabs.map' },
+      },
+      {
         path: 'nodes',
-        name: `explore-nodes${suffix}`,
-        component: ExploreNodesTab,
-        meta: { title: 'explore.tabs.nodes' },
+        redirect: (to) => ({
+          name: `explore-events${suffix}`,
+          query: { ...to.query, view: 'graph' },
+        }),
       },
     ],
   }

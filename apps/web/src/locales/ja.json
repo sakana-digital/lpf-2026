@@ -32,8 +32,7 @@
     "tabs": {
       "map": "会場マップ",
       "events": "イベント",
-      "schedule": "スケジュール",
-      "nodes": "ノードグラフ"
+      "schedule": "スケジュール"
     },
     "map": {
       "floorSwitch": "階の切り替え",
@@ -45,14 +44,21 @@
       "classHeader": "{classNo}組",
       "gradeHeader": "{grade}年",
       "clubHeader": "部活",
+      "committeeHeader": "委員会",
       "classLabel": "{grade}-{classNo}",
       "tbd": "⚠️ TBD",
       "noImage": "No Image",
-      "location": "{floor}F"
+      "location": "{floor}F",
+      "viewSwitch": "表示切り替え",
+      "views": {
+        "grid": "一覧",
+        "graph": "グラフ"
+      }
     },
     "nodes": {
       "graphLabel": "団体ノードグラフ",
-      "hint": "ドラッグで回転"
+      "hint": "ドラッグで回転",
+      "close": "詳細を閉じる"
     },
     "schedule": {
       "daySwitch": "日程切り替え",
