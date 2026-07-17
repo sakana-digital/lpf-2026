@@ -6,9 +6,11 @@ const POLL_INTERVAL_MS = 60_000
 const statuses = ref<ReadonlyMap<string, OrgStatus>>(new Map())
 
 let subscribers = 0
-let timer: ReturnType<typeof setInterval> | undefined
+let timer: ReturnType<typeof setTimeout> | undefined
+let lastRequestAt: number | undefined
+let requestInFlight: Promise<void> | undefined
 
-async function fetchStatuses() {
+async function requestStatuses() {
   try {
     const res = await fetch('/api/status')
     if (!res.ok) return
@@ -19,13 +21,43 @@ async function fetchStatuses() {
   }
 }
 
+function fetchStatuses(): Promise<void> {
+  if (requestInFlight !== undefined) return requestInFlight
+
+  const now = Date.now()
+  if (lastRequestAt !== undefined && now - lastRequestAt < POLL_INTERVAL_MS) {
+    return Promise.resolve()
+  }
+  lastRequestAt = now
+  requestInFlight = requestStatuses().finally(() => {
+    requestInFlight = undefined
+  })
+  return requestInFlight
+}
+
+function scheduleNextFetch() {
+  if (timer !== undefined || subscribers === 0 || document.visibilityState !== 'visible') return
+
+  const delay =
+    lastRequestAt === undefined
+      ? 0
+      : Math.max(0, Math.min(POLL_INTERVAL_MS, lastRequestAt + POLL_INTERVAL_MS - Date.now()))
+  timer = setTimeout(refreshAndSchedule, delay)
+}
+
+async function refreshAndSchedule() {
+  timer = undefined
+  await fetchStatuses()
+  scheduleNextFetch()
+}
+
 function startPolling() {
-  void fetchStatuses()
-  timer = setInterval(fetchStatuses, POLL_INTERVAL_MS)
+  if (timer !== undefined) return
+  void refreshAndSchedule()
 }
 
 function stopPolling() {
-  clearInterval(timer)
+  clearTimeout(timer)
   timer = undefined
 }
 

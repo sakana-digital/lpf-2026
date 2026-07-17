@@ -8,6 +8,8 @@ const { t } = useI18n()
 
 const canvasRef = useTemplateRef<HTMLCanvasElement>('canvasRef')
 const { floor, setFloor } = useIsoMap(canvasRef)
+
+const floorButtons = [...FLOORS].reverse()
 </script>
 
 <template>
@@ -16,7 +18,7 @@ const { floor, setFloor } = useIsoMap(canvasRef)
       <canvas ref="canvasRef" :aria-label="t('explore.tabs.map')"></canvas>
       <div class="controls" role="group" :aria-label="t('explore.map.floorSwitch')">
         <button
-          v-for="f in FLOORS"
+          v-for="f in floorButtons"
           :key="f"
           :class="{ active: floor === f }"
           :aria-pressed="floor === f"

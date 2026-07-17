@@ -26,7 +26,11 @@ export interface ClubOrganization extends OrganizationBase {
   group: string
 }
 
-export type Organization = ClassOrganization | ClubOrganization
+export interface CommitteeOrganization extends OrganizationBase {
+  kind: 'committee'
+}
+
+export type Organization = ClassOrganization | ClubOrganization | CommitteeOrganization
 
 export const grades = [1, 2, 3] as const
 export const classNumbers = [1, 2, 3, 4, 5, 6, 7, 8] as const
@@ -42,6 +46,14 @@ function cls(grade: Grade, classNo: ClassNumber, name = '', nameEn?: string): Cl
     nameEn,
     location: { floor, room: `r${floor}0${classNo}` },
   }
+}
+
+function club(no: number, group = '', name = '', nameEn?: string): ClubOrganization {
+  return { kind: 'club', id: `club-${no}`, group, name, nameEn }
+}
+
+function committee(no: number, name = '', nameEn?: string): CommitteeOrganization {
+  return { kind: 'committee', id: `com-${no}`, name, nameEn }
 }
 
 export const organizations: Organization[] = [
@@ -69,6 +81,13 @@ export const organizations: Organization[] = [
   cls(3, 6),
   cls(3, 7),
   cls(3, 8),
+  club(1),
+  club(2),
+  club(3),
+  club(4),
+  committee(1),
+  committee(2),
+  committee(3),
 ]
 
 export function getOrganization(id: string): Organization | undefined {

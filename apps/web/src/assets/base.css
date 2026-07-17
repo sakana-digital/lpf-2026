@@ -26,6 +26,11 @@
   --vt-c-text-dark-2: oklch(94.01% 0 0 / 0.64);
 }
 
+html {
+  /* Safari を含め、縦スクロールの有無でレイアウト幅を変えない */
+  overflow-y: scroll;
+}
+
 /* semantic color variables for this project */
 html[data-theme='light'] {
   --color-background: var(--vt-c-white);

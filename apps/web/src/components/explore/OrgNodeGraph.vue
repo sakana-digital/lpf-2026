@@ -1,10 +1,19 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getOrganization, organizationName, organizations } from '@/config/organizations'
 import { buildOrganizationSphere } from '@/lib/sphereGraph'
 import { useSphereGraph } from '@/composables/useSphereGraph'
+import type { OrgStatus } from '../../../../../shared/status'
 import BookmarkToggle from '@/components/common/BookmarkToggle.vue'
+import OrgDetail from './OrgDetail.vue'
+
+const props = defineProps<{
+  selectedId?: string
+  statuses?: ReadonlyMap<string, OrgStatus>
+}>()
+
+const emit = defineEmits<{ select: [id: string | null] }>()
 
 const { t, locale } = useI18n()
 
@@ -28,15 +37,14 @@ const edgeLines = computed(() =>
         y1: from.y,
         x2: to.x,
         y2: to.y,
-        opacity: Math.min(from.opacity, to.opacity) * 0.6,
+        opacity: Math.min(from.opacity, to.opacity) * 0.75,
       },
     ]
   }),
 )
 
-const selectedId = ref<string | null>(null)
 const selectedOrg = computed(() =>
-  selectedId.value ? getOrganization(selectedId.value) : undefined,
+  props.selectedId ? getOrganization(props.selectedId) : undefined,
 )
 const selectedName = computed(() =>
   selectedOrg.value ? organizationName(selectedOrg.value, locale.value) : '',
@@ -45,12 +53,19 @@ const selectedName = computed(() =>
 function onNodeClick(id: string) {
   if (isDragging.value) return
   if (nodeMeta.get(id)?.kind !== 'leaf') return
-  selectedId.value = selectedId.value === id ? null : id
+  emit('select', id === props.selectedId ? null : id)
 }
 
 function nodeLabel(id: string): string {
   const meta = nodeMeta.get(id)
-  return meta ? t(meta.labelKey, meta.labelParams ?? {}) : ''
+  if (!meta) return ''
+  if (meta.orgId) {
+    const org = getOrganization(meta.orgId)
+    if (org && org.kind !== 'class') {
+      return organizationName(org, locale.value) || t('explore.events.tbd')
+    }
+  }
+  return t(meta.labelKey, meta.labelParams ?? {})
 }
 
 function nodeStyle(p: (typeof projected.value)[number]) {
@@ -98,16 +113,22 @@ function nodeStyle(p: (typeof projected.value)[number]) {
     </div>
 
     <div v-if="selectedOrg" class="detail">
-      <div class="info">
-        <span class="label">{{ nodeLabel(selectedOrg.id) }}</span>
-        <span class="name" :class="{ tbd: !selectedName }">
-          {{ selectedName || t('explore.events.tbd') }}
-        </span>
-        <span v-if="selectedOrg.location" class="location">
-          {{ t('explore.events.location', { floor: selectedOrg.location.floor }) }}
-        </span>
+      <div class="head">
+        <div class="info">
+          <span class="label">{{ nodeLabel(selectedOrg.id) }}</span>
+          <span v-if="selectedOrg.kind === 'class'" class="name" :class="{ tbd: !selectedName }">
+            {{ selectedName || t('explore.events.tbd') }}
+          </span>
+        </div>
+        <button class="close" :aria-label="t('explore.nodes.close')" @click="emit('select', null)">
+          ×
+        </button>
       </div>
-      <BookmarkToggle :org-id="selectedOrg.id" />
+      <OrgDetail :org="selectedOrg" :status="statuses?.get(selectedOrg.id)">
+        <template #actions>
+          <BookmarkToggle :org-id="selectedOrg.id" />
+        </template>
+      </OrgDetail>
     </div>
   </div>
 </template>
@@ -118,18 +139,12 @@ function nodeStyle(p: (typeof projected.value)[number]) {
 
   .viewport {
     position: relative;
-    height: calc(100svh - var(--header-height) - var(--page-title-height));
+    z-index: 0;
+    height: 100%;
     overflow: hidden;
     touch-action: none;
     cursor: grab;
     user-select: none;
-
-    @media (max-height: 500px) {
-      html[data-orientation='landscape-left'] &,
-      html[data-orientation='landscape-right'] & {
-        height: 100svh;
-      }
-    }
 
     &.dragging {
       cursor: grabbing;
@@ -142,7 +157,7 @@ function nodeStyle(p: (typeof projected.value)[number]) {
       height: 100%;
 
       line {
-        stroke: var(--color-border-hover);
+        stroke: var(--color-text-mute);
         stroke-width: 1;
       }
     }
@@ -195,43 +210,61 @@ function nodeStyle(p: (typeof projected.value)[number]) {
     position: absolute;
     bottom: 16px;
     left: 16px;
-    right: 16px;
+    z-index: 1;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+    flex-direction: column;
+    gap: 8px;
+    width: min(320px, calc(100% - 32px));
     padding: 12px 16px;
     border: 1px solid var(--color-border);
     background: var(--color-background);
 
-    .info {
+    .head {
       display: flex;
       align-items: baseline;
+      justify-content: space-between;
       gap: 12px;
-      min-width: 0;
 
-      .label {
-        color: var(--color-heading);
-        font-size: 14px;
-        font-variant-numeric: tabular-nums;
-      }
+      .info {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        min-width: 0;
 
-      .name {
-        overflow: hidden;
-        color: var(--color-text);
-        font-size: 13px;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        .label {
+          color: var(--color-heading);
+          font-size: 14px;
+          font-variant-numeric: tabular-nums;
+        }
 
-        &.tbd {
-          color: var(--color-text-mute);
+        .name {
+          overflow: hidden;
+          color: var(--color-text);
+          font-size: 13px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+
+          &.tbd {
+            color: var(--color-text-mute);
+          }
         }
       }
 
-      .location {
+      .close {
+        flex-shrink: 0;
+        padding: 0 4px;
+        border: none;
+        background: transparent;
         color: var(--color-text-mute);
-        font-size: 12px;
-        font-variant-numeric: tabular-nums;
+        font: inherit;
+        font-size: 16px;
+        line-height: 1;
+        cursor: pointer;
+        transition: color 0.15s;
+
+        &:hover {
+          color: var(--color-heading);
+        }
       }
     }
   }
