@@ -148,7 +148,7 @@ watch(isOpen, (open) => {
     border: 1px solid var(--color-border);
     border-radius: 28px;
     background: var(--color-background);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+    box-shadow: 0 12px 64px rgba(0, 0, 0, 1);
   }
 
   .field {

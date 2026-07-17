@@ -94,7 +94,7 @@ onBeforeUnmount(() => {
           </div>
           <p class="station">{{ t('home.access.station') }}</p>
         </div>
-        <a class="pill-button" :href="mapUrl" target="_blank" rel="noopener noreferrer">
+        <a class="page-link" :href="mapUrl" target="_blank" rel="noopener noreferrer">
           {{ t('home.access.map') }}
         </a>
       </div>
@@ -110,7 +110,7 @@ onBeforeUnmount(() => {
           </template>
         </div>
         <p v-else class="empty">{{ t('home.news.empty') }}</p>
-        <RouterLink class="pill-button" :to="newsPath">
+        <RouterLink class="page-link" :to="newsPath">
           {{ t('home.news.more') }}
         </RouterLink>
       </div>
@@ -255,14 +255,15 @@ onBeforeUnmount(() => {
   }
 }
 
-.pill-button {
+.page-link {
   display: inline-flex;
   align-items: center;
+  margin-top: 14px;
+  align-self: center;
   gap: 8px;
   padding: 12px 24px;
   border-radius: 999px;
-  background: var(--color-heading);
-  color: var(--color-background);
+  color: var(--color-text);
   font-size: 14px;
   letter-spacing: 0.02em;
   text-decoration: none;
@@ -330,7 +331,6 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
     align-items: start;
-    gap: 6px;
     width: 100%;
   }
 
@@ -373,11 +373,6 @@ onBeforeUnmount(() => {
     border-left: 2px solid var(--color-heading);
     font-size: 15px;
   }
-
-  .pill-button {
-    align-self: center;
-    margin-top: 14px;
-  }
 }
 
 .news-section {
@@ -387,7 +382,6 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
     align-items: start;
-    gap: 24px;
     width: 100%;
   }
 
@@ -396,10 +390,6 @@ onBeforeUnmount(() => {
     grid-template-columns: repeat(auto-fit, minmax(min(326px, 100%), 1fr));
     gap: 16px;
     width: 100%;
-  }
-
-  .pill-button {
-    align-self: center;
   }
 
   .empty {
