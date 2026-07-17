@@ -58,7 +58,7 @@ const crumbs = computed(() => {
   gap: 2px;
   font-size: 0.875rem;
   color: #888;
-  transform: translateY(-3px);
+  transform: translateY(-2px);
 
   .crumbs {
     overflow: hidden;
