@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useScrollSpy } from '@/composables/useScrollSpy'
 
@@ -17,7 +16,6 @@ const items = [
 ] as const
 
 const { activeId, select } = useScrollSpy(items.map((item) => item.id))
-const isOpen = ref(true)
 
 function jumpTo(id: string) {
   const el = document.getElementById(id)
@@ -32,7 +30,7 @@ function jumpTo(id: string) {
 </script>
 
 <template>
-  <aside class="toc" :class="{ 'is-closed': !isOpen, 'is-entrance': entrance }">
+  <aside class="toc" :class="{ 'is-entrance': entrance }">
     <nav class="toc-nav" :aria-label="t('home.toc.toggle')">
       <ul class="toc-list">
         <li v-for="item in items" :key="item.id">
@@ -48,23 +46,6 @@ function jumpTo(id: string) {
         </li>
       </ul>
     </nav>
-
-    <button
-      class="toc-toggle"
-      :aria-label="t('home.toc.toggle')"
-      :aria-expanded="isOpen"
-      @click="isOpen = !isOpen"
-    >
-      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path
-          d="M6 3.5 10.5 8 6 12.5"
-          stroke="currentColor"
-          stroke-width="1.2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    </button>
   </aside>
 </template>
 
@@ -91,12 +72,6 @@ function jumpTo(id: string) {
   transition:
     opacity 0.25s,
     transform 0.25s;
-
-  .is-closed & {
-    opacity: 0;
-    transform: translateX(16px);
-    pointer-events: none;
-  }
 
   .is-entrance & {
     animation: toc-reveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -174,39 +149,6 @@ function jumpTo(id: string) {
   }
 }
 
-.toc-toggle {
-  position: absolute;
-  top: 0;
-  right: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--color-text);
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.15s;
-
-  &:hover {
-    color: var(--color-heading);
-  }
-
-  svg {
-    display: block;
-    width: 16px;
-    height: 16px;
-    transition: transform 0.25s;
-  }
-
-  .is-closed & svg {
-    transform: rotate(180deg);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .toc.is-entrance .toc-nav {
     animation: none;
@@ -214,9 +156,7 @@ function jumpTo(id: string) {
 
   .toc-nav,
   .toc-link,
-  .toc-link .toc-tick-bar,
-  .toc-toggle,
-  .toc-toggle svg {
+  .toc-link .toc-tick-bar {
     transition: none;
   }
 }
