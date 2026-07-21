@@ -2,14 +2,12 @@
 const {
   layers = 3,
   blur = 4,
-  brightness = 0.92,
   direction = 'to bottom',
   tail = '100%',
   sideMask,
 } = defineProps<{
   layers?: number
   blur?: number
-  brightness?: number
   direction?: string
   tail?: string
   sideMask?: string
@@ -23,8 +21,8 @@ const {
 function styleFor(i: number) {
   const main = `linear-gradient(${direction}, black calc(100% - ${tail}), transparent calc(100% - ${tail} * ${(layers - i) / layers}))`
   return {
-    backdropFilter: `blur(${blur}px) brightness(${brightness})`,
-    WebkitBackdropFilter: `blur(${blur}px) brightness(${brightness})`,
+    backdropFilter: `blur(${blur}px) brightness(var(--progressive-blur-brightness, 1))`,
+    WebkitBackdropFilter: `blur(${blur}px) brightness(var(--progressive-blur-brightness, 1))`,
     maskImage: sideMask ? `${main}, ${sideMask}` : main,
     ...(sideMask ? { maskComposite: 'intersect' } : {}),
   }

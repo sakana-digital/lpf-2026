@@ -44,7 +44,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
           class="dropdown-blur"
           tail="32px"
           :blur="3"
-          side-mask="linear-gradient(to right, transparent, black 64px, black calc(100% - 24px), transparent), linear-gradient(to bottom, transparent 9px, black 15px)"
+          side-mask="linear-gradient(to right, transparent, black 32px, black calc(100% - 32px), transparent), linear-gradient(to bottom, transparent 20px, black 52px)"
         />
         <div class="dropdown-items">
           <ThemeToggle />
