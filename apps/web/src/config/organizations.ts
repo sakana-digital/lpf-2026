@@ -36,7 +36,8 @@ export const grades = [1, 2, 3] as const
 export const classNumbers = [1, 2, 3, 4, 5, 6, 7, 8] as const
 
 function cls(grade: Grade, classNo: ClassNumber, name = '', nameEn?: string): ClassOrganization {
-  const floor = (grade + 1) as Floor
+  // 1年が最上階 (4F) で，学年が上がるほど下の階になる
+  const floor = (5 - grade) as Floor
   return {
     kind: 'class',
     id: `c${grade}-${classNo}`,
@@ -92,6 +93,10 @@ export const organizations: Organization[] = [
 
 export function getOrganization(id: string): Organization | undefined {
   return organizations.find((org) => org.id === id)
+}
+
+export function getOrganizationByRoom(room: string): Organization | undefined {
+  return organizations.find((org) => org.location?.room === room)
 }
 
 export function organizationName(org: Organization, locale: string): string {
