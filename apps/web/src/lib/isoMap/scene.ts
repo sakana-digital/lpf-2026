@@ -116,7 +116,7 @@ export function createIsoMapScene(
     context.save()
     context.globalAlpha = opacity
     context.fillStyle = colors.text
-    context.font = `600 ${fontSize}px Futura, sans-serif`
+    context.font = `${fontSize}px Futura, sans-serif`
     context.textAlign = 'center'
     context.textBaseline = 'middle'
     const measuredWidth = context.measureText(text).width
