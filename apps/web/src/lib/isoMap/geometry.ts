@@ -1,11 +1,4 @@
-import * as THREE from 'three'
-import type {
-  FloorPlan,
-  IsoMapArea,
-  IsoMapAreaKind,
-  IsoMapLabel,
-  IsoMapLabelKey,
-} from '@/config/isoMap'
+import type { FloorPlan, IsoMapArea, IsoMapLabel, IsoMapLabelKey } from '@/config/isoMap'
 
 export type IsoMapLabels = Record<IsoMapLabelKey, string>
 
@@ -15,54 +8,116 @@ export interface MapColors {
   text: string
 }
 
-export interface FloorMaterials {
-  fill: THREE.MeshBasicMaterial
-  toilet: THREE.MeshBasicMaterial
-  line: THREE.LineBasicMaterial
+export interface MapPoint {
+  x: number
+  z: number
 }
 
-const AREA_Y: Record<IsoMapAreaKind, number> = {
-  courtyard: 0,
-  corridor: 0.02,
-  room: 0.04,
-  stairs: 0.04,
-  toilet: 0.06,
-  stage: 0.08,
-  tent: 0.1,
+export interface MapSegment {
+  start: MapPoint
+  end: MapPoint
 }
 
-const LABEL_HEIGHT = 2.5
-const TEXTURE_HEIGHT = 128
+const AXIS_EPSILON = 1e-6
 
-function material(opacity = 1): THREE.MeshBasicMaterial {
-  const result = new THREE.MeshBasicMaterial({
-    transparent: opacity < 1,
-    opacity,
-    side: THREE.DoubleSide,
-    depthWrite: opacity === 1,
-    polygonOffset: true,
-    polygonOffsetFactor: 1,
-    polygonOffsetUnits: 1,
-  })
-  result.userData.baseOpacity = opacity
-  return result
+function areaPoints(area: IsoMapArea): MapPoint[] {
+  if (area.outline) return area.outline.map(([x, z]) => ({ x, z }))
+  return [
+    { x: area.x, z: area.z },
+    { x: area.x + area.w, z: area.z },
+    { x: area.x + area.w, z: area.z + area.d },
+    { x: area.x, z: area.z + area.d },
+  ]
 }
 
-function lineMaterial(): THREE.LineBasicMaterial {
-  return Object.assign(new THREE.LineBasicMaterial({ transparent: true }), {
-    userData: { baseOpacity: 1 },
-  })
-}
+export function areaPath(
+  context: CanvasRenderingContext2D,
+  area: IsoMapArea,
+  project: (point: MapPoint) => MapPoint,
+): void {
+  const points = areaPoints(area)
+  const first = points[0]
+  if (!first) return
 
-export function createFloorMaterials(): FloorMaterials {
-  const fill = material()
-  fill.colorWrite = false
-
-  return {
-    fill,
-    toilet: material(0.22),
-    line: lineMaterial(),
+  const projectedFirst = project(first)
+  context.beginPath()
+  context.moveTo(projectedFirst.x, projectedFirst.z)
+  for (const point of points.slice(1)) {
+    const projected = project(point)
+    context.lineTo(projected.x, projected.z)
   }
+  context.closePath()
+}
+
+function coordinateKey(value: number): string {
+  return value.toFixed(6)
+}
+
+function mergeIntervals(
+  intervals: Array<readonly [number, number]>,
+): Array<readonly [number, number]> {
+  const sorted = [...intervals].sort((left, right) => left[0] - right[0])
+  const merged: Array<[number, number]> = []
+
+  for (const [start, end] of sorted) {
+    const previous = merged.at(-1)
+    if (previous && start <= previous[1] + AXIS_EPSILON) {
+      previous[1] = Math.max(previous[1], end)
+    } else {
+      merged.push([start, end])
+    }
+  }
+  return merged
+}
+
+/**
+ * 区画ごとの輪郭を、同一直線上では一度だけ描ける線分へまとめる。
+ * 廊下と部屋のように長さの違う辺が重なる場合も一本になる。
+ */
+export function floorSegments(plan: FloorPlan): MapSegment[] {
+  const horizontal = new Map<string, { z: number; intervals: Array<readonly [number, number]> }>()
+  const vertical = new Map<string, { x: number; intervals: Array<readonly [number, number]> }>()
+  const diagonal = new Map<string, MapSegment>()
+
+  for (const area of plan.areas) {
+    const points = areaPoints(area)
+    points.forEach((start, index) => {
+      const end = points[(index + 1) % points.length]
+      if (!end) return
+
+      if (Math.abs(start.z - end.z) < AXIS_EPSILON) {
+        const key = coordinateKey(start.z)
+        const entry = horizontal.get(key) ?? { z: start.z, intervals: [] }
+        entry.intervals.push([Math.min(start.x, end.x), Math.max(start.x, end.x)])
+        horizontal.set(key, entry)
+      } else if (Math.abs(start.x - end.x) < AXIS_EPSILON) {
+        const key = coordinateKey(start.x)
+        const entry = vertical.get(key) ?? { x: start.x, intervals: [] }
+        entry.intervals.push([Math.min(start.z, end.z), Math.max(start.z, end.z)])
+        vertical.set(key, entry)
+      } else {
+        const forward = `${coordinateKey(start.x)},${coordinateKey(start.z)}:${coordinateKey(end.x)},${coordinateKey(end.z)}`
+        const reverse = `${coordinateKey(end.x)},${coordinateKey(end.z)}:${coordinateKey(start.x)},${coordinateKey(start.z)}`
+        diagonal.set(forward < reverse ? forward : reverse, { start, end })
+      }
+    })
+  }
+
+  return [
+    ...[...horizontal.values()].flatMap(({ z, intervals }) =>
+      mergeIntervals(intervals).map(([start, end]) => ({
+        start: { x: start, z },
+        end: { x: end, z },
+      })),
+    ),
+    ...[...vertical.values()].flatMap(({ x, intervals }) =>
+      mergeIntervals(intervals).map(([start, end]) => ({
+        start: { x, z: start },
+        end: { x, z: end },
+      })),
+    ),
+    ...diagonal.values(),
+  ]
 }
 
 function blockBounds(block: { x: number; z: number; w: number; d: number }) {
@@ -101,211 +156,6 @@ export function planBounds(plans: FloorPlan[]): {
   }
 }
 
-function labelText(label: IsoMapLabel, labels: IsoMapLabels): string {
+export function labelText(label: IsoMapLabel, labels: IsoMapLabels): string {
   return label.detail || labels[label.key]
-}
-
-function createLabelTexture(text: string, textColor: string) {
-  const font = '600 68px Futura, sans-serif'
-  const measureCanvas = document.createElement('canvas')
-  const measureContext = measureCanvas.getContext('2d')
-  if (measureContext) measureContext.font = font
-  const measuredWidth = measureContext?.measureText(text).width ?? text.length * 44
-
-  const canvas = document.createElement('canvas')
-  canvas.width = Math.max(64, Math.ceil(measuredWidth + 56))
-  canvas.height = TEXTURE_HEIGHT
-  const context = canvas.getContext('2d')
-  if (!context) {
-    const texture = new THREE.CanvasTexture(canvas)
-    return { texture, aspect: canvas.width / canvas.height }
-  }
-
-  context.clearRect(0, 0, canvas.width, canvas.height)
-  context.fillStyle = textColor
-  context.font = font
-  context.textAlign = 'center'
-  context.textBaseline = 'middle'
-  context.fillText(text, canvas.width / 2, canvas.height / 2 + 2)
-
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.colorSpace = THREE.SRGBColorSpace
-  texture.minFilter = THREE.LinearFilter
-  texture.generateMipmaps = false
-  return { texture, aspect: canvas.width / canvas.height }
-}
-
-interface LabelData {
-  label?: IsoMapLabel
-  text?: string
-  maxWidth?: number
-}
-
-function spriteText(data: LabelData, labels: IsoMapLabels) {
-  if (data.text) return data.text
-  return data.label ? labelText(data.label, labels) : ''
-}
-
-function updateLabelSprite(sprite: THREE.Sprite, labels: IsoMapLabels, colors: MapColors): void {
-  const data = sprite.userData.label as LabelData
-  const text = spriteText(data, labels)
-  const textColor = colors.text
-  const material = sprite.material as THREE.SpriteMaterial
-  material.map?.dispose()
-  const { texture, aspect } = createLabelTexture(text, textColor)
-  material.map = texture
-  material.needsUpdate = true
-
-  let height = LABEL_HEIGHT
-  let width = height * aspect
-  if (data.maxWidth && width > data.maxWidth) {
-    const scale = data.maxWidth / width
-    width *= scale
-    height *= scale
-  }
-  sprite.scale.set(width, height, 1)
-}
-
-function createLabelSprite(data: LabelData, labels: IsoMapLabels, colors: MapColors): THREE.Sprite {
-  const sprite = new THREE.Sprite(
-    new THREE.SpriteMaterial({
-      transparent: true,
-      depthTest: false,
-      depthWrite: false,
-    }),
-  )
-  sprite.userData.label = data
-  sprite.renderOrder = 20
-  updateLabelSprite(sprite, labels, colors)
-  return sprite
-}
-
-// 輪郭付きの区画は絶対座標で三角形分割するため、原点基準で配置する
-function areaGeometry(area: IsoMapArea): { geometry: THREE.BufferGeometry; offset: THREE.Vector3 } {
-  if (area.outline) {
-    const shape = new THREE.Shape(area.outline.map(([x, z]) => new THREE.Vector2(x, z)))
-    const geometry = new THREE.ShapeGeometry(shape)
-    geometry.rotateX(Math.PI / 2)
-    return { geometry, offset: new THREE.Vector3(0, 0, 0) }
-  }
-  const geometry = new THREE.PlaneGeometry(area.w, area.d)
-  geometry.rotateX(-Math.PI / 2)
-  return {
-    geometry,
-    offset: new THREE.Vector3(area.x + area.w / 2, 0, area.z + area.d / 2),
-  }
-}
-
-function createArea(area: IsoMapArea, mats: FloorMaterials): THREE.Group {
-  const group = new THREE.Group()
-  const { geometry, offset } = areaGeometry(area)
-  const mesh = new THREE.Mesh(geometry, area.kind === 'toilet' ? mats.toilet : mats.fill)
-  const y = AREA_Y[area.kind]
-  mesh.position.set(offset.x, y, offset.z)
-  mesh.renderOrder = Math.round(y * 100)
-
-  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), mats.line)
-  edges.position.set(offset.x, y + 0.02, offset.z)
-  edges.renderOrder = mesh.renderOrder + 1
-  group.add(mesh, edges)
-  return group
-}
-
-function createArrowGeometry(x: number, z: number, length: number): THREE.BufferGeometry {
-  const head = 2.6
-  const tipZ = z - length
-  return new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(x, 0.14, z),
-    new THREE.Vector3(x, 0.14, tipZ),
-    new THREE.Vector3(x, 0.14, tipZ),
-    new THREE.Vector3(x - head / 2, 0.14, tipZ + head),
-    new THREE.Vector3(x, 0.14, tipZ),
-    new THREE.Vector3(x + head / 2, 0.14, tipZ + head),
-  ])
-}
-
-export function buildFloorGroup(
-  plan: FloorPlan,
-  mats: FloorMaterials,
-  labels: IsoMapLabels,
-  colors: MapColors,
-): THREE.Group {
-  const group = new THREE.Group()
-
-  for (const area of plan.areas) {
-    group.add(createArea(area, mats))
-    if (area.label) {
-      const sprite = createLabelSprite(
-        {
-          label: area.label,
-          maxWidth: Math.max(4, area.w - 0.8),
-        },
-        labels,
-        colors,
-      )
-      sprite.userData.areaId = area.id
-      sprite.position.set(area.x + area.w / 2, 0.6, area.z + area.d / 2)
-      group.add(sprite)
-    }
-  }
-
-  for (const annotation of plan.annotations) {
-    const sprite = createLabelSprite({ label: annotation.label }, labels, colors)
-    sprite.position.set(annotation.x, 0.6, annotation.z)
-    group.add(sprite)
-  }
-
-  for (const arrow of plan.arrows) {
-    const line = new THREE.LineSegments(
-      createArrowGeometry(arrow.x, arrow.z, arrow.length),
-      mats.line,
-    )
-    line.renderOrder = 10
-    group.add(line)
-
-    const sprite = createLabelSprite({ label: arrow.label, maxWidth: 14 }, labels, colors)
-    sprite.position.set(arrow.labelX, 0.7, arrow.labelZ)
-    group.add(sprite)
-  }
-
-  const floorLabel = createLabelSprite({ text: `${plan.floor}F`, maxWidth: 7 }, labels, colors)
-  floorLabel.position.set(-8, 0.7, 44)
-  group.add(floorLabel)
-
-  return group
-}
-
-export function updateGroupLabels(
-  group: THREE.Group,
-  labels: IsoMapLabels,
-  colors: MapColors,
-): void {
-  group.traverse((object) => {
-    if (object instanceof THREE.Sprite && object.userData.label) {
-      updateLabelSprite(object, labels, colors)
-    }
-  })
-}
-
-export function disposeGroup(group: THREE.Group): void {
-  group.traverse((object) => {
-    if (
-      object instanceof THREE.Mesh ||
-      object instanceof THREE.Line ||
-      object instanceof THREE.LineSegments
-    ) {
-      object.geometry.dispose()
-    }
-    if (object instanceof THREE.Sprite) {
-      const material = object.material as THREE.SpriteMaterial
-      material.map?.dispose()
-      material.dispose()
-    }
-  })
-}
-
-export function disposeMaterials(mats: FloorMaterials): void {
-  mats.fill.dispose()
-  mats.toilet.dispose()
-  mats.line.dispose()
 }

@@ -1,15 +1,8 @@
-import * as THREE from 'three'
 import { floorPlans } from '@/config/isoMap'
+import type { FloorPlan } from '@/config/isoMap'
 import type { Floor } from '@/config/organizations'
-import {
-  buildFloorGroup,
-  createFloorMaterials,
-  disposeGroup,
-  disposeMaterials,
-  planBounds,
-  updateGroupLabels,
-} from './geometry'
-import type { FloorMaterials, IsoMapLabels, MapColors } from './geometry'
+import { areaPath, floorSegments, labelText, planBounds } from './geometry'
+import type { IsoMapLabels, MapColors, MapPoint, MapSegment } from './geometry'
 
 export type FloorSelection = Floor | 'all'
 export type { IsoMapLabels, MapColors }
@@ -29,44 +22,31 @@ const STACK_GAP = 9
 const HIDDEN_GAP = 4
 const LERP_FACTOR = 0.16
 const EPSILON = 0.01
-
-function cssColorToThree(css: string): THREE.Color {
-  const context = document.createElement('canvas').getContext('2d')
-  if (!context) return new THREE.Color('#808080')
-  context.fillStyle = css
-  context.fillRect(0, 0, 1, 1)
-  const [r = 128, g = 128, b = 128] = context.getImageData(0, 0, 1, 1).data
-  return new THREE.Color(r / 255, g / 255, b / 255)
-}
+const LABEL_HEIGHT = 2.5
+const ISO_X = Math.SQRT1_2
+const ISO_Y = 1 / Math.sqrt(6)
+const ISO_ELEVATION = Math.sqrt(2 / 3)
 
 interface FloorState {
-  group: THREE.Group
-  mats: FloorMaterials
+  plan: FloorPlan
+  segments: MapSegment[]
   y: number
   targetY: number
   opacity: number
   targetOpacity: number
 }
 
-function setMaterialOpacity(material: THREE.Material, opacity: number): void {
-  const baseOpacity = (material.userData.baseOpacity as number | undefined) ?? 1
-  material.opacity = baseOpacity * opacity
-  material.transparent = true
-  material.depthWrite = material.opacity >= 0.999
-  material.depthFunc = THREE.LessEqualDepth
-  material.stencilWrite = false
+interface LabelHitArea {
+  areaId: string
+  left: number
+  top: number
+  right: number
+  bottom: number
 }
 
-function applyOpacity(state: FloorState, showLabels: boolean): void {
-  setMaterialOpacity(state.mats.fill, state.opacity)
-  setMaterialOpacity(state.mats.toilet, state.opacity)
-  setMaterialOpacity(state.mats.line, state.opacity)
-  state.group.traverse((object) => {
-    if (object instanceof THREE.Sprite) {
-      object.visible = showLabels
-      object.material.opacity = state.opacity
-    }
-  })
+interface LabelOptions {
+  areaId?: string
+  maxWidth?: number
 }
 
 export function createIsoMapScene(
@@ -74,55 +54,167 @@ export function createIsoMapScene(
   initialLabels: IsoMapLabels,
   initialColors: MapColors,
 ): IsoMapScene {
-  const renderer = new THREE.WebGLRenderer({
-    canvas,
-    alpha: true,
-    antialias: true,
-  })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-  renderer.outputColorSpace = THREE.SRGBColorSpace
-
-  const scene = new THREE.Scene()
-  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 500)
-  camera.position.set(100, 100, -100)
-  camera.lookAt(0, 0, 0)
-  camera.updateMatrixWorld()
+  const renderingContext = canvas.getContext('2d')
+  if (!renderingContext) throw new Error('Canvas 2D is not supported')
+  const context: CanvasRenderingContext2D = renderingContext
 
   const { cx, cz } = planBounds(floorPlans)
+  const floors: FloorState[] = floorPlans.map((plan) => ({
+    plan,
+    segments: floorSegments(plan),
+    y: 0,
+    targetY: 0,
+    opacity: 0,
+    targetOpacity: 0,
+  }))
+
   let labels = initialLabels
   let colors = initialColors
-
-  const floors: FloorState[] = floorPlans.map((plan) => {
-    const mats = createFloorMaterials()
-    const group = buildFloorGroup(plan, mats, labels, colors)
-    group.position.set(-cx, 0, -cz)
-    scene.add(group)
-    return {
-      group,
-      mats,
-      y: 0,
-      targetY: 0,
-      opacity: 0,
-      targetOpacity: 0,
-    }
-  })
-
   let raf = 0
   let disposed = false
   let viewportWidth = 0
   let viewportHeight = 0
   let zoom = 1
   let showLabels = true
-  const raycaster = new THREE.Raycaster()
-  const pointer = new THREE.Vector2()
+  let pixelRatio = 1
+  let hitAreas: LabelHitArea[] = []
 
-  function apply(state: FloorState) {
-    state.group.position.set(-cx, state.y, -cz)
-    state.group.visible = state.opacity > EPSILON
-    applyOpacity(state, showLabels)
+  function scale(): number {
+    return (Math.min(viewportWidth, viewportHeight) / (VIEW_RADIUS * 2)) * zoom
   }
 
-  function tick() {
+  function project(point: MapPoint, elevation = 0): MapPoint {
+    const mapX = point.x - cx
+    const mapZ = point.z - cz
+    const unitScale = scale()
+    return {
+      x: viewportWidth / 2 + (mapX - mapZ) * ISO_X * unitScale,
+      z: viewportHeight / 2 + ((mapX + mapZ) * ISO_Y - elevation * ISO_ELEVATION) * unitScale,
+    }
+  }
+
+  function drawSegment(segment: MapSegment, elevation: number): void {
+    const start = project(segment.start, elevation)
+    const end = project(segment.end, elevation)
+    context.moveTo(start.x, start.z)
+    context.lineTo(end.x, end.z)
+  }
+
+  function drawLabel(
+    text: string,
+    point: MapPoint,
+    elevation: number,
+    opacity: number,
+    options: LabelOptions = {},
+  ): void {
+    if (!text) return
+    const position = project(point, elevation)
+    const fontSize = Math.max(8, LABEL_HEIGHT * scale())
+    const maxWidth = options.maxWidth ? Math.max(8, options.maxWidth * scale()) : undefined
+
+    context.save()
+    context.globalAlpha = opacity
+    context.fillStyle = colors.text
+    context.font = `600 ${fontSize}px Futura, sans-serif`
+    context.textAlign = 'center'
+    context.textBaseline = 'middle'
+    const measuredWidth = context.measureText(text).width
+    const renderedWidth = maxWidth ? Math.min(measuredWidth, maxWidth) : measuredWidth
+    context.fillText(text, position.x, position.z, maxWidth)
+    context.restore()
+
+    if (options.areaId && opacity > 0.5) {
+      hitAreas.push({
+        areaId: options.areaId,
+        left: position.x - renderedWidth / 2,
+        right: position.x + renderedWidth / 2,
+        top: position.z - fontSize / 2,
+        bottom: position.z + fontSize / 2,
+      })
+    }
+  }
+
+  function drawFloor(state: FloorState): void {
+    if (state.opacity <= EPSILON) return
+    const elevation = state.y
+
+    context.save()
+    context.globalAlpha = state.opacity * 0.22
+    context.fillStyle = colors.toilet
+    for (const area of state.plan.areas) {
+      if (area.kind !== 'toilet') continue
+      areaPath(context, area, (point) => project(point, elevation))
+      context.fill()
+    }
+    context.restore()
+
+    context.save()
+    context.globalAlpha = state.opacity
+    context.strokeStyle = colors.line
+    context.lineWidth = Math.max(1, pixelRatio > 1 ? 0.75 : 1)
+    context.lineCap = 'square'
+    context.lineJoin = 'miter'
+    context.beginPath()
+    for (const segment of state.segments) drawSegment(segment, elevation)
+    context.stroke()
+
+    for (const arrow of state.plan.arrows) {
+      const tipZ = arrow.z - arrow.length
+      const head = 2.6
+      context.beginPath()
+      drawSegment({ start: { x: arrow.x, z: arrow.z }, end: { x: arrow.x, z: tipZ } }, elevation)
+      drawSegment(
+        { start: { x: arrow.x, z: tipZ }, end: { x: arrow.x - head / 2, z: tipZ + head } },
+        elevation,
+      )
+      drawSegment(
+        { start: { x: arrow.x, z: tipZ }, end: { x: arrow.x + head / 2, z: tipZ + head } },
+        elevation,
+      )
+      context.stroke()
+    }
+    context.restore()
+
+    if (!showLabels) return
+    for (const area of state.plan.areas) {
+      if (!area.label) continue
+      drawLabel(
+        labelText(area.label, labels),
+        { x: area.x + area.w / 2, z: area.z + area.d / 2 },
+        elevation,
+        state.opacity,
+        { areaId: area.id, maxWidth: Math.max(4, area.w - 0.8) },
+      )
+    }
+    for (const annotation of state.plan.annotations) {
+      drawLabel(
+        labelText(annotation.label, labels),
+        { x: annotation.x, z: annotation.z },
+        elevation,
+        state.opacity,
+      )
+    }
+    for (const arrow of state.plan.arrows) {
+      drawLabel(
+        labelText(arrow.label, labels),
+        { x: arrow.labelX, z: arrow.labelZ },
+        elevation,
+        state.opacity,
+        { maxWidth: 14 },
+      )
+    }
+    drawLabel(`${state.plan.floor}F`, { x: -8, z: 44 }, elevation, state.opacity, { maxWidth: 7 })
+  }
+
+  function render(): void {
+    if (!viewportWidth || !viewportHeight) return
+    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0)
+    context.clearRect(0, 0, viewportWidth, viewportHeight)
+    hitAreas = []
+    for (const state of floors) drawFloor(state)
+  }
+
+  function tick(): void {
     raf = 0
     let animating = false
     for (const state of floors) {
@@ -137,17 +229,16 @@ export function createIsoMapScene(
         state.y = state.targetY
         state.opacity = state.targetOpacity
       }
-      apply(state)
     }
-    renderer.render(scene, camera)
+    render()
     if (animating) requestRender()
   }
 
-  function requestRender() {
+  function requestRender(): void {
     if (!raf && !disposed) raf = requestAnimationFrame(tick)
   }
 
-  function setFloor(selection: FloorSelection, immediate = false) {
+  function setFloor(selection: FloorSelection, immediate = false): void {
     showLabels = selection !== 'all'
     floors.forEach((state, index) => {
       if (selection === 'all') {
@@ -161,92 +252,59 @@ export function createIsoMapScene(
       if (immediate) {
         state.y = state.targetY
         state.opacity = state.targetOpacity
-        apply(state)
       }
     })
-    requestRender()
+    if (immediate) render()
+    else requestRender()
   }
 
-  function updateCamera() {
-    if (viewportWidth === 0 || viewportHeight === 0) return
-    const aspect = viewportWidth / viewportHeight
-    const baseHalfHeight = aspect >= 1 ? VIEW_RADIUS : VIEW_RADIUS / aspect
-    const halfHeight = baseHalfHeight / zoom
-    camera.top = halfHeight
-    camera.bottom = -halfHeight
-    camera.left = -halfHeight * aspect
-    camera.right = halfHeight * aspect
-    camera.updateProjectionMatrix()
-    requestRender()
-  }
-
-  function setZoom(nextZoom: number) {
+  function setZoom(nextZoom: number): void {
     zoom = nextZoom
-    updateCamera()
+    requestRender()
   }
 
   function pickLabel(clientX: number, clientY: number): string | undefined {
     if (!showLabels) return undefined
     const bounds = canvas.getBoundingClientRect()
-    pointer.set(
-      ((clientX - bounds.left) / bounds.width) * 2 - 1,
-      -((clientY - bounds.top) / bounds.height) * 2 + 1,
-    )
-    raycaster.setFromCamera(pointer, camera)
-    const intersections = raycaster.intersectObjects(
-      floors.filter((state) => state.group.visible).map((state) => state.group),
-      true,
-    )
-    for (const intersection of intersections) {
-      if (!(intersection.object instanceof THREE.Sprite)) continue
-      const areaId = intersection.object.userData.areaId
-      if (typeof areaId === 'string') return areaId
+    const x = clientX - bounds.left
+    const y = clientY - bounds.top
+    for (let index = hitAreas.length - 1; index >= 0; index -= 1) {
+      const area = hitAreas[index]
+      if (area && x >= area.left && x <= area.right && y >= area.top && y <= area.bottom) {
+        return area.areaId
+      }
     }
     return undefined
   }
 
-  function setColors(nextColors: MapColors) {
-    colors = nextColors
-    for (const state of floors) {
-      state.mats.toilet.color.copy(cssColorToThree(colors.toilet))
-      state.mats.line.color.copy(cssColorToThree(colors.line))
-      updateGroupLabels(state.group, labels, colors)
-    }
-    requestRender()
-  }
-
-  function setLabels(nextLabels: IsoMapLabels) {
-    labels = nextLabels
-    for (const state of floors) updateGroupLabels(state.group, labels, colors)
-    requestRender()
-  }
-
-  function resize(width: number, height: number) {
-    if (width === 0 || height === 0) return
+  function resize(width: number, height: number): void {
+    if (!width || !height) return
     viewportWidth = width
     viewportHeight = height
-    renderer.setSize(viewportWidth, viewportHeight, false)
-    updateCamera()
+    pixelRatio = Math.min(window.devicePixelRatio || 1, 2)
+    canvas.width = Math.round(width * pixelRatio)
+    canvas.height = Math.round(height * pixelRatio)
+    requestRender()
   }
-
-  setColors(initialColors)
 
   return {
     setFloor,
     setZoom,
     pickLabel,
-    setColors,
-    setLabels,
+    setColors(nextColors) {
+      colors = nextColors
+      requestRender()
+    },
+    setLabels(nextLabels) {
+      labels = nextLabels
+      requestRender()
+    },
     resize,
     dispose() {
       disposed = true
       if (raf) cancelAnimationFrame(raf)
-      for (const state of floors) {
-        disposeGroup(state.group)
-        disposeMaterials(state.mats)
-      }
-      renderer.dispose()
-      renderer.forceContextLoss()
+      hitAreas = []
+      context.clearRect(0, 0, canvas.width, canvas.height)
     },
   }
 }

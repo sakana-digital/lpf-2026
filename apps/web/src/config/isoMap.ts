@@ -66,8 +66,9 @@ const CORRIDOR_D = 4
 const ARM_W = 6
 const FRONT_Z = 0
 const BOTTOM_Z = 46
-const LOWER_CORRIDOR_Z = ROOM_D + ROOM_GAP
-const SIDE_ROW_Z = LOWER_CORRIDOR_Z + CORRIDOR_D + ROOM_GAP
+// 部屋と廊下は同じ境界線を共有し、壁が二重に見えないよう隙間を空けない
+const LOWER_CORRIDOR_Z = ROOM_D
+const SIDE_ROW_Z = LOWER_CORRIDOR_Z + CORRIDOR_D
 const SIDE_ROW_D = 6.5
 const TOILET_W = 7
 const SIDE_ROOM_W = 10
