@@ -58,10 +58,11 @@ const visible = useScrolledPast(160)
     transform: translateX(-50%) translateY(0);
     filter: blur(0);
     pointer-events: auto;
-  }
 
-  &.is-visible:hover {
-    background: var(--color-background-mute);
+    &:hover {
+      background: var(--color-heading-mute);
+      transition: background 0.3s;
+    }
   }
 }
 
