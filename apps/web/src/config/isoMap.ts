@@ -61,12 +61,12 @@ export interface FloorPlan {
 
 const MAP_W = 66
 const ROOM_D = 8
-const ROOM_GAP = 0.5
+// 隣接する区画は辺を共有し、境界線を一本だけ描画する
+const ROOM_GAP = 0
 const CORRIDOR_D = 4
 const ARM_W = 6
 const FRONT_Z = 0
 const BOTTOM_Z = 46
-// 部屋と廊下は同じ境界線を共有し、壁が二重に見えないよう隙間を空けない
 const LOWER_CORRIDOR_Z = ROOM_D
 const SIDE_ROW_Z = LOWER_CORRIDOR_Z + CORRIDOR_D
 const SIDE_ROW_D = 6.5

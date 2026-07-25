@@ -88,8 +88,9 @@ export function createIsoMapScene(
     const mapZ = point.z - cz
     const unitScale = scale()
     return {
-      x: viewportWidth / 2 + (mapX - mapZ) * ISO_X * unitScale,
-      z: viewportHeight / 2 + ((mapX + mapZ) * ISO_Y - elevation * ISO_ELEVATION) * unitScale,
+      // 上面から見て時計回りに 90° 回転したアイソメトリック投影
+      x: viewportWidth / 2 - (mapX + mapZ) * ISO_X * unitScale,
+      z: viewportHeight / 2 + ((mapX - mapZ) * ISO_Y - elevation * ISO_ELEVATION) * unitScale,
     }
   }
 
