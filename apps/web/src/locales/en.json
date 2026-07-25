@@ -37,7 +37,24 @@
     "map": {
       "floorSwitch": "Switch floor",
       "floor": "{floor}F",
-      "overview": "All"
+      "overview": "All",
+      "zoomControls": "Map zoom",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "resetZoom": "Reset zoom",
+      "directions": {
+        "east": "E",
+        "north": "N"
+      },
+      "labels": {
+        "avRoomRoute": "To AV Room",
+        "classroom": "Classroom",
+        "courtyard": "Courtyard",
+        "stage": "Courtyard Stage",
+        "stairs": "Stairs",
+        "tents": "Group Tents",
+        "toilet": "Restroom"
+      }
     },
     "events": {
       "gridLabel": "Event list",

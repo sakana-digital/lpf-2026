@@ -16,7 +16,6 @@
 - [Vite+](https://viteplus.dev/)（`vp` CLI）
 - [Vue Router](https://router.vuejs.org/)
 - [vue-i18n](https://vue-i18n.intlify.dev/)
-- [Three.js](https://threejs.org/)
 - TypeScript
 - [Bun](https://bun.sh/) (パッケージマネージャ)
 

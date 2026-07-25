@@ -37,7 +37,24 @@
     "map": {
       "floorSwitch": "階の切り替え",
       "floor": "{floor}F",
-      "overview": "全体"
+      "overview": "全体",
+      "zoomControls": "地図の拡大縮小",
+      "zoomIn": "拡大",
+      "zoomOut": "縮小",
+      "resetZoom": "拡大率をリセット",
+      "directions": {
+        "east": "東",
+        "north": "北"
+      },
+      "labels": {
+        "avRoomRoute": "視聴覚室へ",
+        "classroom": "教室",
+        "courtyard": "中庭",
+        "stage": "中庭ステージ",
+        "stairs": "階段",
+        "tents": "各団体テント",
+        "toilet": "トイレ"
+      }
     },
     "events": {
       "gridLabel": "企画一覧",
