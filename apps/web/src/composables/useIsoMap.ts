@@ -16,7 +16,7 @@ interface IsoMapInteractionOptions {
 function readColors(): MapColors {
   const styles = getComputedStyle(document.documentElement)
   return {
-    toilet: styles.getPropertyValue('--color-accent').trim(),
+    background: styles.getPropertyValue('--color-background').trim(),
     line: styles.getPropertyValue('--color-heading').trim(),
     text: styles.getPropertyValue('--color-heading').trim(),
   }
@@ -24,6 +24,7 @@ function readColors(): MapColors {
 
 export function useIsoMap(
   canvasRef: Ref<HTMLCanvasElement | null>,
+  iconLayerRef: Ref<SVGGElement | null>,
   labels: ComputedRef<IsoMapLabels>,
   interactions: IsoMapInteractionOptions = {},
 ) {
@@ -64,10 +65,11 @@ export function useIsoMap(
 
   onMounted(() => {
     canvas = canvasRef.value
+    const iconLayer = iconLayerRef.value
     const container = canvas?.parentElement
-    if (!canvas || !container) return
+    if (!canvas || !iconLayer || !container) return
 
-    handle = createIsoMapScene(canvas, labels.value, readColors())
+    handle = createIsoMapScene(canvas, iconLayer, labels.value, readColors())
     handle.setZoom(zoom.value)
     handle.setFloor(floor.value, true)
     handle.resize(container.clientWidth, container.clientHeight)

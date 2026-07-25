@@ -34,6 +34,7 @@ const selectedLabel = computed(() => {
 })
 
 const canvasRef = useTemplateRef<HTMLCanvasElement>('canvasRef')
+const iconLayerRef = useTemplateRef<SVGGElement>('iconLayerRef')
 const labels = computed<IsoMapLabels>(() => ({
   avRoomRoute: t('explore.map.labels.avRoomRoute'),
   classroom: t('explore.map.labels.classroom'),
@@ -57,6 +58,7 @@ function onLabelClick(areaId: string) {
 
 const { floor, zoom, canZoomIn, canZoomOut, setFloor, zoomIn, zoomOut, resetZoom } = useIsoMap(
   canvasRef,
+  iconLayerRef,
   labels,
   {
     onLabelClick,
@@ -83,6 +85,57 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
   <div class="map">
     <div class="viewport">
       <canvas ref="canvasRef" :aria-label="t('explore.tabs.map')"></canvas>
+      <svg class="map-icons" aria-hidden="true">
+        <defs>
+          <symbol id="iso-map-icon-stairs" viewBox="0 0 24 24">
+            <path d="M2 19h6v-5h5V9h5V4h4" />
+          </symbol>
+          <symbol id="iso-map-icon-elevator" viewBox="0 0 24 24">
+            <rect
+              x="5"
+              y="2"
+              width="14"
+              height="21"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+            <g transform="translate(2.5 7) scale(.5)">
+              <circle cx="12" cy="4" r="2.25" fill="currentColor" />
+              <path
+                d="M9 7.5h6l2.5 6-2 1-1.5-4v11h-2v-6h0v6h-2v-11l-1.5 4-2-1z"
+                fill="currentColor"
+                stroke="none"
+              />
+            </g>
+            <g transform="translate(9.5 7) scale(.5)">
+              <circle cx="12" cy="4" r="2.25" fill="currentColor" />
+              <path
+                d="M9 7.5h6l2.5 6-2 1-1.5-4v11h-2v-6h0v6h-2v-11l-1.5 4-2-1z"
+                fill="currentColor"
+                stroke="none"
+              />
+            </g>
+            <path
+              d="M2.75 16V7M1 8.75 2.75 7 4.5 8.75M21.25 7v9m-1.75-1.75L21.25 16 23 14.25"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="square"
+              stroke-linejoin="miter"
+            />
+          </symbol>
+          <symbol id="iso-map-icon-toilet-men" viewBox="0 0 24 24">
+            <circle cx="12" cy="4" r="2.25" />
+            <path d="M9 7.5h6l2.5 6-2 1-1.5-4v11h-2v-6h0v6h-2v-11l-1.5 4-2-1z" />
+          </symbol>
+          <symbol id="iso-map-icon-toilet-women" viewBox="0 0 24 24">
+            <circle cx="12" cy="4" r="2.25" />
+            <path d="M9.5 7.5h5l3 7-2 1-1-2 2 5h-3v3h-2v-3h-3l2-5-1 2-2-1z" />
+          </symbol>
+        </defs>
+        <g ref="iconLayerRef"></g>
+      </svg>
       <div class="compass" aria-hidden="true">
         <svg viewBox="0 0 88 72">
           <path d="M44 58 13 40m0 0 10 0m-10 0 4 9" />
@@ -90,6 +143,9 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
           <text x="5" y="35">{{ t('explore.map.directions.north') }}</text>
           <text x="78" y="35">{{ t('explore.map.directions.east') }}</text>
         </svg>
+      </div>
+      <div v-if="floor !== 'all'" class="floor-indicator" aria-live="polite">
+        {{ t('explore.map.floor', { floor }) }}
       </div>
       <div class="controls" role="group" :aria-label="t('explore.map.floorSwitch')">
         <button
@@ -183,13 +239,32 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
     height: 100dvh;
     overflow: hidden;
 
-    canvas {
+    canvas,
+    .map-icons {
       position: absolute;
       z-index: 0;
       inset: 0;
       display: block;
       width: 100%;
       height: 100%;
+    }
+
+    .map-icons {
+      color: var(--color-heading);
+      pointer-events: none;
+
+      :deep(use) {
+        fill: currentColor;
+        stroke: none;
+      }
+
+      :deep(use[href='#iso-map-icon-stairs']) {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: square;
+        stroke-linejoin: miter;
+      }
     }
 
     .controls {
@@ -227,6 +302,18 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
           color: var(--color-background);
         }
       }
+    }
+
+    .floor-indicator {
+      position: absolute;
+      z-index: 1;
+      top: calc(var(--header-height) + var(--page-title-height) + 16px);
+      left: 16px;
+      color: var(--color-heading);
+      font-size: clamp(1.75rem, 4vw, 2.75rem);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
     }
 
     .compass {

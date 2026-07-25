@@ -9,6 +9,8 @@ export type IsoMapAreaKind =
   | 'tent'
   | 'stairs'
 
+export type IsoMapAreaIcon = 'elevator' | 'stairs' | 'toilet-men' | 'toilet-women'
+
 export type IsoMapLabelKey =
   | 'avRoomRoute'
   | 'classroom'
@@ -32,6 +34,7 @@ export interface IsoMapArea {
   d: number
   /** 矩形以外の形の場合の輪郭 (時計回り)。x, z は外接矩形として扱う */
   outline?: readonly (readonly [number, number])[]
+  icons?: readonly IsoMapAreaIcon[]
   label?: IsoMapLabel
 }
 
@@ -71,13 +74,15 @@ const LOWER_CORRIDOR_Z = ROOM_D
 const SIDE_ROW_Z = LOWER_CORRIDOR_Z + CORRIDOR_D
 const SIDE_ROW_D = 6.5
 const TOILET_W = 7
-const SIDE_ROOM_W = 10
-const STAIRS_W = 5
-const STAIRS_D = 6
+const STAIRS_D = ROOM_D
 const UPPER_ROW_COUNT = 6
 const CLASSROOM_ROW_X = ARM_W
 const CLASSROOM_ROW_W = MAP_W - ARM_W * 2
 const CLASSROOM_W = (CLASSROOM_ROW_W - (UPPER_ROW_COUNT - 1) * ROOM_GAP) / UPPER_ROW_COUNT
+const SIDE_ROOM_W = CLASSROOM_W
+const SIDE_LEFT_ROOM_X = CLASSROOM_ROW_X + CLASSROOM_W
+const SIDE_RIGHT_ROOM_X = CLASSROOM_ROW_X + CLASSROOM_W * 4
+const STAIRS_W = CLASSROOM_W
 const TOILET_LEFT_X = ARM_W + ROOM_GAP
 const TOILET_RIGHT_X = MAP_W - ARM_W - ROOM_GAP - TOILET_W
 const EAST_ARM_CENTER_X = ARM_W / 2
@@ -170,7 +175,7 @@ function stairs(floor: Floor): IsoMapArea[] {
       z,
       w: STAIRS_W,
       d: STAIRS_D,
-      label: { key: 'stairs' },
+      icons: ['stairs', 'elevator'],
     },
     {
       id: `f${floor}-stairs-west`,
@@ -179,13 +184,14 @@ function stairs(floor: Floor): IsoMapArea[] {
       z,
       w: STAIRS_W,
       d: STAIRS_D,
-      label: { key: 'stairs' },
+      icons: ['stairs', 'elevator'],
     },
   ]
 }
 
 function sideRow(floor: Floor): IsoMapArea[] {
   const grade = gradeOf(floor)
+  const menOnScreenLeft = floor === 2 || floor === 3
   return [
     {
       id: `f${floor}-toilet-left`,
@@ -194,12 +200,13 @@ function sideRow(floor: Floor): IsoMapArea[] {
       z: SIDE_ROW_Z,
       w: TOILET_W,
       d: SIDE_ROW_D,
-      label: { key: 'toilet' },
+      // 時計回りの投影では座標上の左側が画面右側に表示される
+      icons: [menOnScreenLeft ? 'toilet-women' : 'toilet-men'],
     },
     {
       id: `r${floor}07`,
       kind: 'room',
-      x: TOILET_LEFT_X + TOILET_W + ROOM_GAP,
+      x: SIDE_LEFT_ROOM_X,
       z: SIDE_ROW_Z,
       w: SIDE_ROOM_W,
       d: SIDE_ROW_D,
@@ -208,7 +215,7 @@ function sideRow(floor: Floor): IsoMapArea[] {
     {
       id: `r${floor}08`,
       kind: 'room',
-      x: TOILET_RIGHT_X - ROOM_GAP - SIDE_ROOM_W,
+      x: SIDE_RIGHT_ROOM_X,
       z: SIDE_ROW_Z,
       w: SIDE_ROOM_W,
       d: SIDE_ROW_D,
@@ -221,7 +228,7 @@ function sideRow(floor: Floor): IsoMapArea[] {
       z: SIDE_ROW_Z,
       w: TOILET_W,
       d: SIDE_ROW_D,
-      label: { key: 'toilet' },
+      icons: [menOnScreenLeft ? 'toilet-men' : 'toilet-women'],
     },
   ]
 }

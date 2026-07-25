@@ -3,7 +3,7 @@ import type { FloorPlan, IsoMapArea, IsoMapLabel, IsoMapLabelKey } from '@/confi
 export type IsoMapLabels = Record<IsoMapLabelKey, string>
 
 export interface MapColors {
-  toilet: string
+  background: string
   line: string
   text: string
 }

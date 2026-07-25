@@ -1,5 +1,5 @@
 import { floorPlans } from '@/config/isoMap'
-import type { FloorPlan } from '@/config/isoMap'
+import type { FloorPlan, IsoMapArea } from '@/config/isoMap'
 import type { Floor } from '@/config/organizations'
 import { areaPath, floorSegments, labelText, planBounds } from './geometry'
 import type { IsoMapLabels, MapColors, MapPoint, MapSegment } from './geometry'
@@ -17,12 +17,12 @@ export interface IsoMapScene {
   dispose(): void
 }
 
-const VIEW_RADIUS = 49
+const VIEW_RADIUS = 58
 const STACK_GAP = 9
 const HIDDEN_GAP = 4
 const LERP_FACTOR = 0.16
 const EPSILON = 0.01
-const LABEL_HEIGHT = 2.5
+const LABEL_HEIGHT = 2
 const ISO_X = Math.SQRT1_2
 const ISO_Y = 1 / Math.sqrt(6)
 const ISO_ELEVATION = Math.sqrt(2 / 3)
@@ -30,6 +30,7 @@ const ISO_ELEVATION = Math.sqrt(2 / 3)
 interface FloorState {
   plan: FloorPlan
   segments: MapSegment[]
+  icons: Array<{ area: IsoMapArea; element: SVGUseElement; index: number; count: number }>
   y: number
   targetY: number
   opacity: number
@@ -51,6 +52,7 @@ interface LabelOptions {
 
 export function createIsoMapScene(
   canvas: HTMLCanvasElement,
+  iconLayer: SVGGElement,
   initialLabels: IsoMapLabels,
   initialColors: MapColors,
 ): IsoMapScene {
@@ -59,14 +61,26 @@ export function createIsoMapScene(
   const context: CanvasRenderingContext2D = renderingContext
 
   const { cx, cz } = planBounds(floorPlans)
-  const floors: FloorState[] = floorPlans.map((plan) => ({
-    plan,
-    segments: floorSegments(plan),
-    y: 0,
-    targetY: 0,
-    opacity: 0,
-    targetOpacity: 0,
-  }))
+  const floors: FloorState[] = floorPlans.map((plan) => {
+    const icons = plan.areas.flatMap((area) =>
+      (area.icons ?? []).map((icon, index, allIcons) => {
+        const element = document.createElementNS('http://www.w3.org/2000/svg', 'use')
+        element.setAttribute('href', `#iso-map-icon-${icon}`)
+        element.style.pointerEvents = 'none'
+        iconLayer.append(element)
+        return { area, element, index, count: allIcons.length }
+      }),
+    )
+    return {
+      plan,
+      segments: floorSegments(plan),
+      icons,
+      y: 0,
+      targetY: 0,
+      opacity: 0,
+      targetOpacity: 0,
+    }
+  })
 
   let labels = initialLabels
   let colors = initialColors
@@ -110,7 +124,7 @@ export function createIsoMapScene(
   ): void {
     if (!text) return
     const position = project(point, elevation)
-    const fontSize = Math.max(8, LABEL_HEIGHT * scale())
+    let fontSize = Math.max(7, LABEL_HEIGHT * scale())
     const maxWidth = options.maxWidth ? Math.max(8, options.maxWidth * scale()) : undefined
 
     context.save()
@@ -119,9 +133,13 @@ export function createIsoMapScene(
     context.font = `${fontSize}px Futura, sans-serif`
     context.textAlign = 'center'
     context.textBaseline = 'middle'
-    const measuredWidth = context.measureText(text).width
-    const renderedWidth = maxWidth ? Math.min(measuredWidth, maxWidth) : measuredWidth
-    context.fillText(text, position.x, position.z, maxWidth)
+    let renderedWidth = context.measureText(text).width
+    if (maxWidth && renderedWidth > maxWidth) {
+      fontSize *= maxWidth / renderedWidth
+      context.font = `${fontSize}px Futura, sans-serif`
+      renderedWidth = context.measureText(text).width
+    }
+    context.fillText(text, position.x, position.z)
     context.restore()
 
     if (options.areaId && opacity > 0.5) {
@@ -135,15 +153,31 @@ export function createIsoMapScene(
     }
   }
 
+  function positionIcons(state: FloorState): void {
+    for (const { area, element, index, count } of state.icons) {
+      if (!showLabels || state.opacity <= EPSILON) continue
+      const position = project({ x: area.x + area.w / 2, z: area.z + area.d / 2 }, state.y)
+      const availableWidth = area.w / count
+      const size = Math.min(availableWidth, area.d) * scale() * 0.5
+      const offsetX = (index - (count - 1) / 2) * size * 1.25
+      element.setAttribute('x', String(position.x + offsetX - size / 2))
+      element.setAttribute('y', String(position.z - size / 2))
+      element.setAttribute('width', String(size))
+      element.setAttribute('height', String(size))
+      element.setAttribute('opacity', String(state.opacity))
+      element.style.visibility = 'visible'
+    }
+  }
+
   function drawFloor(state: FloorState): void {
     if (state.opacity <= EPSILON) return
     const elevation = state.y
 
+    // 前面の床を背景色で塗り、全階表示で背面の線が透けないようにする
     context.save()
-    context.globalAlpha = state.opacity * 0.22
-    context.fillStyle = colors.toilet
+    context.globalAlpha = state.opacity
+    context.fillStyle = colors.background
     for (const area of state.plan.areas) {
-      if (area.kind !== 'toilet') continue
       areaPath(context, area, (point) => project(point, elevation))
       context.fill()
     }
@@ -177,6 +211,7 @@ export function createIsoMapScene(
     context.restore()
 
     if (!showLabels) return
+    positionIcons(state)
     for (const area of state.plan.areas) {
       if (!area.label) continue
       drawLabel(
@@ -204,7 +239,6 @@ export function createIsoMapScene(
         { maxWidth: 14 },
       )
     }
-    drawLabel(`${state.plan.floor}F`, { x: -8, z: 44 }, elevation, state.opacity, { maxWidth: 7 })
   }
 
   function render(): void {
@@ -212,6 +246,9 @@ export function createIsoMapScene(
     context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0)
     context.clearRect(0, 0, viewportWidth, viewportHeight)
     hitAreas = []
+    for (const state of floors) {
+      for (const { element } of state.icons) element.style.visibility = 'hidden'
+    }
     for (const state of floors) drawFloor(state)
   }
 
@@ -285,6 +322,7 @@ export function createIsoMapScene(
     pixelRatio = Math.min(window.devicePixelRatio || 1, 2)
     canvas.width = Math.round(width * pixelRatio)
     canvas.height = Math.round(height * pixelRatio)
+    iconLayer.ownerSVGElement?.setAttribute('viewBox', `0 0 ${width} ${height}`)
     requestRender()
   }
 
@@ -305,6 +343,9 @@ export function createIsoMapScene(
       disposed = true
       if (raf) cancelAnimationFrame(raf)
       hitAreas = []
+      for (const state of floors) {
+        for (const { element } of state.icons) element.remove()
+      }
       context.clearRect(0, 0, canvas.width, canvas.height)
     },
   }
