@@ -162,6 +162,7 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: center;
   max-height: 100svh;
+  overflow: clip;
 
   .frame {
     display: flex;
