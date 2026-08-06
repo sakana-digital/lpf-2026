@@ -54,6 +54,7 @@ onMounted(scrollSelectedIntoView)
     ref="gridRef"
     class="events-grid"
     :style="gridStyle"
+    role="group"
     :aria-label="t('explore.events.gridLabel')"
     @transitionend.self="scrollSelectedIntoView"
   >

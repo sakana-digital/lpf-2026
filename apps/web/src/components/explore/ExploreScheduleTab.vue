@@ -87,7 +87,7 @@ function slotStyle(slot: ScheduleSlot) {
       ref="gridRef"
       class="grid"
       :style="{ gridTemplateRows: `auto repeat(${axis.rowCount}, 10px)` }"
-      role="table"
+      role="group"
       :aria-label="t('explore.tabs.schedule')"
     >
       <div

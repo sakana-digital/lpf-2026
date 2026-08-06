@@ -35,6 +35,7 @@ function jumpTo(id: string) {
       <ul class="toc-list">
         <li v-for="item in items" :key="item.id">
           <button
+            type="button"
             class="toc-link"
             :class="{ 'is-active': activeId === item.id }"
             :aria-current="activeId === item.id ? 'true' : undefined"

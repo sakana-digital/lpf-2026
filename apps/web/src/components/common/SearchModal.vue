@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { pages } from '@/config/pages'
 import { filterEntries, useSearch } from '@/composables/useSearch'
+import { useFocusTrap } from '@/composables/useFocusTrap'
 import { localePath } from '@shared/pages'
 
 const { t, locale, messages, availableLocales } = useI18n()
@@ -12,6 +13,7 @@ const router = useRouter()
 
 const query = ref('')
 const inputRef = useTemplateRef<HTMLInputElement>('inputRef')
+const panelRef = useTemplateRef<HTMLElement>('panelRef')
 const resultRefs = ref<{ $el: HTMLElement }[]>([])
 
 function resolvePath(tree: unknown, path: string): unknown {
@@ -72,6 +74,8 @@ function selectActive() {
   close()
 }
 
+useFocusTrap(panelRef, isOpen)
+
 watch(isOpen, (open) => {
   if (!open) return
   query.value = ''
@@ -81,47 +85,55 @@ watch(isOpen, (open) => {
 </script>
 
 <template>
-  <Transition name="search">
-    <div v-if="isOpen" class="search-modal">
-      <div class="backdrop" @click="close" />
-      <div class="panel" role="dialog" :aria-label="t('search.label')">
-        <input
-          ref="inputRef"
-          v-model="query"
-          type="search"
-          class="field"
-          :placeholder="t('search.placeholder')"
+  <Teleport to="body">
+    <Transition name="search">
+      <div v-if="isOpen" class="search-modal" @keydown.esc="close">
+        <div class="backdrop" @click="close" />
+        <div
+          ref="panelRef"
+          class="panel"
+          role="dialog"
+          aria-modal="true"
           :aria-label="t('search.label')"
-          @keydown.down.prevent="moveFocus(1)"
-          @keydown.up.prevent="moveFocus(-1)"
-          @keydown.enter.prevent="selectActive"
-        />
-        <div class="body" :class="{ open: hasQuery }">
-          <div class="body-inner">
-            <template v-if="hasQuery">
-              <ul v-if="results.length" class="results">
-                <li v-for="(entry, index) in results" :key="entry.to">
-                  <RouterLink
-                    ref="resultRefs"
-                    :to="entry.to"
-                    class="result"
-                    :class="{ active: index === activeIndex }"
-                    @click="close"
-                    @mouseenter="activeIndex = index"
-                    @focus="activeIndex = index"
-                    @keydown.down.prevent="moveFocus(1)"
-                    @keydown.up.prevent="moveFocus(-1)"
-                    >{{ entry.label }}</RouterLink
-                  >
-                </li>
-              </ul>
-              <p v-else class="empty">{{ t('search.empty') }}</p>
-            </template>
+        >
+          <input
+            ref="inputRef"
+            v-model="query"
+            type="search"
+            class="field"
+            :placeholder="t('search.placeholder')"
+            :aria-label="t('search.label')"
+            @keydown.down.prevent="moveFocus(1)"
+            @keydown.up.prevent="moveFocus(-1)"
+            @keydown.enter.prevent="selectActive"
+          />
+          <div class="body" :class="{ open: hasQuery }">
+            <div class="body-inner">
+              <template v-if="hasQuery">
+                <ul v-if="results.length" class="results">
+                  <li v-for="(entry, index) in results" :key="entry.to">
+                    <RouterLink
+                      ref="resultRefs"
+                      :to="entry.to"
+                      class="result"
+                      :class="{ active: index === activeIndex }"
+                      @click="close"
+                      @mouseenter="activeIndex = index"
+                      @focus="activeIndex = index"
+                      @keydown.down.prevent="moveFocus(1)"
+                      @keydown.up.prevent="moveFocus(-1)"
+                      >{{ entry.label }}</RouterLink
+                    >
+                  </li>
+                </ul>
+                <p v-else class="empty">{{ t('search.empty') }}</p>
+              </template>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </Transition>
+    </Transition>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -160,7 +172,6 @@ watch(isOpen, (open) => {
     background: transparent;
     color: var(--color-heading);
     font-size: 16px;
-    outline: none;
 
     &::placeholder {
       color: var(--color-text-mute);
@@ -195,10 +206,6 @@ watch(isOpen, (open) => {
       border-radius: 20px;
       color: var(--color-text);
       text-decoration: none;
-
-      &:focus {
-        outline: none;
-      }
 
       &.active {
         background: var(--color-background-mute);

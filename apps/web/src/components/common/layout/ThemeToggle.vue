@@ -15,6 +15,7 @@ const options: Theme[] = ['light', 'system', 'dark']
 <template>
   <div class="theme-switch">
     <button
+      type="button"
       v-for="opt in options"
       :key="opt"
       class="theme-option"

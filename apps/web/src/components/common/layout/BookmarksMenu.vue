@@ -1,29 +1,33 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useBookmarks } from '@/composables/useBookmarks'
 import BookmarkIcon from '@/components/common/icons/bookmark.vue'
 import BookmarksList from './BookmarksList.vue'
+import { useDisclosure } from '@/composables/useDisclosure'
 
 const { t } = useI18n()
 const { bookmarkIds } = useBookmarks()
 
-const isOpen = ref(false)
+const rootRef = useTemplateRef<HTMLElement>('rootRef')
+const { isOpen, toggle } = useDisclosure(rootRef)
 </script>
 
 <template>
-  <div class="bookmarks-menu">
+  <div ref="rootRef" class="bookmarks-menu">
     <button
+      type="button"
       class="icon-button"
       :class="{ 'is-open': isOpen }"
       :aria-label="t('bookmarks.toggle')"
       :aria-expanded="isOpen"
-      @click="isOpen = !isOpen"
+      aria-controls="bookmarks-list"
+      @click="toggle"
     >
       <span v-if="bookmarkIds.length > 0" class="count">{{ bookmarkIds.length }}</span>
       <BookmarkIcon :filled="isOpen" />
     </button>
-    <BookmarksList v-if="isOpen" class="list" />
+    <BookmarksList v-if="isOpen" id="bookmarks-list" class="list" />
   </div>
 </template>
 

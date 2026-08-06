@@ -71,7 +71,7 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
 <template>
   <div class="map">
     <div class="viewport">
-      <canvas ref="canvasRef" :aria-label="t('explore.tabs.map')"></canvas>
+      <canvas ref="canvasRef" role="img" :aria-label="t('explore.tabs.map')"></canvas>
       <svg class="map-icons" aria-hidden="true">
         <IsoMapSymbols />
         <g ref="iconLayerRef"></g>
@@ -89,6 +89,7 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
       </div>
       <div class="controls" role="group" :aria-label="t('explore.map.floorSwitch')">
         <button
+          type="button"
           v-for="f in floorButtons"
           :key="f"
           :class="{ active: floor === f }"
@@ -98,6 +99,7 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
           {{ t('explore.map.floor', { floor: f }) }}
         </button>
         <button
+          type="button"
           :class="{ active: floor === 'all' }"
           :aria-pressed="floor === 'all'"
           @click="setFloor('all')"
@@ -144,6 +146,7 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
             </span>
           </div>
           <button
+            type="button"
             class="org-panel-close"
             :aria-label="t('explore.nodes.close')"
             @click="closeDetail"

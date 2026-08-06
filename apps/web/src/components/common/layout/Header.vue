@@ -35,7 +35,7 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
       </div>
       <div class="header-actions">
         <DayBadge />
-        <button class="icon-button" :aria-label="t('nav.search')" @click="open">
+        <button type="button" class="icon-button" :aria-label="t('nav.search')" @click="open">
           <SearchIcon />
         </button>
         <RouterLink class="icon-button" :to="explorePath" :aria-label="t('nav.explore')">
