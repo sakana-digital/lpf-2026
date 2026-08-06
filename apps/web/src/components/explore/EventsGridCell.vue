@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { organizationName } from '@/config/organizations'
+import { organizationLabel, organizationName } from '@/config/organizations'
 import type { Organization } from '@/config/organizations'
 import type { OrgStatus } from '@shared/status'
 import OrgDetail from './OrgDetail.vue'
@@ -14,12 +14,7 @@ const { t, locale } = useI18n()
 
 const displayName = computed(() => (props.org ? organizationName(props.org, locale.value) : ''))
 
-const cellLabel = computed(() => {
-  if (!props.org) return ''
-  return props.org.kind === 'class'
-    ? t('explore.events.classLabel', { grade: props.org.grade, classNo: props.org.classNo })
-    : displayName.value
-})
+const cellLabel = computed(() => (props.org ? organizationLabel(props.org, locale.value, t) : ''))
 </script>
 
 <template>

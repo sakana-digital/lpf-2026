@@ -117,3 +117,8 @@ export function localePath(jaPath: string, language: string): string {
 export function findPage(jaPath: string): PageDefinition | undefined {
   return byPath.get(jaPath)
 }
+
+/** ja/en どちらのトップページか。 */
+export function isRootPath(pathname: string): boolean {
+  return localizedPath(pathname).jaPath === '/'
+}

@@ -47,6 +47,7 @@
   "nav": {
     "search": "検索",
     "explore": "探索",
+    "breadcrumb": "パンくずリスト",
     "menu": "メニュー",
     "instagram": "Instagram"
   },

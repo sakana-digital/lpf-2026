@@ -102,3 +102,17 @@ export function getOrganizationByRoom(room: string): Organization | undefined {
 export function organizationName(org: Organization, locale: string): string {
   return (locale === 'en' && org.nameEn) || org.name
 }
+
+/**
+ * 一覧やパネルの見出しに出す短いラベル。
+ * クラスは学年-組、それ以外は団体名を使い、名前未定なら空文字を返す。
+ */
+export function organizationLabel(
+  org: Organization,
+  locale: string,
+  t: (key: string, params?: Record<string, unknown>) => string,
+): string {
+  return org.kind === 'class'
+    ? t('explore.events.classLabel', { grade: org.grade, classNo: org.classNo })
+    : organizationName(org, locale)
+}

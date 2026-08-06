@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { localePath } from '@shared/pages'
 
 const route = useRoute()
 const router = useRouter()
+const { t, locale } = useI18n()
 
+// ラベルはパスセグメントをそのまま出す（意匠として翻訳しない）
 const crumbs = computed(() => {
-  const prefix = route.meta.locale === 'en' ? '/en' : ''
   const segments = route.path.split('/').filter((s) => s !== 'en' && Boolean(s))
   return segments
     .map((segment, index) => ({
       label: segment,
-      to: prefix + '/' + segments.slice(0, index + 1).join('/') + '/',
+      to: localePath(`/${segments.slice(0, index + 1).join('/')}/`, locale.value),
     }))
     .filter((crumb) => {
       const resolved = router.resolve(crumb.to)
@@ -23,7 +26,7 @@ const crumbs = computed(() => {
 </script>
 
 <template>
-  <div v-if="crumbs.length" class="breadcrumb" aria-label="breadcrumb">
+  <nav v-if="crumbs.length" class="breadcrumb" :aria-label="t('nav.breadcrumb')">
     <div class="crumbs">
       <template v-for="crumb in crumbs" :key="crumb.to">
         <svg
@@ -47,7 +50,7 @@ const crumbs = computed(() => {
         <RouterLink :to="crumb.to" class="crumb">{{ crumb.label }}</RouterLink>
       </template>
     </div>
-  </div>
+  </nav>
 </template>
 
 <style scoped>

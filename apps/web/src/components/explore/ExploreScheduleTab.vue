@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { scheduleSlots, scheduleVenues } from '@/config/schedule'
 import type { ScheduleSlot } from '@/config/schedule'
@@ -8,12 +7,10 @@ import { festivalDates, resolveFestivalDay } from '@/config/festival'
 import { getOrganization, organizationName } from '@/config/organizations'
 import { buildTimeAxis, slotRows } from '@/lib/scheduleGrid'
 import { useOrgStatus } from '@/composables/useOrgStatus'
+import { useSelectedOrg } from '@/composables/useSelectedOrg'
 import BookmarkToggle from '@/components/common/BookmarkToggle.vue'
 import SegmentedSwitch from '@/components/common/SegmentedSwitch.vue'
 import OrgDetail from './OrgDetail.vue'
-
-const route = useRoute()
-const router = useRouter()
 
 const { t, locale } = useI18n()
 const { statuses } = useOrgStatus()
@@ -26,10 +23,7 @@ const dayOptions = computed(() => days.map((d) => ({ value: d, label: dayLabel(d
 const daySlots = computed(() => scheduleSlots.filter((slot) => slot.day === day.value))
 const axis = computed(() => buildTimeAxis(daySlots.value))
 
-const selectedId = computed(() => {
-  const org = route.query.org
-  return typeof org === 'string' && getOrganization(org) ? org : undefined
-})
+const { selectedId, toggle } = useSelectedOrg()
 
 function isExpanded(slot: ScheduleSlot): boolean {
   return slot.organizationId != null && slot.organizationId === selectedId.value
@@ -52,7 +46,7 @@ const closingId = ref<string>()
 async function onSlotClick(slot: ScheduleSlot) {
   if (!slot.organizationId) return
   const next = slot.organizationId === selectedId.value ? undefined : slot.organizationId
-  await router.replace({ query: { ...route.query, org: next } })
+  await toggle(slot.organizationId)
   if (!next) return
   await nextTick()
   gridRef.value

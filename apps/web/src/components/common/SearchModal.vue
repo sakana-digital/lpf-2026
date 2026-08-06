@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { pages } from '@/config/pages'
 import { filterEntries, useSearch } from '@/composables/useSearch'
+import { localePath } from '@shared/pages'
 
 const { t, locale, messages, availableLocales } = useI18n()
 const { isOpen, close } = useSearch()
@@ -35,7 +36,7 @@ const entries = computed(() =>
       if (typeof title === 'string') keywords.push(title)
     }
     return {
-      to: locale.value === 'en' ? `/en${page.path}` : page.path,
+      to: localePath(page.path, locale.value),
       label: t(page.titleKey ?? page.labelKey),
       keywords,
     }

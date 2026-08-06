@@ -3,10 +3,11 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ExploreIcon from '@/components/common/icons/explore.vue'
 import { useScrolledPast } from '@/composables/useScrolledPast'
+import { localePath } from '@shared/pages'
 
 const { t, locale } = useI18n()
 
-const explorePath = computed(() => (locale.value === 'en' ? '/en/explore/' : '/explore/'))
+const explorePath = computed(() => localePath('/explore/', locale.value))
 
 const visible = useScrolledPast(160)
 </script>
