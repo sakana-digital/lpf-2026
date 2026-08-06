@@ -1,5 +1,11 @@
+import { findPage, localePath, localizedPath, sitemapPaths } from '../../../shared/pages'
+import type { Language, PageDefinition } from '../../../shared/pages'
+import ja from '../src/locales/ja.json'
+import en from '../src/locales/en.json'
+
 interface PagesContext {
   request: Request
+  env: { CF_PAGES_BRANCH?: string }
   next(): Promise<Response>
 }
 
@@ -26,81 +32,67 @@ interface PageMeta {
   robots: string
 }
 
-interface PageConfig {
-  labels?: { ja: string; en: string }
-  indexable: boolean
+interface PageMessages {
+  title?: string
+  description: string
 }
 
-const SITE_NAMES = {
-  ja: '八宝祭 - LiSA Papillon Festival 2026',
-  en: 'Happo-sai - LiSA Papillon Festival 2026',
-} as const
+const MESSAGES = { ja, en } as const
 
-const DEFAULT_DESCRIPTIONS = {
-  ja: '神奈川県立神奈川総合産業高等学校 全日制 2026年度 文化祭「八宝祭」です。2026年9月26日・27日開催です。',
-  en: 'Happo-sai, the school festival of Kanagawa Sogo Sangyo High School, takes place September 26–27, 2026.',
-} as const
-
-const PAGES: Record<string, PageConfig> = {
-  '/': { indexable: true },
-  '/news/': {
-    labels: { ja: 'ニュース', en: 'News' },
-    indexable: true,
-  },
-  '/explore/': {
-    labels: { ja: '企画を探す', en: 'Explore' },
-    indexable: false,
-  },
-  '/explore/events/': {
-    labels: { ja: 'イベント', en: 'Events' },
-    indexable: true,
-  },
-  '/explore/schedule/': {
-    labels: { ja: 'スケジュール', en: 'Schedule' },
-    indexable: true,
-  },
-  '/explore/map/': {
-    labels: { ja: '会場マップ', en: 'Venue Map' },
-    indexable: true,
-  },
-  '/explore/nodes/': {
-    labels: { ja: 'イベント', en: 'Events' },
-    indexable: false,
-  },
+const FESTIVAL_DATES = ['2026-09-26', '2026-09-27'] as const
+const OG_IMAGE_PATH = '/posters/lpf-2026-main.jpg'
+const ORGANIZER_NAMES: Record<Language, string> = {
+  ja: '神奈川県立神奈川総合産業高等学校',
+  en: 'Kanagawa Sogo Sangyo High School',
 }
 
-const SITEMAP_PATHS = Object.entries(PAGES)
-  .filter(([, page]) => page.indexable)
-  .map(([path]) => path)
+/**
+ * ブランチプレビュー（*.pages.dev）が本番と検索結果を食い合わないようにする。
+ * Pages が必ず注入する CF_PAGES_BRANCH で判定し、独自ドメインに依存しない。
+ */
+const PRODUCTION_BRANCH = 'main'
 
-function localizedPath(pathname: string): {
-  language: 'ja' | 'en'
-  jaPath: string
-  enPath: string
-} {
-  const isEnglish = pathname === '/en/' || pathname.startsWith('/en/')
-  const jaPath = isEnglish ? pathname.slice(3) || '/' : pathname
+function isProduction(env: PagesContext['env']): boolean {
+  return env.CF_PAGES_BRANCH === undefined || env.CF_PAGES_BRANCH === PRODUCTION_BRANCH
+}
+
+function siteName(language: Language): string {
+  return MESSAGES[language].pageTitle.suffix
+}
+
+function pageMessages(language: Language, metaKey: string): PageMessages | undefined {
+  const messages: Record<string, PageMessages> = MESSAGES[language].meta.pages
+  return messages[metaKey]
+}
+
+function pageTitle(page: PageDefinition, language: Language): string {
+  const title = pageMessages(language, page.metaKey)?.title
+  return title ? `${title} | ${siteName(language)}` : siteName(language)
+}
+
+function pageMeta(pathname: string, indexable: boolean): PageMeta | null {
+  const { language, jaPath } = localizedPath(pathname)
+  const page = findPage(jaPath)
+  if (!page) return null
+
   return {
-    language: isEnglish ? 'en' : 'ja',
-    jaPath,
-    enPath: jaPath === '/' ? '/en/' : `/en${jaPath}`,
+    title: pageTitle(page, language),
+    description: pageMessages(language, page.metaKey)?.description ?? '',
+    imageAlt: MESSAGES[language].meta.imageAlt,
+    locale: language === 'en' ? 'en_US' : 'ja_JP',
+    robots:
+      indexable && page.indexable ? 'index, follow, max-image-preview:large' : 'noindex, follow',
   }
 }
 
-function pageMeta(pathname: string): PageMeta | null {
-  const { language, jaPath } = localizedPath(pathname)
-  const page = PAGES[jaPath]
-  if (!page) return null
-
-  const siteName = SITE_NAMES[language]
-  const label = page.labels?.[language]
-
+function notFoundMeta(language: Language): PageMeta {
+  const { title, description } = MESSAGES[language].meta.notFound
   return {
-    title: label ? `${label} | ${siteName}` : siteName,
-    description: DEFAULT_DESCRIPTIONS[language],
-    imageAlt: language === 'en' ? 'Happo-sai 2026 key visual' : '八宝祭 2026 キービジュアル',
+    title: `${title} | ${siteName(language)}`,
+    description,
+    imageAlt: MESSAGES[language].meta.imageAlt,
     locale: language === 'en' ? 'en_US' : 'ja_JP',
-    robots: page.indexable ? 'index, follow, max-image-preview:large' : 'noindex, follow',
+    robots: 'noindex, nofollow',
   }
 }
 
@@ -112,9 +104,76 @@ function setAttribute(rewriter: Rewriter, selector: string, name: string, value:
   })
 }
 
+/** ルートから当該ページまでの、テーブルに存在する祖先ページを列挙する。 */
+function ancestors(jaPath: string): PageDefinition[] {
+  const paths = ['/']
+  let current = ''
+  for (const segment of jaPath.split('/').filter(Boolean)) {
+    current += `/${segment}`
+    paths.push(`${current}/`)
+  }
+  return paths.map(findPage).filter((page): page is PageDefinition => page !== undefined)
+}
+
+function breadcrumbList(origin: string, jaPath: string, language: Language): unknown | null {
+  const trail = ancestors(jaPath)
+  if (trail.length < 2) return null
+
+  return {
+    '@type': 'BreadcrumbList',
+    itemListElement: trail.map((page, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: pageMessages(language, page.metaKey)?.title ?? siteName(language),
+      item: `${origin}${localePath(page.path, language)}`,
+    })),
+  }
+}
+
+function structuredData(origin: string, pathname: string): string {
+  const { language, jaPath } = localizedPath(pathname)
+  const graph: unknown[] = [
+    {
+      '@type': 'Event',
+      name: siteName(language),
+      startDate: `${FESTIVAL_DATES[0]}T09:00:00+09:00`,
+      endDate: `${FESTIVAL_DATES[FESTIVAL_DATES.length - 1]}T15:00:00+09:00`,
+      eventStatus: 'https://schema.org/EventScheduled',
+      eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+      description: pageMessages(language, 'home')?.description ?? '',
+      image: `${origin}${OG_IMAGE_PATH}`,
+      url: `${origin}${localePath('/', language)}`,
+      location: {
+        '@type': 'Place',
+        name: ORGANIZER_NAMES[language],
+        address: {
+          '@type': 'PostalAddress',
+          addressCountry: 'JP',
+          addressRegion: language === 'en' ? 'Kanagawa' : '神奈川県',
+        },
+      },
+      organizer: {
+        '@type': 'Organization',
+        name: ORGANIZER_NAMES[language],
+        url: origin,
+      },
+    },
+  ]
+
+  const crumbs = breadcrumbList(origin, jaPath, language)
+  if (crumbs) graph.push(crumbs)
+
+  // `</script>` での早期終了を防ぐため、`<` のみ JSON のユニコードエスケープに置き換える
+  const json = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(
+    /</g,
+    '\\u003c',
+  )
+  return `<script type="application/ld+json">${json}</script>`
+}
+
 function sitemap(origin: string): string {
-  const urls = SITEMAP_PATHS.flatMap((jaPath) => {
-    const enPath = jaPath === '/' ? '/en/' : `/en${jaPath}`
+  const urls = sitemapPaths.flatMap((jaPath) => {
+    const enPath = localePath(jaPath, 'en')
     return [
       { path: jaPath, alternate: enPath, language: 'ja', alternateLanguage: 'en' },
       { path: enPath, alternate: jaPath, language: 'en', alternateLanguage: 'ja' },
@@ -139,11 +198,15 @@ ${entries}
 `
 }
 
-export async function onRequest({ request, next }: PagesContext): Promise<Response> {
+export async function onRequest({ request, env, next }: PagesContext): Promise<Response> {
   const url = new URL(request.url)
+  const indexable = isProduction(env)
 
   if (url.pathname === '/robots.txt') {
-    return new Response(`User-agent: *\nAllow: /\nSitemap: ${url.origin}/sitemap.xml\n`, {
+    const body = indexable
+      ? `User-agent: *\nAllow: /\nSitemap: ${url.origin}/sitemap.xml\n`
+      : 'User-agent: *\nDisallow: /\n'
+    return new Response(body, {
       headers: { 'content-type': 'text/plain; charset=utf-8' },
     })
   }
@@ -157,25 +220,11 @@ export async function onRequest({ request, next }: PagesContext): Promise<Respon
   const response = await next()
   if (!response.headers.get('content-type')?.includes('text/html')) return response
 
-  const meta = pageMeta(url.pathname)
+  const meta = pageMeta(url.pathname, indexable)
   const { language, jaPath, enPath } = localizedPath(url.pathname)
   const canonicalUrl = `${url.origin}${url.pathname}`
-  const imageUrl = `${url.origin}/posters/lpf-2026-main.jpg`
-  const resolvedMeta =
-    meta ??
-    ({
-      title:
-        language === 'en'
-          ? 'Page not found | ' + SITE_NAMES.en
-          : 'ページが見つかりません | ' + SITE_NAMES.ja,
-      description:
-        language === 'en'
-          ? 'The requested page could not be found.'
-          : 'お探しのページは見つかりません。',
-      imageAlt: language === 'en' ? 'Happo-sai 2026 key visual' : '八宝祭 2026 キービジュアル',
-      locale: language === 'en' ? 'en_US' : 'ja_JP',
-      robots: 'noindex, nofollow',
-    } satisfies PageMeta)
+  const imageUrl = `${url.origin}${OG_IMAGE_PATH}`
+  const resolvedMeta = meta ?? notFoundMeta(language)
 
   const rewriter = new HTMLRewriter()
     .on('html', {
@@ -192,6 +241,7 @@ export async function onRequest({ request, next }: PagesContext): Promise<Respon
           <link rel="alternate" hreflang="x-default" href="${url.origin}${jaPath}" />`,
           { html: true },
         )
+        if (meta) element.append(structuredData(url.origin, url.pathname), { html: true })
       },
     })
     .on('title', {
@@ -202,7 +252,7 @@ export async function onRequest({ request, next }: PagesContext): Promise<Respon
 
   setAttribute(rewriter, 'meta[name="description"]', 'content', resolvedMeta.description)
   setAttribute(rewriter, 'meta[name="robots"]', 'content', resolvedMeta.robots)
-  setAttribute(rewriter, 'meta[property="og:site_name"]', 'content', SITE_NAMES[language])
+  setAttribute(rewriter, 'meta[property="og:site_name"]', 'content', siteName(language))
   setAttribute(rewriter, 'meta[property="og:title"]', 'content', resolvedMeta.title)
   setAttribute(rewriter, 'meta[property="og:description"]', 'content', resolvedMeta.description)
   setAttribute(rewriter, 'meta[property="og:url"]', 'content', canonicalUrl)
@@ -229,3 +279,5 @@ export async function onRequest({ request, next }: PagesContext): Promise<Respon
     headers: rewritten.headers,
   })
 }
+
+export const __test = { pageMeta, notFoundMeta, sitemap, structuredData }

@@ -1,27 +1,7 @@
-export interface PageNode {
-  path: string
-  labelKey: string
-  titleKey?: string
-  keywordsKey?: string
-}
+import { pages as allPages } from '@shared/pages'
+import type { PageDefinition } from '@shared/pages'
 
-export const pages: PageNode[] = [
-  {
-    path: '/',
-    labelKey: 'sitemap.home',
-    titleKey: 'search.titles.home',
-    keywordsKey: 'search.keywords.home',
-  },
-  {
-    path: '/explore/',
-    labelKey: 'sitemap.explore',
-    titleKey: 'search.titles.explore',
-    keywordsKey: 'search.keywords.explore',
-  },
-  {
-    path: '/news/',
-    labelKey: 'sitemap.news',
-    titleKey: 'search.titles.news',
-    keywordsKey: 'search.keywords.news',
-  },
-]
+export type { PageDefinition }
+
+/** PageTree / SearchModal に出すページ。先頭がルート。 */
+export const pages: PageDefinition[] = allPages.filter((page) => page.navigable)

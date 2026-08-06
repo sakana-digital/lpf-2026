@@ -2,6 +2,38 @@
   "pageTitle": {
     "suffix": "八宝祭 - LiSA Papillon Festival 2026"
   },
+  "meta": {
+    "imageAlt": "八宝祭 2026 キービジュアル",
+    "notFound": {
+      "title": "ページが見つかりません",
+      "description": "お探しのページは見つかりません。"
+    },
+    "pages": {
+      "home": {
+        "description": "神奈川県立神奈川総合産業高等学校 全日制 2026年度 文化祭「八宝祭」です。2026年9月26日・27日開催です。"
+      },
+      "explore": {
+        "title": "企画を探す",
+        "description": "八宝祭 2026 の企画・イベント・スケジュール・会場マップをまとめて探せます。"
+      },
+      "news": {
+        "title": "ニュース",
+        "description": "八宝祭 2026 の最新のお知らせと Instagram の投稿をお届けします。"
+      },
+      "events": {
+        "title": "イベント",
+        "description": "八宝祭 2026 のクラス企画・部活動・有志による出展の一覧です。"
+      },
+      "schedule": {
+        "title": "スケジュール",
+        "description": "八宝祭 2026 のステージ・上映などのタイムスケジュールです。"
+      },
+      "map": {
+        "title": "会場マップ",
+        "description": "八宝祭 2026 の会場マップです。各フロアの企画の場所を確認できます。"
+      }
+    }
+  },
   "dayBadge": {
     "day1": "Day 1",
     "day2": "Day 2",

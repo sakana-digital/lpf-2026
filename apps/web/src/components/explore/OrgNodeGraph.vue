@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { getOrganization, organizationName, organizations } from '@/config/organizations'
 import { buildOrganizationSphere } from '@/lib/sphereGraph'
 import { useSphereGraph } from '@/composables/useSphereGraph'
-import type { OrgStatus } from '../../../../../shared/status'
+import type { OrgStatus } from '@shared/status'
 import BookmarkToggle from '@/components/common/BookmarkToggle.vue'
 import OrgDetail from './OrgDetail.vue'
 
