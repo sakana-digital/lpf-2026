@@ -31,7 +31,7 @@ const SITE_NAMES = {
 } as const
 
 const DEFAULT_DESCRIPTIONS = {
-  ja: '神奈川県立神奈川総合産業高等学校 全日制の文化祭「八宝祭」。2026年9月26日・27日開催。',
+  ja: '神奈川県立神奈川総合産業高等学校 全日制 2026年度 文化祭「八宝祭」です。2026年9月26日・27日開催です。',
   en: 'Happo-sai, the school festival of Kanagawa Sogo Sangyo High School, takes place September 26–27, 2026.',
 } as const
 
