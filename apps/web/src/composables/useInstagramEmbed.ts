@@ -15,7 +15,7 @@ function loadEmbedScript(): Promise<void> {
       return
     }
     const script = document.createElement('script')
-    script.src = '//www.instagram.com/embed.js'
+    script.src = 'https://www.instagram.com/embed.js'
     script.async = true
     script.addEventListener('load', () => resolve(), { once: true })
     document.body.appendChild(script)

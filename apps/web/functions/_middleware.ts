@@ -46,7 +46,7 @@ interface PageMessages {
 const MESSAGES = { ja, en } as const
 
 const FESTIVAL_DATES = ['2026-09-26', '2026-09-27'] as const
-const OG_IMAGE_PATH = '/posters/lpf-2026-main.jpg'
+const OG_IMAGE_PATH = '/og/lpf-2026-og.jpg'
 const ORGANIZER_NAMES: Record<Language, string> = {
   ja: '神奈川県立神奈川総合産業高等学校',
   en: 'Kanagawa Sogo Sangyo High School',
