@@ -23,19 +23,13 @@ const cellLabel = computed(() => {
 </script>
 
 <template>
-  <button
-    v-if="org"
-    class="cell"
-    :class="{ expanded }"
-    :aria-expanded="expanded"
-    @click="$emit('select')"
-  >
-    <span class="cell-head">
+  <div v-if="org" class="cell" :class="{ expanded }">
+    <button type="button" class="cell-head" :aria-expanded="expanded" @click="$emit('select')">
       <span class="label">{{ cellLabel }}</span>
       <span class="name" :class="{ tbd: !displayName }">
         {{ displayName || t('explore.events.tbd') }}
       </span>
-    </span>
+    </button>
     <Transition name="detail">
       <OrgDetail v-if="expanded" :org="org" :status="status" :image-alt="displayName || cellLabel">
         <template #actions>
@@ -43,7 +37,7 @@ const cellLabel = computed(() => {
         </template>
       </OrgDetail>
     </Transition>
-  </button>
+  </div>
   <div v-else class="cell blank" aria-hidden="true"></div>
 </template>
 
@@ -59,9 +53,6 @@ const cellLabel = computed(() => {
   border-radius: 0;
   background: transparent;
   color: var(--color-text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
   overflow: hidden;
   transition:
     border-color 0.15s,
@@ -88,6 +79,11 @@ const cellLabel = computed(() => {
     flex-direction: column;
     gap: 2px;
     min-width: 0;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
 
     .label {
       font-size: 12px;

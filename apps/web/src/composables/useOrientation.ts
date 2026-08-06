@@ -28,7 +28,3 @@ export function initOrientation() {
   apply()
   screen.orientation.addEventListener('change', apply)
 }
-
-export function useOrientation() {
-  return { orientation }
-}

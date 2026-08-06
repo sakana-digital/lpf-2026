@@ -66,7 +66,7 @@ function dayLabel(d: 1 | 2): string {
 }
 
 function slotTitle(slot: ScheduleSlot): string {
-  return slot.titleKey ? t(slot.titleKey) : (slot.title ?? '')
+  return slot.titleKey ? t(slot.titleKey) : ''
 }
 
 function slotStyle(slot: ScheduleSlot) {
@@ -111,23 +111,28 @@ function slotStyle(slot: ScheduleSlot) {
       </template>
 
       <template v-for="slot in daySlots" :key="slot.id">
-        <button
+        <div
           v-if="slot.organizationId"
           class="slot linked"
           :class="{ active: isExpanded(slot) || closingId === slot.organizationId }"
           :style="slotStyle(slot)"
-          :aria-expanded="isExpanded(slot)"
-          @click="onSlotClick(slot)"
         >
-          <span class="slot-title">{{ slotTitle(slot) }}</span>
-          <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
+          <button
+            type="button"
+            class="slot-trigger"
+            :aria-expanded="isExpanded(slot)"
+            @click="onSlotClick(slot)"
+          >
+            <span class="slot-title">{{ slotTitle(slot) }}</span>
+            <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
+          </button>
           <Transition
             name="detail"
             @before-leave="closingId = slot.organizationId"
             @after-leave="closingId = undefined"
           >
-            <span v-if="isExpanded(slot) && slotOrg(slot)" class="slot-expand">
-              <span class="slot-expand-inner">
+            <div v-if="isExpanded(slot) && slotOrg(slot)" class="slot-expand">
+              <div class="slot-expand-inner">
                 <span class="slot-org" :class="{ tbd: !slotOrgName(slot) }">
                   {{ slotOrgName(slot) || t('explore.events.tbd') }}
                 </span>
@@ -136,10 +141,10 @@ function slotStyle(slot: ScheduleSlot) {
                     <BookmarkToggle :org-id="slot.organizationId" />
                   </template>
                 </OrgDetail>
-              </span>
-            </span>
+              </div>
+            </div>
           </Transition>
-        </button>
+        </div>
         <div v-else class="slot" :style="slotStyle(slot)">
           <span class="slot-title">{{ slotTitle(slot) }}</span>
           <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
@@ -208,10 +213,19 @@ function slotStyle(slot: ScheduleSlot) {
       z-index: 1;
 
       &.linked {
-        font: inherit;
-        text-align: left;
-        cursor: pointer;
         transition: border-color 0.15s;
+
+        .slot-trigger {
+          display: flex;
+          flex: 1;
+          flex-direction: column;
+          align-items: stretch;
+          padding: 0;
+          color: inherit;
+          font: inherit;
+          text-align: left;
+          cursor: pointer;
+        }
 
         &:hover {
           border-color: var(--color-heading);

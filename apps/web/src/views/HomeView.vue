@@ -10,11 +10,11 @@ import { consumeDirectRootEntrance } from '@/composables/useRootEntrance'
 import { processInstagramEmbedsNear } from '@/composables/useInstagramEmbed'
 import { formatFestivalPeriod } from '@/config/festival'
 import { newsLinks } from '@/config/newsLinks'
+import { mapUrl } from '@/config/social'
 
 const { t, tm, rt, locale } = useI18n()
 const overviewItems = ['date', 'venue', 'admission'] as const
 const contactItems = ['school', 'address', 'phone'] as const
-const mapUrl = 'https://maps.app.goo.gl/HMdtfGcyfxPd2hUT8'
 const newsPreview = newsLinks.slice(0, 3)
 
 const festivalPeriod = computed(() => formatFestivalPeriod(locale.value))
