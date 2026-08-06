@@ -1,4 +1,10 @@
-import { findPage, localePath, localizedPath, sitemapPaths } from '../../../shared/pages'
+import {
+  findPage,
+  localePath,
+  localizedPath,
+  SITE_ORIGIN,
+  sitemapPaths,
+} from '../../../shared/pages'
 import type { Language, PageDefinition } from '../../../shared/pages'
 import ja from '../src/locales/ja.json'
 import en from '../src/locales/en.json'
@@ -47,13 +53,17 @@ const ORGANIZER_NAMES: Record<Language, string> = {
 }
 
 /**
- * ブランチプレビュー（*.pages.dev）が本番と検索結果を食い合わないようにする。
- * Pages が必ず注入する CF_PAGES_BRANCH で判定し、独自ドメインに依存しない。
+ * ブランチプレビューが本番と検索結果を食い合わないようにする。
+ * Pages が必ず注入する CF_PAGES_BRANCH で判定する。
  */
 const PRODUCTION_BRANCH = 'main'
 
 function isProduction(env: PagesContext['env']): boolean {
   return env.CF_PAGES_BRANCH === undefined || env.CF_PAGES_BRANCH === PRODUCTION_BRANCH
+}
+
+function canonicalOrigin(url: URL, production: boolean): string {
+  return production ? SITE_ORIGIN : url.origin
 }
 
 function siteName(language: Language): string {
@@ -201,10 +211,11 @@ ${entries}
 export async function onRequest({ request, env, next }: PagesContext): Promise<Response> {
   const url = new URL(request.url)
   const indexable = isProduction(env)
+  const origin = canonicalOrigin(url, indexable)
 
   if (url.pathname === '/robots.txt') {
     const body = indexable
-      ? `User-agent: *\nAllow: /\nSitemap: ${url.origin}/sitemap.xml\n`
+      ? `User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`
       : 'User-agent: *\nDisallow: /\n'
     return new Response(body, {
       headers: { 'content-type': 'text/plain; charset=utf-8' },
@@ -212,7 +223,7 @@ export async function onRequest({ request, env, next }: PagesContext): Promise<R
   }
 
   if (url.pathname === '/sitemap.xml') {
-    return new Response(sitemap(url.origin), {
+    return new Response(sitemap(origin), {
       headers: { 'content-type': 'application/xml; charset=utf-8' },
     })
   }
@@ -222,8 +233,8 @@ export async function onRequest({ request, env, next }: PagesContext): Promise<R
 
   const meta = pageMeta(url.pathname, indexable)
   const { language, jaPath, enPath } = localizedPath(url.pathname)
-  const canonicalUrl = `${url.origin}${url.pathname}`
-  const imageUrl = `${url.origin}${OG_IMAGE_PATH}`
+  const canonicalUrl = `${origin}${url.pathname}`
+  const imageUrl = `${origin}${OG_IMAGE_PATH}`
   const resolvedMeta = meta ?? notFoundMeta(language)
 
   const rewriter = new HTMLRewriter()
@@ -236,12 +247,12 @@ export async function onRequest({ request, env, next }: PagesContext): Promise<R
       element(element) {
         element.append(
           `<link rel="canonical" href="${canonicalUrl}" />
-          <link rel="alternate" hreflang="ja" href="${url.origin}${jaPath}" />
-          <link rel="alternate" hreflang="en" href="${url.origin}${enPath}" />
-          <link rel="alternate" hreflang="x-default" href="${url.origin}${jaPath}" />`,
+          <link rel="alternate" hreflang="ja" href="${origin}${jaPath}" />
+          <link rel="alternate" hreflang="en" href="${origin}${enPath}" />
+          <link rel="alternate" hreflang="x-default" href="${origin}${jaPath}" />`,
           { html: true },
         )
-        if (meta) element.append(structuredData(url.origin, url.pathname), { html: true })
+        if (meta) element.append(structuredData(origin, url.pathname), { html: true })
       },
     })
     .on('title', {

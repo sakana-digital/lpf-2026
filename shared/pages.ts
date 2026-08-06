@@ -1,6 +1,12 @@
 export const LANGUAGES = ['ja', 'en'] as const
 export type Language = (typeof LANGUAGES)[number]
 
+/**
+ * 正規 URL の origin。独自ドメインが無く、デプロイごとに
+ * <hash>.happo-sai.pages.dev が生えるため、本番では必ずここを指す。
+ */
+export const SITE_ORIGIN = 'https://happo-sai.pages.dev'
+
 export interface PageDefinition {
   /** 日本語側のパス。必ず末尾スラッシュ */
   path: string
