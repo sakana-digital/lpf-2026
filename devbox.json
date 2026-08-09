@@ -1,4 +1,4 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.17.5/.schema/devbox.schema.json",
-  "packages": ["github:ryoppippi/nix-vite-plus#vp", "nodejs@24"]
+  "packages": ["github:ryoppippi/nix-vite-plus#vp", "nodejs@24", "bun@1.3.13"]
 }
