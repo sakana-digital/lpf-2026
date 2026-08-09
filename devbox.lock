@@ -1,0 +1,13 @@
+{
+  "lockfile_version": "1",
+  "packages": {
+    "github:NixOS/nixpkgs/nixpkgs-unstable": {
+      "last_modified": "2026-08-06T00:10:29Z",
+      "resolved": "github:NixOS/nixpkgs/70ce234312134a463ba7728e94da2486a1d237ac?lastModified=1785975029&narHash=sha256-X44cn5rzytELc3NNoQsh0aLkjWA%2FQzPfc6HPQmsG3sU%3D"
+    },
+    "github:ryoppippi/nix-vite-plus#vp": {
+      "last_modified": "2026-08-05T06:55:40Z",
+      "resolved": "github:ryoppippi/nix-vite-plus/323c9a6baa7f340d5b3e33f096e8464807d6dc88?lastModified=1785912940&narHash=sha256-PhoxeWN%2BMaL2qTDy%2FYxwR%2FQhj12iCp%2FcK7fECfI%2B34o%3D#vp"
+    }
+  }
+}
