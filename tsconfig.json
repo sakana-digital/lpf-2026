@@ -1,0 +1,11 @@
+{
+  // Root-level config files only; each app owns its own tsconfig.
+  "include": ["*.ts"],
+  "compilerOptions": {
+    "noEmit": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "allowImportingTsExtensions": true,
+    "esModuleInterop": true
+  }
+}

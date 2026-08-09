@@ -2,7 +2,7 @@
 
 ## 主な機能
 
-### apps/web/: 公開サイト
+### apps/website/: 公開サイト
 
 - 文化祭の模擬店の状況を表示
 
@@ -65,7 +65,7 @@ Bun workspaces によるモノレポ構成。各アプリを `apps/` 配下に�
 ```
 shared/                 # 全アプリで共有する型・定数
 apps/
-├── web/                # 本体サイト（Cloudflare Pages）
+├── website/            # 本体サイト（Cloudflare Pages）
 │   ├── src/
 │   │   ├── assets/     # CSS, SVG, 画像
 │   │   ├── components/ # UI コンポーネント
@@ -79,7 +79,7 @@ apps/
 └── status/             # 模擬店ステータス入力アプリ（Cloudflare Workers + D1）
 ```
 
-ルートには workspace 設定と、`bun dev` などを `apps/web` へ委譲するスクリプトのみを置く。
+ルートには workspace 設定と、`bun dev` などを `vp run` で `apps/website` へ委譲するスクリプトのみを置く。
 
 ## デプロイ
 

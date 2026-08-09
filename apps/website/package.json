@@ -1,18 +1,17 @@
 {
-  "name": "lpf-2026-web",
+  "name": "website",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vp dev",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "build": "vue-tsc --build && vp build",
     "preview": "vp preview",
-    "build-only": "vp build",
+    "test": "vitest run",
     "type-check": "vue-tsc --build",
     "format": "vp fmt src/"
   },
   "dependencies": {
-    "vitest": "^4.1.9",
     "vue": "beta",
     "vue-i18n": "^11.4.6",
     "vue-router": "^5.1.0"
@@ -22,11 +21,11 @@
     "@types/node": "^24.13.3",
     "@vitejs/plugin-vue": "^6.0.7",
     "@vue/tsconfig": "^0.9.1",
-    "npm-run-all2": "^8.0.4",
     "typescript": "~6.0.3",
-    "vite": "npm:@voidzero-dev/vite-plus-core@^0.2.4",
+    "vite": "catalog:",
     "vite-plugin-vue-devtools": "^8.1.5",
-    "vite-plus": "latest",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:",
     "vue-tsc": "^3.3.7"
   }
 }

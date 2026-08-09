@@ -7,17 +7,18 @@
   ],
   "type": "module",
   "scripts": {
-    "dev": "bun --filter lpf-2026-web dev",
-    "build": "bun --filter lpf-2026-web build",
-    "preview": "bun --filter lpf-2026-web preview",
-    "type-check": "bun --filter lpf-2026-web type-check",
-    "format": "bun --filter lpf-2026-web format",
+    "ready": "vp check && vp run -r test && vp run -r build",
+    "dev": "vp run website#dev",
+    "build": "vp run website#build",
+    "preview": "vp run website#preview",
+    "type-check": "vp run -r type-check",
+    "format": "vp fmt",
     "prepare": "vp config"
   },
   "devDependencies": {
     "typescript": "~6.0.3",
-    "vite": "npm:@voidzero-dev/vite-plus-core@^0.2.4",
-    "vite-plus": "latest"
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
   },
   "overrides": {
     "@vue/compat": "beta",
@@ -32,8 +33,8 @@
     "@vue/runtime-vapor": "beta",
     "@vue/server-renderer": "beta",
     "@vue/shared": "beta",
-    "vite": "npm:@voidzero-dev/vite-plus-core@latest",
-    "vitest": "4.1.9",
+    "vite": "catalog:",
+    "vitest": "catalog:",
     "vue": "beta"
   },
   "devEngines": {
@@ -45,5 +46,10 @@
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
+  },
+  "catalog": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@latest",
+    "vitest": "4.1.9",
+    "vite-plus": "latest"
   }
 }
