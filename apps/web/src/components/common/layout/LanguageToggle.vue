@@ -2,13 +2,14 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { localizedPath } from '@shared/pages'
 
 const route = useRoute()
 const { locale } = useI18n()
 
-// /en プレフィックスを除いた ja 用パス
-const jaPath = computed(() => route.path.replace(/^\/en(?=\/|$)/, '') || '/')
-const enPath = computed(() => `/en${jaPath.value}`)
+const paths = computed(() => localizedPath(route.path))
+const jaPath = computed(() => paths.value.jaPath)
+const enPath = computed(() => paths.value.enPath)
 </script>
 
 <template>

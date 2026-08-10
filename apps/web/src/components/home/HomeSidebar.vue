@@ -35,6 +35,7 @@ function jumpTo(id: string) {
       <ul class="toc-list">
         <li v-for="item in items" :key="item.id">
           <button
+            type="button"
             class="toc-link"
             :class="{ 'is-active': activeId === item.id }"
             :aria-current="activeId === item.id ? 'true' : undefined"
@@ -61,8 +62,6 @@ function jumpTo(id: string) {
   justify-content: center;
   width: calc((100vw - min(1024px, 100vw)) / 2);
 
-  /* Only reveal when the right gutter is wide enough to hold the toc
-     without overlapping the centered content column. */
   @media (min-width: 1440px) {
     display: flex;
   }
@@ -119,8 +118,6 @@ function jumpTo(id: string) {
   .toc-tick {
     display: flex;
     align-items: center;
-    /* Fixed slot: the bar grows inside it so the label never shifts and the
-       centered nav keeps a constant width. */
     width: 32px;
 
     .toc-tick-bar {

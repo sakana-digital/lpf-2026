@@ -1,10 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import type { WritableComputedRef } from 'vue'
+import { findPage, isEnPath, localizedPath } from '@shared/pages'
 import { i18n } from '@/i18n'
 import { EXPLORE_TABS, getLastExploreTab, setLastExploreTab } from '@/composables/useExploreTab'
 import type { ExploreTab } from '@/composables/useExploreTab'
 import HomeView from '@/views/HomeView.vue'
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    /** PageHeader の見出しに使うロケールキー */
+    pageTitle?: string
+    locale?: 'en'
+  }
+}
 
 const NewsView = () => import('@/views/NewsView.vue')
 const ExploreView = () => import('@/views/ExploreView.vue')
@@ -23,19 +32,16 @@ function exploreRoutes(suffix: string): RouteRecordRaw {
         path: 'events',
         name: `explore-events${suffix}`,
         component: ExploreEventsTab,
-        meta: { title: 'explore.tabs.events' },
       },
       {
         path: 'schedule',
         name: `explore-schedule${suffix}`,
         component: ExploreScheduleTab,
-        meta: { title: 'explore.tabs.schedule' },
       },
       {
         path: 'map',
         name: `explore-map${suffix}`,
         component: () => import('@/components/explore/ExploreMapTab.vue'),
-        meta: { title: 'explore.tabs.map' },
       },
       {
         path: 'nodes',
@@ -60,7 +66,7 @@ const router = createRouter({
       path: '/news',
       name: 'news',
       component: NewsView,
-      meta: { pageTitle: 'sitemap.news', title: 'search.titles.news' },
+      meta: { pageTitle: 'sitemap.news' },
     },
     { ...exploreRoutes(''), path: '/explore' },
     {
@@ -76,14 +82,13 @@ const router = createRouter({
           path: 'news',
           name: 'news-en',
           component: NewsView,
-          meta: { pageTitle: 'sitemap.news', title: 'search.titles.news' },
+          meta: { pageTitle: 'sitemap.news' },
         },
         exploreRoutes('-en'),
         {
           path: ':pathMatch(.*)*',
           name: 'not-found-en',
           component: NotFoundView,
-          meta: { title: 'notFound.title' },
         },
       ],
     },
@@ -91,7 +96,6 @@ const router = createRouter({
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: NotFoundView,
-      meta: { title: 'notFound.title' },
     },
   ],
 })
@@ -103,15 +107,22 @@ router.beforeEach((to) => {
 })
 
 router.beforeEach((to) => {
-  const isEn = to.path === '/en' || to.path.startsWith('/en/')
+  const isEn = isEnPath(to.path)
   ;(i18n.global.locale as WritableComputedRef<string>).value = isEn ? 'en' : 'ja'
   document.documentElement.lang = isEn ? 'en' : 'ja'
 })
 
+// タイトルは middleware と同じ shared/pages + meta.pages.* から引き、SSR と SPA でズレないようにする
 router.afterEach((to) => {
-  const key = to.meta.title as string | undefined
+  const { jaPath } = localizedPath(to.path)
+  const page = findPage(jaPath)
   const suffix = i18n.global.t('pageTitle.suffix')
-  document.title = key ? `${i18n.global.t(key)} | ${suffix}` : suffix
+  const title = page
+    ? i18n.global.te(`meta.pages.${page.metaKey}.title`)
+      ? i18n.global.t(`meta.pages.${page.metaKey}.title`)
+      : undefined
+    : i18n.global.t('meta.notFound.title')
+  document.title = title ? `${title} | ${suffix}` : suffix
 
   const tabMatch = to.name?.toString().match(/^explore-([a-z]+)(?:-en)?$/)
   if (tabMatch && (EXPLORE_TABS as readonly string[]).includes(tabMatch[1]!)) {

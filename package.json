@@ -11,6 +11,7 @@
     "build": "bun --filter lpf-2026-web build",
     "preview": "bun --filter lpf-2026-web preview",
     "type-check": "bun --filter lpf-2026-web type-check",
+    "test": "bun --filter lpf-2026-web test",
     "format": "bun --filter lpf-2026-web format",
     "prepare": "vp config"
   },

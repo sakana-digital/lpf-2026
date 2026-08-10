@@ -11,6 +11,7 @@ import { useSearch } from '@/composables/useSearch'
 import { isDirectRootEntrance } from '@/composables/useRootEntrance'
 
 import { computed, onMounted, ref } from 'vue'
+import { localePath } from '@shared/pages'
 
 const { t, locale } = useI18n()
 const { open } = useSearch()
@@ -20,8 +21,8 @@ onMounted(() => {
   entrance.value = isDirectRootEntrance()
 })
 
-const homePath = computed(() => (locale.value === 'en' ? '/en/' : '/'))
-const explorePath = computed(() => (locale.value === 'en' ? '/en/explore/' : '/explore/'))
+const homePath = computed(() => localePath('/', locale.value))
+const explorePath = computed(() => localePath('/explore/', locale.value))
 </script>
 
 <template>
@@ -34,7 +35,7 @@ const explorePath = computed(() => (locale.value === 'en' ? '/en/explore/' : '/e
       </div>
       <div class="header-actions">
         <DayBadge />
-        <button class="icon-button" :aria-label="t('nav.search')" @click="open">
+        <button type="button" class="icon-button" :aria-label="t('nav.search')" @click="open">
           <SearchIcon />
         </button>
         <RouterLink class="icon-button" :to="explorePath" :aria-label="t('nav.explore')">

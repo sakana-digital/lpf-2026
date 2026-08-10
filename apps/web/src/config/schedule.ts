@@ -7,7 +7,6 @@ export interface ScheduleSlot {
   venue: ScheduleVenue
   start: string
   end: string
-  title?: string
   titleKey?: string
   organizationId?: string
 }

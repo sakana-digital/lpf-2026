@@ -2,13 +2,14 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { pages } from '@/config/pages'
+import { localePath } from '@shared/pages'
 
 const { t, locale } = useI18n()
 
 const nodes = computed(() =>
   pages.map((page) => ({
     ...page,
-    to: locale.value === 'en' ? `/en${page.path}` : page.path,
+    to: localePath(page.path, locale.value),
   })),
 )
 

@@ -10,6 +10,7 @@ defineEmits<{ 'update:modelValue': [value: T] }>()
 <template>
   <div class="segmented-switch" role="group">
     <button
+      type="button"
       v-for="option in options"
       :key="option.value"
       :class="{ active: option.value === modelValue }"

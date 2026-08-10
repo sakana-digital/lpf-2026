@@ -11,6 +11,7 @@ const { isBookmarked, toggleBookmark } = useBookmarks()
 
 <template>
   <button
+    type="button"
     class="bookmark-toggle"
     :class="{ active: isBookmarked(orgId) }"
     :aria-label="isBookmarked(orgId) ? t('bookmarks.remove') : t('bookmarks.add')"

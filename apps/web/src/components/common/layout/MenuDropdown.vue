@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue'
+import { useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import MenuIcon from '@/components/common/icons/menu.vue'
 import ThemeToggle from './ThemeToggle.vue'
@@ -8,38 +8,28 @@ import PageTree from './PageTree.vue'
 import SiteLinks from './SiteLinks.vue'
 import BookmarksMenu from './BookmarksMenu.vue'
 import ProgressiveBlur from './ProgressiveBlur.vue'
+import { useDisclosure } from '@/composables/useDisclosure'
 
 const { t } = useI18n()
-const isOpen = ref(false)
 const rootRef = useTemplateRef<HTMLElement>('rootRef')
-
-function toggle() {
-  isOpen.value = !isOpen.value
-}
-
-function handleClickOutside(event: MouseEvent) {
-  if (isOpen.value && !rootRef.value?.contains(event.target as Node)) {
-    isOpen.value = false
-  }
-}
-
-onMounted(() => document.addEventListener('click', handleClickOutside))
-onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
+const { isOpen, toggle } = useDisclosure(rootRef)
 </script>
 
 <template>
   <div ref="rootRef" class="menu-dropdown">
     <button
+      type="button"
       class="icon-button"
       :class="{ 'is-open': isOpen }"
       :aria-label="t('nav.menu')"
       :aria-expanded="isOpen"
+      aria-controls="header-menu"
       @click="toggle"
     >
       <MenuIcon :open="isOpen" />
     </button>
     <Transition name="dropdown" :duration="250">
-      <div v-if="isOpen" class="dropdown">
+      <div v-if="isOpen" id="header-menu" class="dropdown">
         <ProgressiveBlur
           class="dropdown-blur"
           tail="32px"

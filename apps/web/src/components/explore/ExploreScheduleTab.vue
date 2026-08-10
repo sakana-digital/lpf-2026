@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { scheduleSlots, scheduleVenues } from '@/config/schedule'
 import type { ScheduleSlot } from '@/config/schedule'
@@ -8,12 +7,10 @@ import { festivalDates, resolveFestivalDay } from '@/config/festival'
 import { getOrganization, organizationName } from '@/config/organizations'
 import { buildTimeAxis, slotRows } from '@/lib/scheduleGrid'
 import { useOrgStatus } from '@/composables/useOrgStatus'
+import { useSelectedOrg } from '@/composables/useSelectedOrg'
 import BookmarkToggle from '@/components/common/BookmarkToggle.vue'
 import SegmentedSwitch from '@/components/common/SegmentedSwitch.vue'
 import OrgDetail from './OrgDetail.vue'
-
-const route = useRoute()
-const router = useRouter()
 
 const { t, locale } = useI18n()
 const { statuses } = useOrgStatus()
@@ -26,10 +23,7 @@ const dayOptions = computed(() => days.map((d) => ({ value: d, label: dayLabel(d
 const daySlots = computed(() => scheduleSlots.filter((slot) => slot.day === day.value))
 const axis = computed(() => buildTimeAxis(daySlots.value))
 
-const selectedId = computed(() => {
-  const org = route.query.org
-  return typeof org === 'string' && getOrganization(org) ? org : undefined
-})
+const { selectedId, toggle } = useSelectedOrg()
 
 function isExpanded(slot: ScheduleSlot): boolean {
   return slot.organizationId != null && slot.organizationId === selectedId.value
@@ -52,7 +46,7 @@ const closingId = ref<string>()
 async function onSlotClick(slot: ScheduleSlot) {
   if (!slot.organizationId) return
   const next = slot.organizationId === selectedId.value ? undefined : slot.organizationId
-  await router.replace({ query: { ...route.query, org: next } })
+  await toggle(slot.organizationId)
   if (!next) return
   await nextTick()
   gridRef.value
@@ -66,7 +60,7 @@ function dayLabel(d: 1 | 2): string {
 }
 
 function slotTitle(slot: ScheduleSlot): string {
-  return slot.titleKey ? t(slot.titleKey) : (slot.title ?? '')
+  return slot.titleKey ? t(slot.titleKey) : ''
 }
 
 function slotStyle(slot: ScheduleSlot) {
@@ -93,7 +87,7 @@ function slotStyle(slot: ScheduleSlot) {
       ref="gridRef"
       class="grid"
       :style="{ gridTemplateRows: `auto repeat(${axis.rowCount}, 10px)` }"
-      role="table"
+      role="group"
       :aria-label="t('explore.tabs.schedule')"
     >
       <div
@@ -111,23 +105,28 @@ function slotStyle(slot: ScheduleSlot) {
       </template>
 
       <template v-for="slot in daySlots" :key="slot.id">
-        <button
+        <div
           v-if="slot.organizationId"
           class="slot linked"
           :class="{ active: isExpanded(slot) || closingId === slot.organizationId }"
           :style="slotStyle(slot)"
-          :aria-expanded="isExpanded(slot)"
-          @click="onSlotClick(slot)"
         >
-          <span class="slot-title">{{ slotTitle(slot) }}</span>
-          <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
+          <button
+            type="button"
+            class="slot-trigger"
+            :aria-expanded="isExpanded(slot)"
+            @click="onSlotClick(slot)"
+          >
+            <span class="slot-title">{{ slotTitle(slot) }}</span>
+            <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
+          </button>
           <Transition
             name="detail"
             @before-leave="closingId = slot.organizationId"
             @after-leave="closingId = undefined"
           >
-            <span v-if="isExpanded(slot) && slotOrg(slot)" class="slot-expand">
-              <span class="slot-expand-inner">
+            <div v-if="isExpanded(slot) && slotOrg(slot)" class="slot-expand">
+              <div class="slot-expand-inner">
                 <span class="slot-org" :class="{ tbd: !slotOrgName(slot) }">
                   {{ slotOrgName(slot) || t('explore.events.tbd') }}
                 </span>
@@ -136,10 +135,10 @@ function slotStyle(slot: ScheduleSlot) {
                     <BookmarkToggle :org-id="slot.organizationId" />
                   </template>
                 </OrgDetail>
-              </span>
-            </span>
+              </div>
+            </div>
           </Transition>
-        </button>
+        </div>
         <div v-else class="slot" :style="slotStyle(slot)">
           <span class="slot-title">{{ slotTitle(slot) }}</span>
           <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
@@ -208,10 +207,19 @@ function slotStyle(slot: ScheduleSlot) {
       z-index: 1;
 
       &.linked {
-        font: inherit;
-        text-align: left;
-        cursor: pointer;
         transition: border-color 0.15s;
+
+        .slot-trigger {
+          display: flex;
+          flex: 1;
+          flex-direction: column;
+          align-items: stretch;
+          padding: 0;
+          color: inherit;
+          font: inherit;
+          text-align: left;
+          cursor: pointer;
+        }
 
         &:hover {
           border-color: var(--color-heading);

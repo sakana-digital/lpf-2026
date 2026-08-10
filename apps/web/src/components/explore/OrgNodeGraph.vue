@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { getOrganization, organizationName, organizations } from '@/config/organizations'
 import { buildOrganizationSphere } from '@/lib/sphereGraph'
 import { useSphereGraph } from '@/composables/useSphereGraph'
-import type { OrgStatus } from '../../../../../shared/status'
+import type { OrgStatus } from '@shared/status'
 import BookmarkToggle from '@/components/common/BookmarkToggle.vue'
 import OrgDetail from './OrgDetail.vue'
 
@@ -56,17 +56,22 @@ function onNodeClick(id: string) {
   emit('select', id === props.selectedId ? null : id)
 }
 
-function nodeLabel(id: string): string {
-  const meta = nodeMeta.get(id)
-  if (!meta) return ''
-  if (meta.orgId) {
-    const org = getOrganization(meta.orgId)
-    if (org && org.kind !== 'class') {
-      return organizationName(org, locale.value) || t('explore.events.tbd')
-    }
+// ドラッグ中は projected が毎フレーム差し替わるため、ラベルはロケール単位で
+// 一度だけ引いておく。テンプレートから引くと 1 フレームごとに全ノード分の
+// 線形探索と翻訳が走る。
+const nodeLabels = computed(() => {
+  const labels = new Map<string, string>()
+  for (const meta of nodes) {
+    const org = meta.orgId ? getOrganization(meta.orgId) : undefined
+    labels.set(
+      meta.id,
+      org && org.kind !== 'class'
+        ? organizationName(org, locale.value) || t('explore.events.tbd')
+        : t(meta.labelKey, meta.labelParams ?? {}),
+    )
   }
-  return t(meta.labelKey, meta.labelParams ?? {})
-}
+  return labels
+})
 
 function nodeStyle(p: (typeof projected.value)[number]) {
   return {
@@ -83,6 +88,7 @@ function nodeStyle(p: (typeof projected.value)[number]) {
       ref="containerRef"
       class="viewport"
       :class="{ dragging: isDragging }"
+      role="group"
       :aria-label="t('explore.nodes.graphLabel')"
     >
       <svg class="edges" aria-hidden="true">
@@ -104,10 +110,12 @@ function nodeStyle(p: (typeof projected.value)[number]) {
           group: nodeMeta.get(p.id)?.kind === 'group',
           selected: p.id === selectedId,
         }"
+        type="button"
+        :disabled="nodeMeta.get(p.id)?.kind !== 'leaf'"
         :style="nodeStyle(p)"
         @click="onNodeClick(p.id)"
       >
-        {{ nodeLabel(p.id) }}
+        {{ nodeLabels.get(p.id) }}
       </button>
       <span v-if="!selectedOrg" class="hint">{{ t('explore.nodes.hint') }}</span>
     </div>
@@ -115,12 +123,17 @@ function nodeStyle(p: (typeof projected.value)[number]) {
     <div v-if="selectedOrg" class="detail">
       <div class="head">
         <div class="info">
-          <span class="label">{{ nodeLabel(selectedOrg.id) }}</span>
+          <span class="label">{{ nodeLabels.get(selectedOrg.id) }}</span>
           <span v-if="selectedOrg.kind === 'class'" class="name" :class="{ tbd: !selectedName }">
             {{ selectedName || t('explore.events.tbd') }}
           </span>
         </div>
-        <button class="close" :aria-label="t('explore.nodes.close')" @click="emit('select', null)">
+        <button
+          type="button"
+          class="close"
+          :aria-label="t('explore.nodes.close')"
+          @click="emit('select', null)"
+        >
           ×
         </button>
       </div>

@@ -2,6 +2,38 @@
   "pageTitle": {
     "suffix": "Happo-sai - LiSA Papillon Festival 2026"
   },
+  "meta": {
+    "imageAlt": "Happo-sai 2026 key visual",
+    "notFound": {
+      "title": "Page not found",
+      "description": "The requested page could not be found."
+    },
+    "pages": {
+      "home": {
+        "description": "Happo-sai, the school festival of Kanagawa Sogo Sangyo High School, takes place September 26–27, 2026."
+      },
+      "explore": {
+        "title": "Explore",
+        "description": "Browse the projects, events, schedule and venue map of Happo-sai 2026."
+      },
+      "news": {
+        "title": "News",
+        "description": "The latest announcements and Instagram posts from Happo-sai 2026."
+      },
+      "events": {
+        "title": "Events",
+        "description": "All class projects, club exhibits and independent events at Happo-sai 2026."
+      },
+      "schedule": {
+        "title": "Schedule",
+        "description": "Stage performances, screenings and the full timetable of Happo-sai 2026."
+      },
+      "map": {
+        "title": "Venue Map",
+        "description": "Venue map of Happo-sai 2026. Find where each project is located on every floor."
+      }
+    }
+  },
   "dayBadge": {
     "day1": "Day 1",
     "day2": "Day 2",
@@ -15,6 +47,7 @@
   "nav": {
     "search": "Search",
     "explore": "Explore",
+    "breadcrumb": "Breadcrumb",
     "menu": "Menu",
     "instagram": "Instagram"
   },

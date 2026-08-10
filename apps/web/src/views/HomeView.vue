@@ -10,16 +10,17 @@ import { consumeDirectRootEntrance } from '@/composables/useRootEntrance'
 import { processInstagramEmbedsNear } from '@/composables/useInstagramEmbed'
 import { formatFestivalPeriod } from '@/config/festival'
 import { newsLinks } from '@/config/newsLinks'
+import { mapUrl } from '@/config/social'
+import { localePath } from '@shared/pages'
 
 const { t, tm, rt, locale } = useI18n()
 const overviewItems = ['date', 'venue', 'admission'] as const
 const contactItems = ['school', 'address', 'phone'] as const
-const mapUrl = 'https://maps.app.goo.gl/HMdtfGcyfxPd2hUT8'
 const newsPreview = newsLinks.slice(0, 3)
 
 const festivalPeriod = computed(() => formatFestivalPeriod(locale.value))
 const notes = computed(() => (tm('home.notes.items') as string[]).map((note) => rt(note)))
-const newsPath = computed(() => (locale.value === 'en' ? '/en/news/' : '/news/'))
+const newsPath = computed(() => localePath('/news/', locale.value))
 
 const entrance = ref(false)
 const newsSection = useTemplateRef('newsSection')
@@ -161,6 +162,7 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: center;
   max-height: 100svh;
+  overflow: clip;
 
   .frame {
     display: flex;

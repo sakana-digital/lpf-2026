@@ -1,37 +1,26 @@
 <script setup lang="ts">
 import { computed, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
 import { ISO_MAP_FLOORS } from '@/config/isoMap'
-import { getOrganization, getOrganizationByRoom, organizationName } from '@/config/organizations'
+import { getOrganizationByRoom, organizationLabel, organizationName } from '@/config/organizations'
 import { useIsoMap } from '@/composables/useIsoMap'
 import { useOrgStatus } from '@/composables/useOrgStatus'
+import { useSelectedOrg } from '@/composables/useSelectedOrg'
 import type { IsoMapLabels } from '@/lib/isoMap/scene'
 import BookmarkToggle from '@/components/common/BookmarkToggle.vue'
+import IsoMapSymbols from '@/components/common/icons/isoMapSymbols.vue'
 import OrgDetail from './OrgDetail.vue'
 
 const { t, locale } = useI18n()
-const route = useRoute()
-const router = useRouter()
 const { statuses } = useOrgStatus()
 
-const selectedId = computed(() => {
-  const org = route.query.org
-  return typeof org === 'string' && getOrganization(org) ? org : undefined
-})
-const selectedOrg = computed(() =>
-  selectedId.value ? getOrganization(selectedId.value) : undefined,
-)
+const { selectedOrg, select, toggle } = useSelectedOrg()
 const selectedName = computed(() =>
   selectedOrg.value ? organizationName(selectedOrg.value, locale.value) : '',
 )
-const selectedLabel = computed(() => {
-  const org = selectedOrg.value
-  if (!org) return ''
-  return org.kind === 'class'
-    ? t('explore.events.classLabel', { grade: org.grade, classNo: org.classNo })
-    : selectedName.value
-})
+const selectedLabel = computed(() =>
+  selectedOrg.value ? organizationLabel(selectedOrg.value, locale.value, t) : '',
+)
 
 const canvasRef = useTemplateRef<HTMLCanvasElement>('canvasRef')
 const iconLayerRef = useTemplateRef<SVGGElement>('iconLayerRef')
@@ -51,9 +40,7 @@ function organizationForArea(areaId: string) {
 function onLabelClick(areaId: string) {
   const org = organizationForArea(areaId)
   if (!org) return
-  router.replace({
-    query: { ...route.query, org: org.id === selectedId.value ? undefined : org.id },
-  })
+  void toggle(org.id)
 }
 
 const { floor, zoom, canZoomIn, canZoomOut, setFloor, zoomIn, zoomOut, resetZoom } = useIsoMap(
@@ -75,7 +62,7 @@ watch(
 )
 
 function closeDetail() {
-  router.replace({ query: { ...route.query, org: undefined } })
+  void select(undefined)
 }
 
 const floorButtons = [...ISO_MAP_FLOORS].reverse()
@@ -84,56 +71,9 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
 <template>
   <div class="map">
     <div class="viewport">
-      <canvas ref="canvasRef" :aria-label="t('explore.tabs.map')"></canvas>
+      <canvas ref="canvasRef" role="img" :aria-label="t('explore.tabs.map')"></canvas>
       <svg class="map-icons" aria-hidden="true">
-        <defs>
-          <symbol id="iso-map-icon-stairs" viewBox="0 0 24 24">
-            <path d="M2 19h6v-5h5V9h5V4h4" />
-          </symbol>
-          <symbol id="iso-map-icon-elevator" viewBox="0 0 24 24">
-            <rect
-              x="5"
-              y="2"
-              width="14"
-              height="21"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            />
-            <g transform="translate(2.5 7) scale(.5)">
-              <circle cx="12" cy="4" r="2.25" fill="currentColor" />
-              <path
-                d="M9 7.5h6l2.5 6-2 1-1.5-4v11h-2v-6h0v6h-2v-11l-1.5 4-2-1z"
-                fill="currentColor"
-                stroke="none"
-              />
-            </g>
-            <g transform="translate(9.5 7) scale(.5)">
-              <circle cx="12" cy="4" r="2.25" fill="currentColor" />
-              <path
-                d="M9 7.5h6l2.5 6-2 1-1.5-4v11h-2v-6h0v6h-2v-11l-1.5 4-2-1z"
-                fill="currentColor"
-                stroke="none"
-              />
-            </g>
-            <path
-              d="M2.75 16V7M1 8.75 2.75 7 4.5 8.75M21.25 7v9m-1.75-1.75L21.25 16 23 14.25"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-              stroke-linecap="square"
-              stroke-linejoin="miter"
-            />
-          </symbol>
-          <symbol id="iso-map-icon-toilet-men" viewBox="0 0 24 24">
-            <circle cx="12" cy="4" r="2.25" />
-            <path d="M9 7.5h6l2.5 6-2 1-1.5-4v11h-2v-6h0v6h-2v-11l-1.5 4-2-1z" />
-          </symbol>
-          <symbol id="iso-map-icon-toilet-women" viewBox="0 0 24 24">
-            <circle cx="12" cy="4" r="2.25" />
-            <path d="M9.5 7.5h5l3 7-2 1-1-2 2 5h-3v3h-2v-3h-3l2-5-1 2-2-1z" />
-          </symbol>
-        </defs>
+        <IsoMapSymbols />
         <g ref="iconLayerRef"></g>
       </svg>
       <div class="compass" aria-hidden="true">
@@ -149,6 +89,7 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
       </div>
       <div class="controls" role="group" :aria-label="t('explore.map.floorSwitch')">
         <button
+          type="button"
           v-for="f in floorButtons"
           :key="f"
           :class="{ active: floor === f }"
@@ -158,6 +99,7 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
           {{ t('explore.map.floor', { floor: f }) }}
         </button>
         <button
+          type="button"
           :class="{ active: floor === 'all' }"
           :aria-pressed="floor === 'all'"
           @click="setFloor('all')"
@@ -204,6 +146,7 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
             </span>
           </div>
           <button
+            type="button"
             class="org-panel-close"
             :aria-label="t('explore.nodes.close')"
             @click="closeDetail"

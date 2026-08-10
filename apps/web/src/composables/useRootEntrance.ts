@@ -1,9 +1,9 @@
-const rootPaths = ['/', '/en', '/en/']
+import { isRootPath } from '@shared/pages'
 
 // Whether the session started by landing directly on the root page,
 // rather than reaching it through in-app navigation. Captured once at
 // load, before the router touches history, so it reflects the entry URL.
-const direct = window.history.state?.back == null && rootPaths.includes(window.location.pathname)
+const direct = window.history.state?.back == null && isRootPath(window.location.pathname)
 
 let homeConsumed = false
 

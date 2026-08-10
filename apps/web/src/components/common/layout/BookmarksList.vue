@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useBookmarks } from '@/composables/useBookmarks'
 import { getOrganization, organizationName } from '@/config/organizations'
 import BookmarkIcon from '@/components/common/icons/bookmark.vue'
+import { localePath } from '@shared/pages'
 
 const { t, locale } = useI18n()
 const { bookmarkIds } = useBookmarks()
@@ -22,7 +23,7 @@ const items = computed(() =>
             : t('explore.events.committeeHeader'),
       name: organizationName(org, locale.value),
       to: {
-        path: `${locale.value === 'en' ? '/en' : ''}/explore/events/`,
+        path: localePath('/explore/events/', locale.value),
         query: { org: org.id },
       },
     })),

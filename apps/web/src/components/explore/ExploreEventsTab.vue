@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getOrganization } from '@/config/organizations'
 import { useOrgStatus } from '@/composables/useOrgStatus'
+import { useSelectedOrg } from '@/composables/useSelectedOrg'
 import BookmarkToggle from '@/components/common/BookmarkToggle.vue'
 import SegmentedSwitch from '@/components/common/SegmentedSwitch.vue'
 import EventsGrid from './EventsGrid.vue'
@@ -24,17 +25,14 @@ const viewOptions = computed(() =>
   views.map((v) => ({ value: v, label: t(`explore.events.views.${v}`) })),
 )
 
-const selectedId = computed(() => {
-  const org = route.query.org
-  return typeof org === 'string' && getOrganization(org) ? org : undefined
-})
+const { selectedId, select } = useSelectedOrg()
 
 function setView(v: EventsView) {
   router.replace({ query: { ...route.query, view: v === 'graph' ? 'graph' : undefined } })
 }
 
 function onSelect(id: string | null) {
-  router.replace({ query: { ...route.query, org: id ?? undefined } })
+  void select(id)
 }
 </script>
 

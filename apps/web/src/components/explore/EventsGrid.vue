@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { classNumbers, organizations } from '@/config/organizations'
 import type { Organization } from '@/config/organizations'
 import { buildEventRows, columnTracks, findCellPosition, rowTracks } from '@/lib/eventsGrid'
-import type { OrgStatus } from '../../../../../shared/status'
+import type { OrgStatus } from '@shared/status'
 import EventsGridCell from './EventsGridCell.vue'
 
 const props = defineProps<{
@@ -54,6 +54,7 @@ onMounted(scrollSelectedIntoView)
     ref="gridRef"
     class="events-grid"
     :style="gridStyle"
+    role="group"
     :aria-label="t('explore.events.gridLabel')"
     @transitionend.self="scrollSelectedIntoView"
   >

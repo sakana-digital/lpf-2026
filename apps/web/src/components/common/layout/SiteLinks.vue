@@ -48,7 +48,6 @@ function copyCurrentLink() {
         <InstagramIcon />
       </a>
     </div>
-    <!-- <SchoolLink /> -->
   </div>
 </template>
 

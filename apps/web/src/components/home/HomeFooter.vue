@@ -2,10 +2,11 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Logo from '@/components/common/icons/logo.vue'
+import { localePath } from '@shared/pages'
 
 const { t, locale } = useI18n()
 
-const homePath = computed(() => (locale.value === 'en' ? '/en/' : '/'))
+const homePath = computed(() => localePath('/', locale.value))
 </script>
 
 <template>

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { newsLinks } from '@/config/newsLinks'
 import InstagramEmbed from '@/components/news/InstagramEmbed.vue'
 import NewsLinkCard from '@/components/news/NewsLinkCard.vue'
-import { processInstagramEmbeds } from '@/composables/useInstagramEmbed'
+import { processInstagramEmbedsNear } from '@/composables/useInstagramEmbed'
 import { useMasonryLayout } from '@/composables/useMasonryLayout'
 
 const LANE_MIN_WIDTH = 318
@@ -39,7 +39,13 @@ const itemStyle = (i: number) => {
   }
 }
 
-onMounted(processInstagramEmbeds)
+let stopEmbedObserver: (() => void) | undefined
+
+onMounted(() => {
+  if (wrapper.value) stopEmbedObserver = processInstagramEmbedsNear(wrapper.value)
+})
+
+onBeforeUnmount(() => stopEmbedObserver?.())
 </script>
 
 <template>
