@@ -11,22 +11,22 @@ concurrency:
 
 jobs:
   web:
-    name: apps/web
+    name: apps/website
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.3.14
+          bun-version: 1.3.13
 
       - run: bun install --frozen-lockfile
 
       - name: Type check
-        run: bun --filter lpf-2026-web type-check
+        run: bun run type-check
 
       - name: Test
-        run: bun --filter lpf-2026-web test
+        run: bun run test
 
       - name: Build
-        run: bun --filter lpf-2026-web build-only
+        run: bun run build
