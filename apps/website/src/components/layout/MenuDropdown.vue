@@ -86,6 +86,8 @@ const { isOpen, toggle } = useDisclosure(rootRef)
     }
 
     .dropdown-blur {
+      --progressive-blur-veil: var(--progressive-blur-veil-strong);
+
       inset: -52px 0 -32px 0;
       z-index: -1;
     }
