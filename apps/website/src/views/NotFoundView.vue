@@ -9,7 +9,7 @@ const { open } = useSearch()
 
 <template>
   <main class="not-found">
-    <p class="description">{{ t('notFound.description') }}</p>
+    <h1 class="description">{{ t('notFound.description') }}</h1>
     <button type="button" class="search-trigger" @click="open">
       <IconSearch />
       {{ t('notFound.search') }}

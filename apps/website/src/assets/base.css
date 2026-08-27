@@ -125,6 +125,10 @@ body {
   scrollbar-width: thin;
 }
 
+p {
+  font-family: system-ui, sans-serif;
+}
+
 ::-webkit-scrollbar {
   width: 2px;
   height: 2px;
