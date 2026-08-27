@@ -10,15 +10,36 @@ import ProgressiveBlur from '@/components/ui/ProgressiveBlur.vue'
 import { useSearch } from '@/stores/search'
 import { isDirectRootEntrance } from '@/lib/rootEntrance'
 
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { localePath } from '@/config/pages'
 
 const { t, locale } = useI18n()
 const { open } = useSearch()
 
 const entrance = ref(false)
+
+// Publishes which way the device's physical top edge points as
+// html[data-orientation], so that in landscape the header can move to a
+// vertical rail on that edge. @media (orientation: landscape) cannot tell the
+// two sides apart, so this is the one part CSS alone cannot do.
+// Browsers without screen.orientation get no attribute and keep the top header.
+function applyOrientation() {
+  const angle = screen.orientation.angle
+  document.documentElement.setAttribute(
+    'data-orientation',
+    angle === 90 ? 'landscape-left' : angle === 270 ? 'landscape-right' : 'portrait',
+  )
+}
+
 onMounted(() => {
   entrance.value = isDirectRootEntrance()
+  if (!screen.orientation) return
+  applyOrientation()
+  screen.orientation.addEventListener('change', applyOrientation)
+})
+
+onBeforeUnmount(() => {
+  screen.orientation?.removeEventListener('change', applyOrientation)
 })
 
 const homePath = computed(() => localePath('/', locale.value))
@@ -178,6 +199,14 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
 html[data-orientation^='landscape'] .header-breadcrumb :deep(.breadcrumb) {
   @media (max-height: 500px) {
     display: none;
+  }
+}
+
+html[data-orientation^='landscape'] .header-breadcrumb .logo :deep(svg) {
+  @media (max-height: 500px) {
+    /* Wider than the rail before the rotation, but it fits after it. Shrinking
+       changes the plate's aspect ratio and shrinks the mark inside with it */
+    flex-shrink: 0;
   }
 }
 
