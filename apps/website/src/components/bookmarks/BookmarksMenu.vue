@@ -1,34 +1,20 @@
 <script setup lang="ts">
-import { useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useBookmarks } from '@/stores/bookmarks'
-import IconBookmark from '@/components/icons/IconBookmark.vue'
 import BookmarksList from './BookmarksList.vue'
-import { useDisclosure } from '@/composables/useDisclosure'
 
 const { t } = useI18n()
 const { bookmarkIds } = useBookmarks()
-
-const rootRef = useTemplateRef<HTMLElement>('rootRef')
-const { isOpen, toggle } = useDisclosure(rootRef)
 </script>
 
 <template>
-  <div ref="rootRef" class="bookmarks-menu">
-    <button
-      type="button"
-      class="icon-button"
-      :class="{ 'is-open': isOpen }"
-      :aria-label="t('bookmarks.toggle')"
-      :aria-expanded="isOpen"
-      aria-controls="bookmarks-list"
-      @click="toggle"
-    >
+  <section class="bookmarks-menu" :aria-label="t('bookmarks.title')">
+    <div class="head">
+      <span class="caption">{{ t('bookmarks.title') }}</span>
       <span v-if="bookmarkIds.length > 0" class="count">{{ bookmarkIds.length }}</span>
-      <IconBookmark :filled="isOpen" />
-    </button>
-    <BookmarksList v-if="isOpen" id="bookmarks-list" class="list" />
-  </div>
+    </div>
+    <BookmarksList class="list" />
+  </section>
 </template>
 
 <style scoped>
@@ -36,37 +22,29 @@ const { isOpen, toggle } = useDisclosure(rootRef)
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  padding: 8px 16px 4px 0;
 
-  .icon-button {
+  .head {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 4px;
-    width: auto;
-    min-width: 48px;
-    height: 48px;
-    border: none;
-    border-radius: 24px;
-    background: transparent;
+    gap: 6px;
+  }
+
+  .caption {
     color: var(--color-text-mute);
-    cursor: pointer;
-    padding: 0 16px;
-    transition: color 0.15s;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+  }
 
-    &:hover,
-    &.is-open {
-      color: var(--color-heading);
-    }
-
-    .count {
-      font-size: 12px;
-      font-variant-numeric: tabular-nums;
-    }
+  .count {
+    color: var(--color-text-mute);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
   }
 
   .list {
     align-items: flex-end;
-    padding: 4px 16px 12px 0;
+    padding: 4px 0 0;
   }
 }
 </style>

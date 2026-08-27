@@ -155,6 +155,7 @@ function slotStyle(slot: ScheduleSlot) {
   padding: 24px 16px 48px;
 
   .day-switch {
+    justify-content: flex-end;
     margin-bottom: 24px;
   }
 

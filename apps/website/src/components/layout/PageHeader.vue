@@ -14,7 +14,9 @@ const title = computed(() => t(props.titleKey))
 <template>
   <div class="page-header">
     <h1><TextShuffle :text="title" /></h1>
-    <div id="page-header-tabs" class="page-header-tabs" />
+    <!-- Slot each page fills via Teleport; holds links as well as tabs.
+         PageHeader is a sibling of RouterView, so a plain slot cannot reach it -->
+    <div id="page-header-actions" class="page-header-actions" />
   </div>
 </template>
 
@@ -56,6 +58,13 @@ const title = computed(() => t(props.titleKey))
     overflow: hidden;
     min-width: 0;
     font-size: clamp(1.75rem, 4vw, 2.75rem);
+
+    @media (max-height: 500px) {
+      html[data-orientation^='landscape'] & {
+        font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+      }
+    }
+
     font-weight: 700;
     letter-spacing: -0.02em;
     white-space: nowrap;
@@ -63,7 +72,7 @@ const title = computed(() => t(props.titleKey))
     color: var(--color-heading);
   }
 
-  .page-header-tabs {
+  .page-header-actions {
     display: contents;
   }
 }

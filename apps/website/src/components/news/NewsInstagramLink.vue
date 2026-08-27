@@ -7,7 +7,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <Teleport to="#page-header-tabs">
+  <Teleport to="#page-header-actions">
     <a class="instagram-link" :href="instagramUrl" target="_blank" rel="noopener noreferrer">
       <IconInstagram />
       {{ t('news.instagramLink') }}

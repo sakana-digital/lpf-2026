@@ -60,6 +60,7 @@ function onSelect(id: string | null) {
 <style scoped>
 .events {
   .view-switch {
+    justify-content: flex-end;
     margin: 24px 16px 0;
   }
 
@@ -75,7 +76,7 @@ function onSelect(id: string | null) {
 
     @media (max-height: 500px) {
       html[data-orientation^='landscape'] & {
-        height: 100svh;
+        height: calc(100svh - var(--page-title-height));
       }
     }
 

@@ -26,6 +26,12 @@
   --vt-c-text-dark-2: oklch(94.01% 0 0 / 0.64);
 }
 
+@media (max-height: 500px) {
+  html[data-orientation^='landscape'] {
+    --page-title-height: 36px;
+  }
+}
+
 html {
   /* Safari を含め、縦スクロールの有無でレイアウト幅を変えない */
   overflow-y: scroll;
