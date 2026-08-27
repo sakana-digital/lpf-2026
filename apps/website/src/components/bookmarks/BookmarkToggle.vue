@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { useBookmarks } from '@/composables/useBookmarks'
-import BookmarkIcon from '@/components/common/icons/bookmark.vue'
+import { useBookmarks } from '@/stores/bookmarks'
+import IconBookmark from '@/components/icons/IconBookmark.vue'
 
 const props = defineProps<{ orgId: string }>()
 
@@ -18,7 +18,7 @@ const { isBookmarked, toggleBookmark } = useBookmarks()
     :aria-pressed="isBookmarked(orgId)"
     @click.stop="toggleBookmark(props.orgId)"
   >
-    <BookmarkIcon :filled="isBookmarked(orgId)" />
+    <IconBookmark :filled="isBookmarked(orgId)" />
   </button>
 </template>
 

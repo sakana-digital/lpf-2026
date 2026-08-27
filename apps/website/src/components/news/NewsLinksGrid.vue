@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { newsLinks } from '@/config/newsLinks'
 import InstagramEmbed from '@/components/news/InstagramEmbed.vue'
 import NewsLinkCard from '@/components/news/NewsLinkCard.vue'
-import { processInstagramEmbedsNear } from '@/composables/useInstagramEmbed'
+import { processInstagramEmbedsNear } from '@/lib/instagramEmbed'
 import { useMasonryLayout } from '@/composables/useMasonryLayout'
 
 const LANE_MIN_WIDTH = 318

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test'
 import { createSSRApp, h } from 'vue'
 import { renderToString } from 'vue/server-renderer'
-import type { SignageConfig } from '../../../shared/status'
+import type { SignageConfig } from '@shared/status'
 import SignageCanvas from '../src/components/SignageCanvas.vue'
 
 const config: SignageConfig = {

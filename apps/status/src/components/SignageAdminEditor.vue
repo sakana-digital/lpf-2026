@@ -6,7 +6,7 @@ import type {
   SignageUploadedPart,
   SignageUploadStartResponse,
   SignageVideo,
-} from '../../../../shared/status'
+} from '@shared/status'
 import {
   abortSignageUpload,
   completeSignageUpload,

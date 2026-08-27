@@ -1,3 +1,5 @@
+// The worker imports shared/ by relative path: we cannot verify that wrangler's
+// bundler honours tsconfig paths, so the @shared alias is kept to the client only.
 {
   "compilerOptions": {
     "target": "ES2023",

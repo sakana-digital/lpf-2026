@@ -1,18 +1,20 @@
 <script setup lang="ts">
-import SearchIcon from '@/components/common/icons/search.vue'
-import { useSearch } from '@/composables/useSearch'
+import { useI18n } from 'vue-i18n'
+import IconSearch from '@/components/icons/IconSearch.vue'
+import { useSearch } from '@/stores/search'
 
+const { t } = useI18n()
 const { open } = useSearch()
 </script>
 
 <template>
   <main class="not-found">
-    <p class="description">{{ $t('notFound.description') }}</p>
+    <p class="description">{{ t('notFound.description') }}</p>
     <button type="button" class="search-trigger" @click="open">
-      <SearchIcon />
-      {{ $t('notFound.search') }}
+      <IconSearch />
+      {{ t('notFound.search') }}
     </button>
-    <p class="search-hint">{{ $t('notFound.searchHint') }}</p>
+    <p class="search-hint">{{ t('notFound.searchHint') }}</p>
   </main>
 </template>
 

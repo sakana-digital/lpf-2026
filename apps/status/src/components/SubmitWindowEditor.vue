@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import { SUBMIT_DAYS } from '../../../../shared/status'
-import type { SubmitWindows } from '../../../../shared/status'
+import { SUBMIT_DAYS } from '@shared/status'
+import type { SubmitWindows } from '@shared/status'
 import { updateWindows } from '@/lib/api'
 
 const props = defineProps<{

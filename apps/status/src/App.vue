@@ -1,12 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import {
-  CONGESTION_LEVELS,
-  SALES_STATUSES,
-  hidesCongestion,
-  isSubmitOpen,
-} from '../../../shared/status'
-import type { CongestionLevel, OrgStatus, SalesStatus, SubmitWindows } from '../../../shared/status'
+import { CONGESTION_LEVELS, SALES_STATUSES, hidesCongestion, isSubmitOpen } from '@shared/status'
+import type { CongestionLevel, OrgStatus, SalesStatus, SubmitWindows } from '@shared/status'
 import { ApiError, getMe, updateStatus } from '@/lib/api'
 import { resolveToken } from '@/lib/token'
 import { classOrgParams } from '@/lib/orgLabel'

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useBookmarks } from '@/composables/useBookmarks'
-import BookmarkIcon from '@/components/common/icons/bookmark.vue'
+import { useBookmarks } from '@/stores/bookmarks'
+import IconBookmark from '@/components/icons/IconBookmark.vue'
 import BookmarksList from './BookmarksList.vue'
 import { useDisclosure } from '@/composables/useDisclosure'
 
@@ -25,7 +25,7 @@ const { isOpen, toggle } = useDisclosure(rootRef)
       @click="toggle"
     >
       <span v-if="bookmarkIds.length > 0" class="count">{{ bookmarkIds.length }}</span>
-      <BookmarkIcon :filled="isOpen" />
+      <IconBookmark :filled="isOpen" />
     </button>
     <BookmarksList v-if="isOpen" id="bookmarks-list" class="list" />
   </div>

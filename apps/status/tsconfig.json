@@ -17,7 +17,8 @@
       "@cloudflare/workers-types"
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@shared/*": ["../../shared/*"]
     }
   }
 }

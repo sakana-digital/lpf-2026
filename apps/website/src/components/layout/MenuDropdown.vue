@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import MenuIcon from '@/components/common/icons/menu.vue'
+import IconMenu from '@/components/icons/IconMenu.vue'
 import ThemeToggle from './ThemeToggle.vue'
 import LanguageToggle from './LanguageToggle.vue'
 import PageTree from './PageTree.vue'
 import SiteLinks from './SiteLinks.vue'
-import BookmarksMenu from './BookmarksMenu.vue'
-import ProgressiveBlur from './ProgressiveBlur.vue'
+import BookmarksMenu from '@/components/bookmarks/BookmarksMenu.vue'
+import ProgressiveBlur from '@/components/ui/ProgressiveBlur.vue'
 import { useDisclosure } from '@/composables/useDisclosure'
 
 const { t } = useI18n()
@@ -26,7 +26,7 @@ const { isOpen, toggle } = useDisclosure(rootRef)
       aria-controls="header-menu"
       @click="toggle"
     >
-      <MenuIcon :open="isOpen" />
+      <IconMenu :open="isOpen" />
     </button>
     <Transition name="dropdown" :duration="250">
       <div v-if="isOpen" id="header-menu" class="dropdown">
@@ -115,8 +115,7 @@ const { isOpen, toggle } = useDisclosure(rootRef)
   }
 }
 
-html[data-orientation='landscape-left'] .menu-dropdown :deep(.page-tree),
-html[data-orientation='landscape-right'] .menu-dropdown :deep(.page-tree) {
+html[data-orientation^='landscape'] .menu-dropdown :deep(.page-tree) {
   @media (max-height: 500px) {
     display: none;
   }

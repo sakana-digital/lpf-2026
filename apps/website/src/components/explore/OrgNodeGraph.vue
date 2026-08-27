@@ -5,7 +5,7 @@ import { getOrganization, organizationName, organizations } from '@/config/organ
 import { buildOrganizationSphere } from '@/lib/sphereGraph'
 import { useSphereGraph } from '@/composables/useSphereGraph'
 import type { OrgStatus } from '@shared/status'
-import BookmarkToggle from '@/components/common/BookmarkToggle.vue'
+import BookmarkToggle from '@/components/bookmarks/BookmarkToggle.vue'
 import OrgDetail from './OrgDetail.vue'
 
 const props = defineProps<{

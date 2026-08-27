@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import Logo from '@/components/common/icons/logo.vue'
-import SearchIcon from '@/components/common/icons/search.vue'
-import ExploreIcon from '@/components/common/icons/explore.vue'
+import IconLogo from '@/components/icons/IconLogo.vue'
+import IconSearch from '@/components/icons/IconSearch.vue'
+import IconExplore from '@/components/icons/IconExplore.vue'
 import Breadcrumb from './Breadcrumb.vue'
 import DayBadge from './DayBadge.vue'
 import MenuDropdown from './MenuDropdown.vue'
-import ProgressiveBlur from './ProgressiveBlur.vue'
-import { useSearch } from '@/composables/useSearch'
-import { isDirectRootEntrance } from '@/composables/useRootEntrance'
+import ProgressiveBlur from '@/components/ui/ProgressiveBlur.vue'
+import { useSearch } from '@/stores/search'
+import { isDirectRootEntrance } from '@/lib/rootEntrance'
 
 import { computed, onMounted, ref } from 'vue'
-import { localePath } from '@shared/pages'
+import { localePath } from '@/config/pages'
 
 const { t, locale } = useI18n()
 const { open } = useSearch()
@@ -30,16 +30,16 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
     <ProgressiveBlur class="header-blur" :blur="3" />
     <nav class="global-nav">
       <div class="header-breadcrumb">
-        <RouterLink :to="homePath" class="logo"><Logo /></RouterLink>
+        <RouterLink :to="homePath" class="logo"><IconLogo /></RouterLink>
         <Breadcrumb />
       </div>
       <div class="header-actions">
         <DayBadge />
         <button type="button" class="icon-button" :aria-label="t('nav.search')" @click="open">
-          <SearchIcon />
+          <IconSearch />
         </button>
         <RouterLink class="icon-button" :to="explorePath" :aria-label="t('nav.explore')">
-          <ExploreIcon />
+          <IconExplore />
         </RouterLink>
         <MenuDropdown />
       </div>
@@ -72,8 +72,7 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
   }
 
   @media (max-height: 500px) {
-    html[data-orientation='landscape-left'] &,
-    html[data-orientation='landscape-right'] & {
+    html[data-orientation^='landscape'] & {
       top: 0;
       bottom: 0;
       left: 0;
@@ -121,8 +120,7 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
   max-width: 1024px;
 
   @media (max-height: 500px) {
-    html[data-orientation='landscape-left'] &,
-    html[data-orientation='landscape-right'] & {
+    html[data-orientation^='landscape'] & {
       width: auto;
       max-width: none;
       height: 100%;
@@ -150,8 +148,7 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
   }
 
   @media (max-height: 500px) {
-    html[data-orientation='landscape-left'] &,
-    html[data-orientation='landscape-right'] & {
+    html[data-orientation^='landscape'] & {
       flex-direction: column;
 
       .logo {
@@ -178,8 +175,7 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
   transition: transform 0.25s;
 }
 
-html[data-orientation='landscape-left'] .header-breadcrumb :deep(.breadcrumb),
-html[data-orientation='landscape-right'] .header-breadcrumb :deep(.breadcrumb) {
+html[data-orientation^='landscape'] .header-breadcrumb :deep(.breadcrumb) {
   @media (max-height: 500px) {
     display: none;
   }
@@ -204,8 +200,7 @@ html[data-orientation='landscape-right'] .header-breadcrumb .logo :deep(svg) {
   height: 48px;
 
   @media (max-height: 500px) {
-    html[data-orientation='landscape-left'] &,
-    html[data-orientation='landscape-right'] & {
+    html[data-orientation^='landscape'] & {
       height: auto;
     }
 

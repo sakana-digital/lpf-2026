@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import InstagramIcon from '@/components/common/icons/instagram.vue'
+import IconInstagram from '@/components/icons/IconInstagram.vue'
 import { instagramUrl } from '@/config/social'
 
 const { t } = useI18n()
@@ -9,7 +9,7 @@ const { t } = useI18n()
 <template>
   <Teleport to="#page-header-tabs">
     <a class="instagram-link" :href="instagramUrl" target="_blank" rel="noopener noreferrer">
-      <InstagramIcon />
+      <IconInstagram />
       {{ t('news.instagramLink') }}
     </a>
   </Teleport>

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import TabBar from '@/components/common/TabBar.vue'
-import { localePath } from '@shared/pages'
+import TabBar from '@/components/ui/TabBar.vue'
+import { localePath } from '@/config/pages'
 
 const { t, locale } = useI18n()
 

@@ -1,4 +1,4 @@
-import { isRootPath } from '@shared/pages'
+import { isRootPath } from '@/config/pages'
 
 // Whether the session started by landing directly on the root page,
 // rather than reaching it through in-app navigation. Captured once at

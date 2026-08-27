@@ -1,11 +1,5 @@
-import {
-  findPage,
-  localePath,
-  localizedPath,
-  SITE_ORIGIN,
-  sitemapPaths,
-} from '../../../shared/pages'
-import type { Language, PageDefinition } from '../../../shared/pages'
+import { findPage, localePath, localizedPath, SITE_ORIGIN, sitemapPaths } from '../src/config/pages'
+import type { Language, PageDefinition } from '../src/config/pages'
 import ja from '../src/locales/ja.json'
 import en from '../src/locales/en.json'
 

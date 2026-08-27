@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import ExploreIcon from '@/components/common/icons/explore.vue'
+import IconExplore from '@/components/icons/IconExplore.vue'
 import { useScrolledPast } from '@/composables/useScrolledPast'
-import { localePath } from '@shared/pages'
+import { localePath } from '@/config/pages'
 
 const { t, locale } = useI18n()
 
@@ -20,7 +20,7 @@ const visible = useScrolledPast(160)
     :aria-hidden="!visible"
     :tabindex="visible ? undefined : -1"
   >
-    <ExploreIcon />
+    <IconExplore />
     <span class="label">{{ t('home.dock.explore') }}</span>
   </RouterLink>
 </template>

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import Logo from '@/components/common/icons/logo.vue'
-import { localePath } from '@shared/pages'
+import IconLogo from '@/components/icons/IconLogo.vue'
+import { localePath } from '@/config/pages'
 
 const { t, locale } = useI18n()
 
@@ -12,7 +12,7 @@ const homePath = computed(() => localePath('/', locale.value))
 <template>
   <footer class="home-footer">
     <RouterLink :to="homePath" class="brand" :aria-label="t('home.footer.home')">
-      <Logo />
+      <IconLogo />
     </RouterLink>
     <p class="copyright">{{ t('home.footer.copyright') }}</p>
   </footer>

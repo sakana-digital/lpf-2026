@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import type { WritableComputedRef } from 'vue'
-import { findPage, isEnPath, localizedPath } from '@shared/pages'
+import { findPage, isEnPath, localizedPath } from '@/config/pages'
 import { i18n } from '@/i18n'
-import { EXPLORE_TABS, getLastExploreTab, setLastExploreTab } from '@/composables/useExploreTab'
-import type { ExploreTab } from '@/composables/useExploreTab'
+import { EXPLORE_TABS, getLastExploreTab, setLastExploreTab } from '@/lib/exploreTab'
+import type { ExploreTab } from '@/lib/exploreTab'
 import HomeView from '@/views/HomeView.vue'
 
 declare module 'vue-router' {
@@ -112,7 +112,7 @@ router.beforeEach((to) => {
   document.documentElement.lang = isEn ? 'en' : 'ja'
 })
 
-// タイトルは middleware と同じ shared/pages + meta.pages.* から引き、SSR と SPA でズレないようにする
+// タイトルは middleware と同じ config/pages + meta.pages.* から引き、SSR と SPA でズレないようにする
 router.afterEach((to) => {
   const { jaPath } = localizedPath(to.path)
   const page = findPage(jaPath)

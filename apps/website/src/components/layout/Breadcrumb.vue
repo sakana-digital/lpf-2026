@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { localePath } from '@shared/pages'
+import { localePath } from '@/config/pages'
 
 const route = useRoute()
 const router = useRouter()
