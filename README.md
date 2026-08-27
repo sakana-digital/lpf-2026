@@ -60,24 +60,29 @@ bun run format
 
 ## ディレクトリ構成
 
-Bun workspaces によるモノレポ構成。各アプリを `apps/` 配下に置き、`shared/` を全アプリで共有する。
+Bun workspaces によるモノレポ構成。各アプリを `apps/` 配下に置き、アプリ間で共有する型・定数だけを `shared/` に置く。
 
 ```
-shared/                 # 全アプリで共有する型・定数
+shared/                 # アプリ間で共有する型・定数（現状は status.ts のみ）
 apps/
 ├── website/            # 本体サイト（Cloudflare Pages）
 │   ├── src/
 │   │   ├── assets/     # CSS, SVG, 画像
-│   │   ├── components/ # UI コンポーネント
-│   │   ├── composables/# useSearch, useTheme
-│   │   ├── config/     # ページ定義（pages.ts）
+│   │   ├── components/ # UI コンポーネント（icons / layout / ui / 機能別）
+│   │   ├── composables/# コンポーネントに紐づく Vue コンポーザブル
+│   │   ├── stores/     # アプリ全体で共有する状態（theme / search / bookmarks）
+│   │   ├── lib/        # Vue に依存しない純粋なロジック
+│   │   ├── config/     # ページ定義・団体・スケジュールなどの静的データ
 │   │   ├── locales/    # 多言語リソース（ja.json / en.json）
 │   │   ├── router/     # ルーティング定義
 │   │   └── views/      # 各ページ
-│   ├── functions/      # Pages Functions（/api を Worker へプロキシ）
+│   ├── functions/      # Pages Functions（SSR メタ / sitemap、/api を Worker へプロキシ）
 │   └── public/         # 静的アセット
 └── status/             # 模擬店ステータス入力アプリ（Cloudflare Workers + D1）
 ```
+
+`src/config/pages.ts` は SPA・Pages Functions・`vite.config.ts` の 3 つのバンドルから読まれるため、
+alias を含め一切の import を持たせないこと。
 
 ルートには workspace 設定と、`bun dev` などを `vp run` で `apps/website` へ委譲するスクリプトのみを置く。
 

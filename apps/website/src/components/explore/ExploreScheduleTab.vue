@@ -8,8 +8,8 @@ import { getOrganization, organizationName } from '@/config/organizations'
 import { buildTimeAxis, slotRows } from '@/lib/scheduleGrid'
 import { useOrgStatus } from '@/composables/useOrgStatus'
 import { useSelectedOrg } from '@/composables/useSelectedOrg'
-import BookmarkToggle from '@/components/common/BookmarkToggle.vue'
-import SegmentedSwitch from '@/components/common/SegmentedSwitch.vue'
+import BookmarkToggle from '@/components/bookmarks/BookmarkToggle.vue'
+import SegmentedSwitch from '@/components/ui/SegmentedSwitch.vue'
 import OrgDetail from './OrgDetail.vue'
 
 const { t, locale } = useI18n()
@@ -155,6 +155,7 @@ function slotStyle(slot: ScheduleSlot) {
   padding: 24px 16px 48px;
 
   .day-switch {
+    justify-content: flex-end;
     margin-bottom: 24px;
   }
 

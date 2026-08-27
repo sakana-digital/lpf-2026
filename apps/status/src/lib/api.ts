@@ -8,7 +8,7 @@ import type {
   SignageUploadStartResponse,
   SignageVideo,
   SubmitWindows,
-} from '../../../../shared/status'
+} from '@shared/status'
 
 export interface OrgMeResponse {
   orgId: string

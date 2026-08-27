@@ -43,6 +43,7 @@ function styleFor(i: number) {
   .blur-layer {
     position: absolute;
     inset: 0;
+    background: var(--progressive-blur-veil, transparent);
   }
 }
 </style>

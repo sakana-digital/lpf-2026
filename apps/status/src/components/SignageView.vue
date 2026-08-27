@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import type { SignagePayload } from '../../../../shared/status'
+import type { SignagePayload } from '@shared/status'
 import SignageCanvas from '@/components/SignageCanvas.vue'
 
 const payload = ref<SignagePayload | null>(null)

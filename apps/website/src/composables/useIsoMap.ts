@@ -1,6 +1,6 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
-import { useTheme } from '@/composables/useTheme'
+import { useTheme } from '@/stores/theme'
 import { createIsoMapScene } from '@/lib/isoMap/scene'
 import type { FloorSelection, IsoMapLabels, IsoMapScene, MapColors } from '@/lib/isoMap/scene'
 

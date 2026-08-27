@@ -20,13 +20,19 @@ main {
   }
 
   @media (max-height: 500px) {
-    html[data-orientation='landscape-left'] & {
+    html[data-orientation^='landscape'] & {
       padding-top: 0;
+    }
+
+    html[data-page-header][data-orientation^='landscape'] & {
+      padding-top: var(--page-title-height);
+    }
+
+    html[data-orientation='landscape-left'] & {
       padding-left: var(--header-height);
     }
 
     html[data-orientation='landscape-right'] & {
-      padding-top: 0;
       padding-right: var(--header-height);
     }
   }

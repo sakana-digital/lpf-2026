@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useBookmarks } from '@/composables/useBookmarks'
+import { useBookmarks } from '@/stores/bookmarks'
 import { getOrganization, organizationName } from '@/config/organizations'
-import BookmarkIcon from '@/components/common/icons/bookmark.vue'
-import { localePath } from '@shared/pages'
+import IconBookmark from '@/components/icons/IconBookmark.vue'
+import { localePath } from '@/config/pages'
 
 const { t, locale } = useI18n()
 const { bookmarkIds } = useBookmarks()
@@ -35,7 +35,7 @@ const items = computed(() =>
     <li v-if="items.length === 0" class="empty">{{ t('bookmarks.empty') }}</li>
     <li v-for="item in items" :key="item.id">
       <RouterLink class="bookmark-link" :to="item.to">
-        <BookmarkIcon filled />
+        <IconBookmark filled />
         <span class="label">{{ item.label }}</span>
         <span v-if="item.name" class="name">{{ item.name }}</span>
       </RouterLink>

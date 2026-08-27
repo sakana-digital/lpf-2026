@@ -1,6 +1,6 @@
 import { watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
-import { localizedPath, SITE_ORIGIN } from '@shared/pages'
+import { localizedPath, SITE_ORIGIN } from '@/config/pages'
 
 // 本番は必ず SITE_ORIGIN を指す。middleware が入れた値と一致させ、
 // デプロイごとの <hash>.happo-sai.pages.dev で自己参照させない。

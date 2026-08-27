@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { pages } from '@/config/pages'
-import { localePath } from '@shared/pages'
+import { localePath, navigablePages } from '@/config/pages'
 
 const { t, locale } = useI18n()
 
 const nodes = computed(() =>
-  pages.map((page) => ({
+  navigablePages.map((page) => ({
     ...page,
     to: localePath(page.path, locale.value),
   })),

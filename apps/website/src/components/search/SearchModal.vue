@@ -2,10 +2,10 @@
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { pages } from '@/config/pages'
-import { filterEntries, useSearch } from '@/composables/useSearch'
+import { localePath, navigablePages } from '@/config/pages'
+import { useSearch } from '@/stores/search'
+import { filterEntries } from '@/lib/search'
 import { useFocusTrap } from '@/composables/useFocusTrap'
-import { localePath } from '@shared/pages'
 
 const { t, locale, messages, availableLocales } = useI18n()
 const { isOpen, close } = useSearch()
@@ -28,7 +28,7 @@ function resolvePath(tree: unknown, path: string): unknown {
 
 // 全ロケールのキーワードと表示名を集めて、どちらの言語でもマッチさせる
 const entries = computed(() =>
-  pages.map((page) => {
+  navigablePages.map((page) => {
     const keywords: string[] = []
     for (const loc of availableLocales) {
       const tree = (messages.value as Record<string, unknown>)[loc]

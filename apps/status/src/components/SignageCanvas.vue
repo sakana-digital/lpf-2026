@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { hidesCongestion } from '../../../../shared/status'
-import type { OrgStatus, SignageConfig } from '../../../../shared/status'
+import { hidesCongestion } from '@shared/status'
+import type { OrgStatus, SignageConfig } from '@shared/status'
 import { classOrgParams } from '@/lib/orgLabel'
 
 const props = withDefaults(

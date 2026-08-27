@@ -6,12 +6,12 @@ import HomeDock from '@/components/home/HomeDock.vue'
 import HomeFooter from '@/components/home/HomeFooter.vue'
 import InstagramEmbed from '@/components/news/InstagramEmbed.vue'
 import NewsLinkCard from '@/components/news/NewsLinkCard.vue'
-import { consumeDirectRootEntrance } from '@/composables/useRootEntrance'
-import { processInstagramEmbedsNear } from '@/composables/useInstagramEmbed'
+import { consumeDirectRootEntrance } from '@/lib/rootEntrance'
+import { processInstagramEmbedsNear } from '@/lib/instagramEmbed'
 import { formatFestivalPeriod } from '@/config/festival'
 import { newsLinks } from '@/config/newsLinks'
 import { mapUrl } from '@/config/social'
-import { localePath } from '@shared/pages'
+import { localePath } from '@/config/pages'
 
 const { t, tm, rt, locale } = useI18n()
 const overviewItems = ['date', 'venue', 'admission'] as const
@@ -175,8 +175,7 @@ onBeforeUnmount(() => {
     padding-block: var(--header-height);
 
     @media (max-height: 500px) {
-      html[data-orientation='landscape-left'] &,
-      html[data-orientation='landscape-right'] & {
+      html[data-orientation^='landscape'] & {
         padding-block: 0;
       }
     }

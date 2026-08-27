@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed, watchEffect } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
-import Header from '@/components/common/layout/Header.vue'
-import PageHeader from '@/components/common/layout/PageHeader.vue'
-import SearchModal from '@/components/common/SearchModal.vue'
-import { useIsRoot } from '@/composables/useIsRoot'
+import Header from '@/components/layout/Header.vue'
+import PageHeader from '@/components/layout/PageHeader.vue'
+import SearchModal from '@/components/search/SearchModal.vue'
 import { useCanonicalLinks } from '@/composables/useCanonicalLinks'
+import { isRootPath } from '@/config/pages'
 
 const route = useRoute()
-const isRoot = useIsRoot()
+const isRoot = computed(() => isRootPath(route.path))
 const pageTitleKey = computed(() => route.meta.pageTitle)
 const hasPageHeader = computed(() => !isRoot.value && !!pageTitleKey.value)
 

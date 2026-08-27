@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { localizedPath } from '@shared/pages'
+import { localizedPath } from '@/config/pages'
 
 const route = useRoute()
 const { locale } = useI18n()

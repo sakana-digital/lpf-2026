@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import InstagramIcon from '@/components/common/icons/instagram.vue'
-import HomeIcon from '@/components/common/icons/home.vue'
-import CopyIcon from '@/components/common/icons/copy.vue'
-import CheckIcon from '@/components/common/icons/check.vue'
+import IconInstagram from '@/components/icons/IconInstagram.vue'
+import IconHome from '@/components/icons/IconHome.vue'
+import IconCopy from '@/components/icons/IconCopy.vue'
+import IconCheck from '@/components/icons/IconCheck.vue'
 import { useCopyLink } from '@/composables/useCopyLink'
 import { instagramUrl, schoolUrl } from '@/config/social'
 
@@ -26,8 +26,8 @@ function copyCurrentLink() {
         :aria-label="copied ? t('copyLink.copied') : t('copyLink.copy')"
         @click="copyCurrentLink"
       >
-        <CheckIcon v-if="copied" />
-        <CopyIcon v-else />
+        <IconCheck v-if="copied" />
+        <IconCopy v-else />
       </button>
       <a
         class="icon-link"
@@ -36,7 +36,7 @@ function copyCurrentLink() {
         rel="noopener noreferrer"
         :aria-label="t('siteLinks.school')"
       >
-        <HomeIcon />
+        <IconHome />
       </a>
       <a
         class="icon-link"
@@ -45,7 +45,7 @@ function copyCurrentLink() {
         rel="noopener noreferrer"
         :aria-label="t('nav.instagram')"
       >
-        <InstagramIcon />
+        <IconInstagram />
       </a>
     </div>
   </div>

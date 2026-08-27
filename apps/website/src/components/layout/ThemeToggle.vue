@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { useTheme } from '@/composables/useTheme'
-import type { Theme } from '@/composables/useTheme'
-import ThemeLightIcon from '@/components/common/icons/themeLight.vue'
-import ThemeSystemIcon from '@/components/common/icons/themeSystem.vue'
-import ThemeDarkIcon from '@/components/common/icons/themeDark.vue'
+import { useTheme } from '@/stores/theme'
+import type { Theme } from '@/stores/theme'
+import IconThemeLight from '@/components/icons/IconThemeLight.vue'
+import IconThemeSystem from '@/components/icons/IconThemeSystem.vue'
+import IconThemeDark from '@/components/icons/IconThemeDark.vue'
 
 const { t } = useI18n()
 const { theme, setTheme } = useTheme()
@@ -24,9 +24,9 @@ const options: Theme[] = ['light', 'system', 'dark']
       :aria-pressed="theme === opt"
       @click="setTheme(opt)"
     >
-      <ThemeLightIcon v-if="opt === 'light'" />
-      <ThemeSystemIcon v-else-if="opt === 'system'" />
-      <ThemeDarkIcon v-else />
+      <IconThemeLight v-if="opt === 'light'" />
+      <IconThemeSystem v-else-if="opt === 'system'" />
+      <IconThemeDark v-else />
     </button>
   </div>
 </template>

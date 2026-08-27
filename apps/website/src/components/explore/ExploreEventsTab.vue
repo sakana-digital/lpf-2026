@@ -5,8 +5,8 @@ import { useI18n } from 'vue-i18n'
 import { getOrganization } from '@/config/organizations'
 import { useOrgStatus } from '@/composables/useOrgStatus'
 import { useSelectedOrg } from '@/composables/useSelectedOrg'
-import BookmarkToggle from '@/components/common/BookmarkToggle.vue'
-import SegmentedSwitch from '@/components/common/SegmentedSwitch.vue'
+import BookmarkToggle from '@/components/bookmarks/BookmarkToggle.vue'
+import SegmentedSwitch from '@/components/ui/SegmentedSwitch.vue'
 import EventsGrid from './EventsGrid.vue'
 import OrgNodeGraph from './OrgNodeGraph.vue'
 
@@ -60,6 +60,7 @@ function onSelect(id: string | null) {
 <style scoped>
 .events {
   .view-switch {
+    justify-content: flex-end;
     margin: 24px 16px 0;
   }
 
@@ -74,9 +75,8 @@ function onSelect(id: string | null) {
     height: calc(100svh - var(--header-height) - var(--page-title-height));
 
     @media (max-height: 500px) {
-      html[data-orientation='landscape-left'] &,
-      html[data-orientation='landscape-right'] & {
-        height: 100svh;
+      html[data-orientation^='landscape'] & {
+        height: calc(100svh - var(--page-title-height));
       }
     }
 

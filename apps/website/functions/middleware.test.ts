@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vite-plus/test'
-import { localePath, pages, sitemapPaths } from '../../../shared/pages'
+import { localePath, pages, sitemapPaths } from '../src/config/pages'
 import { __test } from './_middleware'
 
 const { pageMeta, notFoundMeta, sitemap, structuredData } = __test

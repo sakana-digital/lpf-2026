@@ -209,7 +209,7 @@
     "school": "High School Official Site"
   },
   "bookmarks": {
-    "toggle": "Toggle bookmarks",
+    "title": "Bookmarks",
     "empty": "No bookmarks yet",
     "add": "Add bookmark",
     "remove": "Remove bookmark"
