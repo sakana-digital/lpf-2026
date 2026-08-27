@@ -22,7 +22,8 @@ description: Verify changes to this Vue SPA by driving the dev server with Playw
 - Schedule: click a `.slot.linked .slot-trigger` to expand; the detail sits outside the trigger.
 - Map tab: floor buttons `1F`〜`4F` / `全体` (2D canvas); leave the tab and return to exercise dispose/remount.
 - Graph view (`/explore/events?view=graph`): drag inside `.nodes .viewport` with mouse down/move/up to rotate; click a leaf `.node` for the detail panel.
-- Bookmarks: `.bookmark-toggle` in an expanded cell writes localStorage `bookmarks`; sidebar `.bookmarks-sidebar` renders only at viewport ≥1440px and only when non-empty; dropdown entry lives in the header menu (`メニュー` → `ブックマークを開閉`).
+- Bookmarks: `.bookmark-toggle` in an expanded cell writes localStorage `bookmarks`. The only place the list renders is the header menu: `.menu-dropdown .icon-button` (`メニュー`) → `.bookmarks-menu .icon-button` (`ブックマークを開閉`) → `#bookmarks-list`. Empty shows a `.empty` row and the `.count` badge is absent. There is no bookmarks sidebar.
+- Home TOC: `.toc` (scroll-spy) is fixed to the right of the content column and is `display: none` below 1440px, `flex` at ≥1440px; the highlight is `.toc-link.is-active` and clicking one smooth-scrolls and rewrites the hash.
 - Dark theme: `page.addInitScript(() => localStorage.setItem('theme', 'dark'))` before goto.
 
 ## Gotchas
