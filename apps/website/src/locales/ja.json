@@ -128,7 +128,7 @@
   },
   "news": {
     "instagramLink": "Instagram で見る",
-    "noPosts": "no posts yet",
+    "noPosts": "ニュースはまだありません",
     "links": {
       "setsumeikai": "学校説明会",
       "bunkasai": "文化祭の開催が決定しました"
@@ -177,8 +177,7 @@
     },
     "news": {
       "title": "ニュース",
-      "more": "ニュースをもっと見る",
-      "empty": "ニュースはまだありません"
+      "more": "ニュースをもっと見る"
     },
     "notes": {
       "title": "注意事項",

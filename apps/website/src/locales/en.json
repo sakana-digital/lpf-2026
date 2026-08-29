@@ -128,7 +128,7 @@
   },
   "news": {
     "instagramLink": "View on Instagram",
-    "noPosts": "no posts yet",
+    "noPosts": "There is no news yet.",
     "links": {
       "setsumeikai": "School Information Session",
       "bunkasai": "Festival Dates Have Been Announced"
@@ -168,8 +168,7 @@
     },
     "news": {
       "title": "News",
-      "more": "See all news",
-      "empty": "There is no news yet."
+      "more": "See all news"
     },
     "notes": {
       "title": "Notes",
