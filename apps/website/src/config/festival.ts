@@ -26,9 +26,9 @@ function weekday(date: string, locale: string): string {
 export function formatFestivalPeriod(locale: string): string {
   const [startYear, startMonth, startDay] = firstDate.split('-')
   const [endYear, endMonth, endDay] = lastDate.split('-')
-  const start = `${startYear}.${startMonth}.${startDay} (${weekday(firstDate, locale)})`
+  const start = `${startYear}/${startMonth}/${startDay} (${weekday(firstDate, locale)})`
   const endDate =
-    startYear === endYear ? `${endMonth}.${endDay}` : `${endYear}.${endMonth}.${endDay}`
+    startYear === endYear ? `${endMonth}/${endDay}` : `${endYear}/${endMonth}/${endDay}`
   const end = `${endDate} (${weekday(lastDate, locale)})`
   return `${start} – ${end}`
 }
