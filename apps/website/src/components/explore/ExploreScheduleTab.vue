@@ -262,6 +262,7 @@ function slotStyle(slot: ScheduleSlot) {
 
         .slot-org {
           color: var(--color-text);
+          font-family: var(--font-text);
           font-size: 12px;
 
           &.tbd {

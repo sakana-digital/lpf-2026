@@ -408,6 +408,7 @@ onBeforeUnmount(() => {
     padding: 0;
     margin: 0;
     list-style: none;
+    font-family: var(--font-text);
 
     li {
       position: relative;

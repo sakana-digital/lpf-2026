@@ -3,6 +3,9 @@
   --header-height: 48px;
   --page-title-height: 48px;
 
+  --font-display: 'futura-pt', 'Futura', system-ui, sans-serif;
+  --font-text: system-ui, sans-serif;
+
   --vt-c-white: oklch(100% 0 0);
   --vt-c-white-soft: oklch(97.91% 0 0);
   --vt-c-white-mute: oklch(96.12% 0 0);
@@ -116,16 +119,27 @@ body {
     background-color 0.25s,
     color 0.25s;
   line-height: 1.6;
-  font-family: 'futura-pt', 'Futura', system-ui, sans-serif;
-  font-weight: 500;
-
-  /* futura-pt stops at medium; bold text keeps that face instead of a synthesized bold,
-     while system-ui still follows the weight */
-  font-synthesis-weight: none;
+  font-family: var(--font-display);
   font-size: 16px;
   text-rendering: optimizeLegibility;
   scrollbar-color: var(--color-border-hover) transparent;
   scrollbar-width: thin;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+}
+
+p,
+dl,
+blockquote,
+address {
+  font-family: var(--font-text);
 }
 
 ::-webkit-scrollbar {

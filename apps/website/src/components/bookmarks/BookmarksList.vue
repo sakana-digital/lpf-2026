@@ -79,6 +79,7 @@ const items = computed(() =>
     .name {
       overflow: hidden;
       max-width: 120px;
+      font-family: var(--font-text);
       text-overflow: ellipsis;
     }
   }
