@@ -1,11 +1,19 @@
-/* color palette from <https://github.com/vuejs/theme> */
 :root {
   --header-height: 48px;
   --page-title-height: 48px;
 
   --font-display: 'futura-pt', 'Futura', system-ui, sans-serif;
   --font-text: system-ui, sans-serif;
+}
 
+@media (max-height: 500px) {
+  html[data-orientation^='landscape'] {
+    --page-title-height: 36px;
+  }
+}
+
+/* color palette from <https://github.com/vuejs/theme> */
+:root {
   --vt-c-white: oklch(100% 0 0);
   --vt-c-white-soft: oklch(97.91% 0 0);
   --vt-c-white-mute: oklch(96.12% 0 0);
@@ -27,12 +35,6 @@
   --vt-c-text-light-2: oklch(35.62% 0 0 / 0.66);
   --vt-c-text-dark-1: var(--vt-c-white);
   --vt-c-text-dark-2: oklch(94.01% 0 0 / 0.64);
-}
-
-@media (max-height: 500px) {
-  html[data-orientation^='landscape'] {
-    --page-title-height: 36px;
-  }
 }
 
 html {
@@ -120,6 +122,10 @@ body {
     color 0.25s;
   line-height: 1.6;
   font-family: var(--font-display);
+  font-weight: 500;
+
+  /* futura-pt ships 400 and 500 only, so a bolder request is faked */
+  font-synthesis-weight: none;
   font-size: 16px;
   text-rendering: optimizeLegibility;
   scrollbar-color: var(--color-border-hover) transparent;
@@ -140,6 +146,7 @@ dl,
 blockquote,
 address {
   font-family: var(--font-text);
+  font-synthesis-weight: auto;
 }
 
 ::-webkit-scrollbar {
