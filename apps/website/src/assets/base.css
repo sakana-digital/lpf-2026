@@ -3,6 +3,9 @@
   --header-height: 48px;
   --page-title-height: 48px;
 
+  --font-display: 'futura-pt', 'Futura', system-ui, sans-serif;
+  --font-text: system-ui, sans-serif;
+
   --vt-c-white: oklch(100% 0 0);
   --vt-c-white-soft: oklch(97.91% 0 0);
   --vt-c-white-mute: oklch(96.12% 0 0);
@@ -116,7 +119,7 @@ body {
     background-color 0.25s,
     color 0.25s;
   line-height: 1.6;
-  font-family: 'futura-pt', 'Futura', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: 16px;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -125,8 +128,20 @@ body {
   scrollbar-width: thin;
 }
 
-p {
-  font-family: system-ui, sans-serif;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+}
+
+p,
+dl,
+blockquote,
+address {
+  font-family: var(--font-text);
 }
 
 ::-webkit-scrollbar {

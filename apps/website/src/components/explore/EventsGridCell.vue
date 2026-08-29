@@ -89,6 +89,7 @@ const cellLabel = computed(() => (props.org ? organizationLabel(props.org, local
     .name {
       overflow: hidden;
       color: var(--color-text-mute);
+      font-family: var(--font-text);
       font-size: 11px;
       line-height: 1.3;
       white-space: nowrap;

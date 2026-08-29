@@ -378,6 +378,7 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
       .org-panel-name {
         overflow: hidden;
         color: var(--color-text);
+        font-family: var(--font-text);
         font-size: 13px;
         text-overflow: ellipsis;
         white-space: nowrap;

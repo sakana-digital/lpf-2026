@@ -60,6 +60,10 @@ export function createIsoMapScene(
   if (!renderingContext) throw new Error('Canvas 2D is not supported')
   const context: CanvasRenderingContext2D = renderingContext
 
+  const labelFont =
+    getComputedStyle(document.documentElement).getPropertyValue('--font-display').trim() ||
+    'sans-serif'
+
   const { cx, cz } = planBounds(floorPlans)
   const floors: FloorState[] = floorPlans.map((plan) => {
     const icons = plan.areas.flatMap((area) =>
@@ -130,13 +134,13 @@ export function createIsoMapScene(
     context.save()
     context.globalAlpha = opacity
     context.fillStyle = colors.text
-    context.font = `${fontSize}px Futura, sans-serif`
+    context.font = `${fontSize}px ${labelFont}`
     context.textAlign = 'center'
     context.textBaseline = 'middle'
     let renderedWidth = context.measureText(text).width
     if (maxWidth && renderedWidth > maxWidth) {
       fontSize *= maxWidth / renderedWidth
-      context.font = `${fontSize}px Futura, sans-serif`
+      context.font = `${fontSize}px ${labelFont}`
       renderedWidth = context.measureText(text).width
     }
     context.fillText(text, position.x, position.z)
