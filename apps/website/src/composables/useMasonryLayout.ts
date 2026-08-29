@@ -21,9 +21,9 @@ interface Position {
 const ESTIMATED_HEIGHT = 480
 
 /**
- * Row-major masonry via absolute positioning. Items stay put in the DOM and are
- * only moved with transforms, so the embeds inside them are never re-created
- * (and never reload) when the lane count changes on resize.
+ * Shortest-column masonry via absolute positioning. Items stay put in the DOM
+ * and are only moved with transforms, so the embeds inside them are never
+ * re-created (and never reload) when the lane count changes on resize.
  */
 export function useMasonryLayout(
   container: Ref<HTMLElement | null>,
@@ -71,28 +71,28 @@ export function useMasonryLayout(
     return Math.min(maxLaneWidth, available)
   })
 
-  const columnOf = (index: number) => index % count.value
-
-  const positions = computed<Position[]>(() => {
+  // Each item goes to the shortest column so lanes stay level; ties take the
+  // leftmost, which keeps the initial (equal-height) pass in source order.
+  const layout = computed(() => {
     const columnHeights: number[] = new Array(count.value).fill(0)
-    return Array.from({ length: itemCount }, (_, i) => {
-      const col = columnOf(i)
+    const positions: Position[] = []
+    for (let i = 0; i < itemCount; i++) {
+      let col = 0
+      for (let c = 1; c < columnHeights.length; c++) {
+        if ((columnHeights[c] ?? 0) < (columnHeights[col] ?? 0)) col = c
+      }
       const y = columnHeights[col] ?? 0
+      positions.push({ x: col * (laneWidth.value + gap), y })
       columnHeights[col] = y + (heights.value[i] ?? ESTIMATED_HEIGHT) + gap
-      return { x: col * (laneWidth.value + gap), y }
-    })
+    }
+    return { positions, columnHeights }
   })
+
+  const positions = computed(() => layout.value.positions)
 
   const gridWidth = computed(() => count.value * laneWidth.value + (count.value - 1) * gap)
 
-  const gridHeight = computed(() => {
-    const columnHeights: number[] = new Array(count.value).fill(0)
-    heights.value.forEach((h, i) => {
-      const col = columnOf(i)
-      columnHeights[col] = (columnHeights[col] ?? 0) + h + gap
-    })
-    return Math.max(0, ...columnHeights.map((h) => h - gap))
-  })
+  const gridHeight = computed(() => Math.max(0, ...layout.value.columnHeights.map((h) => h - gap)))
 
   onMounted(() => {
     const el = container.value

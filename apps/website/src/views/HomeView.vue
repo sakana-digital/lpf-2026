@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, useTemplateRef } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import HomeSidebar from '@/components/home/HomeSidebar.vue'
 import HomeDock from '@/components/home/HomeDock.vue'
 import HomeFooter from '@/components/home/HomeFooter.vue'
-import InstagramEmbed from '@/components/news/InstagramEmbed.vue'
-import NewsLinkCard from '@/components/news/NewsLinkCard.vue'
+import NewsLinksGrid from '@/components/news/NewsLinksGrid.vue'
 import { consumeDirectRootEntrance } from '@/lib/rootEntrance'
-import { processInstagramEmbedsNear } from '@/lib/instagramEmbed'
 import { formatFestivalPeriod } from '@/config/festival'
 import { newsLinks } from '@/config/newsLinks'
 import { mapUrl } from '@/config/social'
@@ -23,18 +21,9 @@ const notes = computed(() => (tm('home.notes.items') as string[]).map((note) => 
 const newsPath = computed(() => localePath('/news/', locale.value))
 
 const entrance = ref(false)
-const newsSection = useTemplateRef('newsSection')
-let stopEmbedObserver: (() => void) | undefined
 
 onMounted(() => {
   entrance.value = consumeDirectRootEntrance()
-  if (newsPreview.length > 0 && newsSection.value) {
-    stopEmbedObserver = processInstagramEmbedsNear(newsSection.value)
-  }
-})
-
-onBeforeUnmount(() => {
-  stopEmbedObserver?.()
 })
 </script>
 
@@ -101,16 +90,10 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
-    <section id="news" ref="newsSection" class="news-section split">
+    <section id="news" class="news-section split">
       <h2 class="title">{{ t('home.news.title') }}</h2>
       <div class="news-body">
-        <div v-if="newsPreview.length > 0" class="news-grid">
-          <template v-for="item in newsPreview" :key="item.url">
-            <InstagramEmbed v-if="item.type === 'instagram'" :url="item.url" />
-            <NewsLinkCard v-else :url="item.url" :title-key="item.titleKey" :source="item.source" />
-          </template>
-        </div>
-        <p v-else class="empty">{{ t('home.news.empty') }}</p>
+        <NewsLinksGrid :items="newsPreview" />
         <RouterLink class="page-link" :to="newsPath">
           {{ t('home.news.more') }}
         </RouterLink>
@@ -383,18 +366,6 @@ onBeforeUnmount(() => {
     flex-direction: column;
     align-items: start;
     width: 100%;
-  }
-
-  .news-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(326px, 100%), 1fr));
-    gap: 16px;
-    width: 100%;
-  }
-
-  .empty {
-    margin: 0;
-    color: var(--color-text-mute);
   }
 }
 

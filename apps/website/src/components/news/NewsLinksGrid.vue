@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { newsLinks } from '@/config/newsLinks'
+import type { NewsItem } from '@/config/newsLinks'
 import InstagramEmbed from '@/components/news/InstagramEmbed.vue'
 import NewsLinkCard from '@/components/news/NewsLinkCard.vue'
 import { processInstagramEmbedsNear } from '@/lib/instagramEmbed'
@@ -11,17 +11,21 @@ const LANE_MIN_WIDTH = 318
 const LANE_MAX_WIDTH = 540
 const LANE_GAP = 16
 
+const props = defineProps<{
+  items: NewsItem[]
+}>()
+
 const { t } = useI18n()
 
 const wrapper = ref<HTMLElement | null>(null)
 const { positions, gridWidth, gridHeight, laneWidth } = useMasonryLayout(
   wrapper,
-  newsLinks.length,
+  props.items.length,
   {
     laneWidth: LANE_MIN_WIDTH,
     maxLaneWidth: LANE_MAX_WIDTH,
     gap: LANE_GAP,
-    maxLanes: Math.min(3, newsLinks.length),
+    maxLanes: Math.min(3, props.items.length),
     itemSelector: '.lane-item',
   },
 )
@@ -50,9 +54,9 @@ onBeforeUnmount(() => stopEmbedObserver?.())
 
 <template>
   <div ref="wrapper" class="news-links">
-    <div v-if="newsLinks.length > 0" class="links-grid" :style="gridStyle">
+    <div v-if="props.items.length > 0" class="links-grid" :style="gridStyle">
       <div
-        v-for="(item, i) in newsLinks"
+        v-for="(item, i) in props.items"
         :key="item.url"
         class="lane-item"
         :data-index="i"
@@ -68,7 +72,7 @@ onBeforeUnmount(() => stopEmbedObserver?.())
 
 <style scoped>
 .news-links {
-  padding: 16px;
+  width: 100%;
 
   .links-grid {
     position: relative;

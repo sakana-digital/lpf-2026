@@ -8,7 +8,6 @@ const props = defineProps<{
   <div class="instagram-embed">
     <blockquote
       class="instagram-media"
-      data-instgrm-captioned
       :data-instgrm-permalink="props.url"
       data-instgrm-version="14"
     >
