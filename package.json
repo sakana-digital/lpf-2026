@@ -2,9 +2,16 @@
   "name": "lpf-2026",
   "version": "0.0.0",
   "private": true,
-  "workspaces": [
-    "apps/*"
-  ],
+  "workspaces": {
+    "packages": [
+      "apps/*"
+    ],
+    "catalog": {
+      "vite": "npm:@voidzero-dev/vite-plus-core@latest",
+      "vitest": "4.1.9",
+      "vite-plus": "latest"
+    }
+  },
   "type": "module",
   "scripts": {
     "ready": "vp check && vp run -r test && vp run -r build",
@@ -47,10 +54,5 @@
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
-  },
-  "catalog": {
-    "vite": "npm:@voidzero-dev/vite-plus-core@latest",
-    "vitest": "4.1.9",
-    "vite-plus": "latest"
   }
 }
