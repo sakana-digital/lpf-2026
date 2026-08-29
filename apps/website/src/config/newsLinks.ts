@@ -16,6 +16,10 @@ const news: NewsItem[] = [
     titleKey: 'news.links.setsumeikai',
     source: 'school',
   },
+  {
+    type: 'instagram',
+    url: 'https://www.instagram.com/p/DcTXfnlTd7G/',
+  },
 ]
 
 export const newsLinks = [...news].reverse()
