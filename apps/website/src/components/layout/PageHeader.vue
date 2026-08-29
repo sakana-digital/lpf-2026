@@ -65,7 +65,6 @@ const title = computed(() => t(props.titleKey))
       }
     }
 
-    font-weight: 700;
     letter-spacing: -0.02em;
     white-space: nowrap;
     text-overflow: ellipsis;

@@ -105,7 +105,6 @@ onMounted(scrollSelectedIntoView)
     background: var(--color-heading);
     color: var(--color-background);
     font-size: 11px;
-    font-weight: 500;
     font-variant-numeric: tabular-nums;
     overflow: hidden;
     white-space: nowrap;

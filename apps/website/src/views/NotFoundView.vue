@@ -9,7 +9,7 @@ const { open } = useSearch()
 
 <template>
   <main class="not-found">
-    <p class="description">{{ t('notFound.description') }}</p>
+    <h1 class="description">{{ t('notFound.description') }}</h1>
     <button type="button" class="search-trigger" @click="open">
       <IconSearch />
       {{ t('notFound.search') }}
@@ -29,7 +29,6 @@ const { open } = useSearch()
 
   & .description {
     font-size: clamp(2rem, 8vw, 3.5rem);
-    font-weight: 700;
     letter-spacing: -0.03em;
     line-height: 1.3;
     white-space: pre-line;

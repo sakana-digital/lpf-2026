@@ -15,7 +15,7 @@ const domain = computed(() => new URL(props.url).hostname)
 
 <template>
   <a class="news-link-card" :href="props.url" target="_blank" rel="noopener noreferrer">
-    <p class="title">{{ t(props.titleKey) }}</p>
+    <h3 class="title">{{ t(props.titleKey) }}</h3>
     <p class="source">{{ t(`siteLinks.${props.source}`) }} · {{ domain }}</p>
   </a>
 </template>
@@ -43,7 +43,6 @@ const domain = computed(() => new URL(props.url).hostname)
     margin: 0;
     color: var(--color-heading);
     font-size: 16px;
-    font-weight: 600;
     line-height: 1.5;
   }
 
