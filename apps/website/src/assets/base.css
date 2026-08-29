@@ -82,7 +82,6 @@ html[data-theme='dark'] {
 *::after {
   box-sizing: border-box;
   margin: 0;
-  font-weight: 500;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -91,6 +90,7 @@ input,
 textarea,
 select {
   font-family: inherit;
+  font-weight: inherit;
   color: inherit;
   border: none;
   background: transparent;
@@ -117,10 +117,13 @@ body {
     color 0.25s;
   line-height: 1.6;
   font-family: 'futura-pt', 'Futura', system-ui, sans-serif;
+  font-weight: 500;
+
+  /* futura-pt stops at medium; bold text keeps that face instead of a synthesized bold,
+     while system-ui still follows the weight */
+  font-synthesis-weight: none;
   font-size: 16px;
   text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   scrollbar-color: var(--color-border-hover) transparent;
   scrollbar-width: thin;
 }

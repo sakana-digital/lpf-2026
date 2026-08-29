@@ -177,7 +177,6 @@ function slotStyle(slot: ScheduleSlot) {
       background: var(--color-heading);
       color: var(--color-background);
       font-size: 13px;
-      font-weight: 500;
       text-align: center;
     }
 

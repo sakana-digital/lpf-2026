@@ -82,7 +82,6 @@ const cellLabel = computed(() => (props.org ? organizationLabel(props.org, local
 
     .label {
       font-size: 12px;
-      font-weight: 500;
       font-variant-numeric: tabular-nums;
     }
 

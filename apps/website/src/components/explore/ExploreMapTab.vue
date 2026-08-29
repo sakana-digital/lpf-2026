@@ -254,7 +254,6 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
       left: 16px;
       color: var(--color-heading);
       font-size: clamp(1.75rem, 4vw, 2.75rem);
-      font-weight: 700;
       font-variant-numeric: tabular-nums;
       letter-spacing: -0.02em;
     }
@@ -289,7 +288,6 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
       text {
         fill: currentColor;
         font-size: 11px;
-        font-weight: 600;
       }
     }
 
