@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { readStored, writeStored } from '@/lib/storage'
 
 const STORAGE_KEY = 'bookmarks'
 
@@ -6,7 +7,7 @@ const bookmarkIds = ref<string[]>([])
 let initialized = false
 
 function persist() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(bookmarkIds.value))
+  writeStored(STORAGE_KEY, JSON.stringify(bookmarkIds.value))
 }
 
 export function initBookmarks() {
@@ -14,7 +15,7 @@ export function initBookmarks() {
   initialized = true
 
   try {
-    const saved: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
+    const saved: unknown = JSON.parse(readStored(STORAGE_KEY) ?? '[]')
     if (Array.isArray(saved)) {
       bookmarkIds.value = saved.filter((id): id is string => typeof id === 'string')
     }
