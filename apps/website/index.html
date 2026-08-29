@@ -47,7 +47,12 @@
     />
     <script>
       ;(function () {
-        var saved = localStorage.getItem('theme')
+        // Blocked site data makes localStorage throw, and every colour token
+        // hangs off data-theme, so the attribute has to be set regardless.
+        var saved = null
+        try {
+          saved = localStorage.getItem('theme')
+        } catch (e) {}
         var isDark =
           saved === 'dark' ||
           (saved !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
