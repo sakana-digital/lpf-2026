@@ -67,10 +67,14 @@ const EXPANDED_COLUMN = `min(560px, 100vw - ${INLINE_PADDING * 2 + GUTTER + GAP}
 // セル内余白 18px を除いた 4:3 画像の高さ + 見出し・ステータス・メタ分
 const EXPANDED_ROW = `calc((${EXPANDED_COLUMN} - 18px) * 3 / 4 + 110px)`
 
+// 見出しとステータスバッジが並ぶだけの幅と高さ
+const MIN_COLUMN = 128
+const BASE_ROW = 64
+
 // 非選択時の 1fr 相当幅を px 系で表し，grid-template のトラック補間を効かせる
 function baseColumn(count: number): string {
   const fixed = INLINE_PADDING * 2 + GUTTER + GAP * count
-  return `max(88px, calc((100vw - ${fixed}px) / ${count}))`
+  return `max(${MIN_COLUMN}px, calc((100vw - ${fixed}px) / ${count}))`
 }
 
 export function columnTracks(count: number, selected: number | null): string {
@@ -81,7 +85,7 @@ export function columnTracks(count: number, selected: number | null): string {
 
 export function rowTracks(rows: EventRow[], selected: number | null): string {
   return rows
-    .map((row, i) => (i === selected ? EXPANDED_ROW : row.spacer ? `${GUTTER}px` : '56px'))
+    .map((row, i) => (i === selected ? EXPANDED_ROW : row.spacer ? `${GUTTER}px` : `${BASE_ROW}px`))
     .join(' ')
 }
 

@@ -5,6 +5,7 @@ import { organizationLabel, organizationName } from '@/config/organizations'
 import type { Organization } from '@/config/organizations'
 import type { OrgStatus } from '@shared/status'
 import OrgDetail from './OrgDetail.vue'
+import OrgStatusBadges from './OrgStatusBadges.vue'
 
 const props = defineProps<{ org: Organization | null; expanded: boolean; status?: OrgStatus }>()
 
@@ -19,12 +20,15 @@ const cellLabel = computed(() => (props.org ? organizationLabel(props.org, local
 
 <template>
   <div v-if="org" class="cell" :class="{ expanded }">
-    <button type="button" class="cell-head" :aria-expanded="expanded" @click="$emit('select')">
-      <span class="label">{{ cellLabel }}</span>
-      <span class="name" :class="{ tbd: !displayName }">
-        {{ displayName || t('explore.events.tbd') }}
-      </span>
-    </button>
+    <div class="head-row">
+      <button type="button" class="cell-head" :aria-expanded="expanded" @click="$emit('select')">
+        <span class="label">{{ cellLabel }}</span>
+        <span class="name" :class="{ tbd: !displayName }">
+          {{ displayName || t('explore.events.tbd') }}
+        </span>
+      </button>
+      <OrgStatusBadges v-if="!expanded && status" :status="status" class="cell-status" />
+    </div>
     <Transition name="detail">
       <OrgDetail v-if="expanded" :org="org" :status="status" :image-alt="displayName || cellLabel">
         <template #actions>
@@ -70,7 +74,22 @@ const cellLabel = computed(() => (props.org ? organizationLabel(props.org, local
     pointer-events: none;
   }
 
+  .head-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+
+    .cell-status {
+      flex-direction: column;
+      flex-shrink: 0;
+      align-items: flex-end;
+      gap: 6px;
+    }
+  }
+
   .cell-head {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -103,6 +122,11 @@ const cellLabel = computed(() => (props.org ? organizationLabel(props.org, local
       text-overflow: ellipsis;
     }
   }
+}
+
+.cell-status :deep(.badge) {
+  padding: 1px 6px;
+  line-height: 1.2;
 }
 
 /* 詳細のうち操作要素だけを当たり判定より上に出す */
