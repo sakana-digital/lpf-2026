@@ -3,6 +3,11 @@ import type { Organization } from '@/config/organizations'
 
 export const EVENT_COLUMNS = classNumbers.length
 
+// CSS と共有するグリッド寸法．GUTTER は行見出しの幅と列見出しの高さの共通値
+export const GUTTER = 32
+export const GAP = 8
+export const INLINE_PADDING = 16
+
 export interface EventRow {
   id: string
   labelKey?: string
@@ -56,15 +61,16 @@ export function buildEventRows(orgs: Organization[]): EventRow[] {
   return rows
 }
 
-const EXPANDED_COLUMN = 'min(560px, 100vw - 32px)'
+// sticky な行見出しの下に潜り込まない幅に収める
+const EXPANDED_COLUMN = `min(560px, 100vw - ${INLINE_PADDING * 2 + GUTTER + GAP}px)`
 
 // セル内余白 18px を除いた 4:3 画像の高さ + 見出し・ステータス・メタ分
 const EXPANDED_ROW = `calc((${EXPANDED_COLUMN} - 18px) * 3 / 4 + 110px)`
 
-// 非選択時の 1fr 相当幅（ガター 40px + 左右余白 32px + 8px ギャップ）を
-// px 系で表し，grid-template のトラック補間を効かせる
+// 非選択時の 1fr 相当幅を px 系で表し，grid-template のトラック補間を効かせる
 function baseColumn(count: number): string {
-  return `max(88px, calc((100vw - ${40 + 32 + 8 * count}px) / ${count}))`
+  const fixed = INLINE_PADDING * 2 + GUTTER + GAP * count
+  return `max(88px, calc((100vw - ${fixed}px) / ${count}))`
 }
 
 export function columnTracks(count: number, selected: number | null): string {
@@ -75,7 +81,7 @@ export function columnTracks(count: number, selected: number | null): string {
 
 export function rowTracks(rows: EventRow[], selected: number | null): string {
   return rows
-    .map((row, i) => (i === selected ? EXPANDED_ROW : row.spacer ? '32px' : '56px'))
+    .map((row, i) => (i === selected ? EXPANDED_ROW : row.spacer ? `${GUTTER}px` : '56px'))
     .join(' ')
 }
 

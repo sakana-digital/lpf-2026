@@ -46,13 +46,16 @@ function onSelect(id: string | null) {
       @update:model-value="setView"
     />
 
-    <div v-if="view === 'grid'" class="grid-wrap">
-      <EventsGrid :selected-id="selectedId" :statuses="statuses" @select="onSelect">
-        <template #cell-actions="{ org }">
-          <BookmarkToggle v-if="org" :org-id="org.id" />
-        </template>
-      </EventsGrid>
-    </div>
+    <EventsGrid
+      v-if="view === 'grid'"
+      :selected-id="selectedId"
+      :statuses="statuses"
+      @select="onSelect"
+    >
+      <template #cell-actions="{ org }">
+        <BookmarkToggle v-if="org" :org-id="org.id" />
+      </template>
+    </EventsGrid>
     <OrgNodeGraph v-else :selected-id="selectedId" :statuses="statuses" @select="onSelect" />
   </div>
 </template>
@@ -62,11 +65,6 @@ function onSelect(id: string | null) {
   .view-switch {
     justify-content: flex-end;
     margin: 24px 16px 0;
-  }
-
-  .grid-wrap {
-    padding: 24px 16px 48px;
-    overflow-x: auto;
   }
 
   &.graph {
