@@ -21,6 +21,7 @@ export interface AdminMeResponse {
   orgs: string[]
   windows: SubmitWindows
   statuses: OrgStatus[]
+  hiddenOrgs: string[]
 }
 
 export type MeResponse = OrgMeResponse | AdminMeResponse
@@ -61,6 +62,14 @@ export function updateWindows(token: string, windows: SubmitWindows): Promise<Su
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(windows),
+  })
+}
+
+export function updateHiddenOrgs(token: string, hidden: string[]): Promise<{ hidden: string[] }> {
+  return request('/api/orgs', token, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ hidden }),
   })
 }
 

@@ -25,6 +25,7 @@ const VIDEO_PART_SIZE = 16 * 1024 ** 2
 const FOOTER_MAX_LENGTH = 120
 const ALERT_MAX_LENGTH = 200
 const PUBLIC_STATUS_MAX_AGE = 30
+const WORKER_DOMAIN_SUFFIX = '.workers.dev'
 
 interface StatusRow {
   org_id: string
@@ -40,6 +41,11 @@ interface SignageConfigRow {
   alert_enabled: number
   alert_text: string
   updated_at: number
+}
+
+/** The public list is served through Pages only, so the Worker domain must not answer it. */
+function servesPublicList(request: Request): boolean {
+  return !new URL(request.url).hostname.endsWith(WORKER_DOMAIN_SUFFIX)
 }
 
 function toOrgStatus(row: StatusRow): OrgStatus {
@@ -164,6 +170,21 @@ async function fetchStatuses(env: Env): Promise<OrgStatus[]> {
   return results.map(toOrgStatus)
 }
 
+async function fetchPublicStatuses(env: Env): Promise<OrgStatus[]> {
+  const { results } = await env.DB.prepare(
+    `SELECT org_id, sales, congestion, updated_at FROM org_status
+     WHERE org_id NOT IN (SELECT org_id FROM hidden_orgs)`,
+  ).all<StatusRow>()
+  return results.map(toOrgStatus)
+}
+
+async function fetchHiddenOrgs(env: Env): Promise<string[]> {
+  const { results } = await env.DB.prepare('SELECT org_id FROM hidden_orgs ORDER BY org_id').all<{
+    org_id: string
+  }>()
+  return results.map((row) => row.org_id)
+}
+
 async function fetchOrgIds(env: Env): Promise<string[]> {
   const { results } = await env.DB.prepare('SELECT org_id FROM org_tokens ORDER BY org_id').all<{
     org_id: string
@@ -175,7 +196,7 @@ async function getAllStatuses(env: Env): Promise<Response> {
   const headers = { 'Cache-Control': `public, max-age=${PUBLIC_STATUS_MAX_AGE}` }
   const windows = await getWindows(env)
   if (!isSubmitOpen(windows, Math.floor(Date.now() / 1000))) return json([], 200, headers)
-  return json(await fetchStatuses(env), 200, headers)
+  return json(await fetchPublicStatuses(env), 200, headers)
 }
 
 async function getMe(request: Request, env: Env): Promise<Response> {
@@ -183,8 +204,12 @@ async function getMe(request: Request, env: Env): Promise<Response> {
   if (!auth) return json({ error: 'unauthorized' }, 401)
   const windows = await getWindows(env)
   if (auth.kind === 'admin') {
-    const [orgs, statuses] = await Promise.all([fetchOrgIds(env), fetchStatuses(env)])
-    return json({ admin: true, orgs, windows, statuses })
+    const [orgs, statuses, hiddenOrgs] = await Promise.all([
+      fetchOrgIds(env),
+      fetchStatuses(env),
+      fetchHiddenOrgs(env),
+    ])
+    return json({ admin: true, orgs, windows, statuses, hiddenOrgs })
   }
   const row = await env.DB.prepare(
     'SELECT org_id, sales, congestion, updated_at FROM org_status WHERE org_id = ?1',
@@ -242,6 +267,33 @@ async function postStatus(request: Request, env: Env): Promise<Response> {
     .first<StatusRow>()
   if (!row) return json({ error: 'write_failed' }, 500)
   return json(toOrgStatus(row))
+}
+
+async function putHiddenOrgs(request: Request, env: Env): Promise<Response> {
+  const auth = await requireAdmin(request, env)
+  if (auth instanceof Response) return auth
+
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return json({ error: 'invalid_json' }, 400)
+  }
+  const { hidden } = (body ?? {}) as Record<string, unknown>
+  if (!Array.isArray(hidden) || hidden.some((id) => typeof id !== 'string')) {
+    return json({ error: 'invalid_value' }, 400)
+  }
+
+  const ids = [...new Set(hidden as string[])].sort()
+  const known = new Set(await fetchOrgIds(env))
+  if (ids.some((id) => !known.has(id))) return json({ error: 'unknown_org' }, 400)
+
+  const insert = env.DB.prepare('INSERT INTO hidden_orgs (org_id) VALUES (?1)')
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM hidden_orgs'),
+    ...ids.map((id) => insert.bind(id)),
+  ])
+  return json({ hidden: ids })
 }
 
 async function putWindow(request: Request, env: Env): Promise<Response> {
@@ -627,12 +679,19 @@ export default {
       return env.ASSETS.fetch(request)
     }
     if (pathname === '/api/status') {
-      if (request.method === 'GET') return getAllStatuses(env)
+      if (request.method === 'GET') {
+        if (!servesPublicList(request)) return json({ error: 'not_found' }, 404)
+        return getAllStatuses(env)
+      }
       if (request.method === 'POST') return postStatus(request, env)
       return json({ error: 'method_not_allowed' }, 405)
     }
     if (pathname === '/api/me') {
       if (request.method === 'GET') return getMe(request, env)
+      return json({ error: 'method_not_allowed' }, 405)
+    }
+    if (pathname === '/api/orgs') {
+      if (request.method === 'PUT') return putHiddenOrgs(request, env)
       return json({ error: 'method_not_allowed' }, 405)
     }
     if (pathname === '/api/window') {
