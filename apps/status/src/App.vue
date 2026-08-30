@@ -9,6 +9,7 @@ import { formatElapsed } from '@/lib/relativeTime'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import SubmitWindowEditor from '@/components/SubmitWindowEditor.vue'
 import SignageAdminEditor from '@/components/SignageAdminEditor.vue'
+import PublicOrgsEditor from '@/components/PublicOrgsEditor.vue'
 
 const SALES_LABELS: Record<SalesStatus, string> = {
   available: '販売中',
@@ -46,7 +47,8 @@ const submitWindows = ref<SubmitWindows>({
   day2: { from: null, until: null },
 })
 const orgStatuses = ref(new Map<string, OrgStatus>())
-const adminTab = ref<'status' | 'window' | 'signage'>('status')
+const hiddenOrgs = ref<string[]>([])
+const adminTab = ref<'status' | 'window' | 'orgs' | 'signage'>('status')
 const adminStatuses = computed(() => [...orgStatuses.value.values()])
 
 function orgOptionLabel(id: string) {
@@ -124,6 +126,7 @@ onMounted(async () => {
       isAdmin.value = true
       orgs.value = me.orgs
       orgStatuses.value = new Map(me.statuses.map((status) => [status.orgId, status]))
+      hiddenOrgs.value = me.hiddenOrgs
       selectedOrg.value = me.orgs[0] ?? ''
       applyOrgStatus()
     } else {
@@ -196,6 +199,7 @@ async function submit() {
           v-for="item in [
             { id: 'status', label: '団体ステータス' },
             { id: 'window', label: '受付時間' },
+            { id: 'orgs', label: '表示する団体' },
             { id: 'signage', label: 'サイネージ設定' },
           ] as const"
           :key="item.id"
@@ -278,6 +282,14 @@ async function submit() {
       :token="token"
       :windows="submitWindows"
       @updated="submitWindows = $event"
+    />
+
+    <PublicOrgsEditor
+      v-if="phase === 'ready' && isAdmin && token && adminTab === 'orgs'"
+      :token="token"
+      :orgs="orgs"
+      :hidden="hiddenOrgs"
+      @updated="hiddenOrgs = $event"
     />
 
     <SignageAdminEditor

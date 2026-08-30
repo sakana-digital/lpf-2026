@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vite-plus/test'
 import { env, SELF } from 'cloudflare:test'
 
-const origin = 'https://status.example.test'
+const origin = 'https://happo-sai-status.test.workers.dev'
+const siteOrigin = 'https://happo-sai.pages.dev'
 const adminHeaders = { Authorization: 'Bearer test-admin' }
 
 async function tokenHash(token: string): Promise<string> {
@@ -26,6 +27,8 @@ beforeEach(async () => {
     env.DB.prepare('DELETE FROM org_tokens'),
     env.DB.prepare('DELETE FROM admin_tokens'),
     env.DB.prepare('DELETE FROM signage_viewer_auth'),
+    env.DB.prepare('DELETE FROM hidden_orgs'),
+    env.DB.prepare('DELETE FROM submit_windows'),
     env.DB.prepare(
       `UPDATE signage_config
        SET org_ids = '[]', active_video_key = NULL, footer_text = '',
@@ -109,7 +112,7 @@ describe('signage authentication and configuration', () => {
     }
     expect(payload.config.orgIds).toEqual(['c1-2', 'c1-1'])
     expect(payload.statuses).toEqual([expect.objectContaining({ orgId: 'c1-2' })])
-    expect(await (await SELF.fetch(`${origin}/api/status`)).json()).toEqual([])
+    expect(await (await SELF.fetch(`${siteOrigin}/api/status`)).json()).toEqual([])
   })
 
   it('validates organization IDs and text limits', async () => {
@@ -183,5 +186,83 @@ describe('signage videos', () => {
       headers: adminHeaders,
     })
     expect(deletion.status).toBe(409)
+  })
+})
+
+describe('public status endpoint', () => {
+  it('is cacheable for a minute while authenticated responses are not', async () => {
+    const status = await SELF.fetch(`${siteOrigin}/api/status`)
+    expect(status.headers.get('Cache-Control')).toBe('public, max-age=30')
+
+    const me = await SELF.fetch(`${origin}/api/me`, {
+      headers: { Authorization: 'Bearer test-org' },
+    })
+    expect(me.status).toBe(200)
+    expect(me.headers.get('Cache-Control')).toBe('no-store')
+  })
+})
+
+describe('public organizations', () => {
+  it('hides the selected organizations from the public list only', async () => {
+    await env.DB.batch([
+      env.DB.prepare('INSERT INTO org_tokens (token_hash, org_id) VALUES (?1, ?2)').bind(
+        await tokenHash('test-org-2'),
+        'c1-2',
+      ),
+      env.DB.prepare(
+        `INSERT INTO org_status (org_id, sales, congestion, updated_at) VALUES
+         ('c1-1', 'available', 'low', unixepoch()), ('c1-2', 'available', 'low', unixepoch())`,
+      ),
+    ])
+
+    const saved = await SELF.fetch(`${origin}/api/orgs`, {
+      method: 'PUT',
+      headers: { ...adminHeaders, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hidden: ['c1-2'] }),
+    })
+    expect(saved.status).toBe(200)
+
+    const publicList = (await (await SELF.fetch(`${siteOrigin}/api/status`)).json()) as Array<{
+      orgId: string
+    }>
+    expect(publicList.map((status) => status.orgId)).toEqual(['c1-1'])
+
+    const me = (await (await SELF.fetch(`${origin}/api/me`, { headers: adminHeaders })).json()) as {
+      statuses: Array<{ orgId: string }>
+      hiddenOrgs: string[]
+    }
+    expect(me.statuses.map((status) => status.orgId).sort()).toEqual(['c1-1', 'c1-2'])
+    expect(me.hiddenOrgs).toEqual(['c1-2'])
+  })
+
+  it('rejects unknown organizations and non-admin callers', async () => {
+    const unknown = await SELF.fetch(`${origin}/api/orgs`, {
+      method: 'PUT',
+      headers: { ...adminHeaders, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hidden: ['missing'] }),
+    })
+    expect(unknown.status).toBe(400)
+
+    const forbidden = await SELF.fetch(`${origin}/api/orgs`, {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer test-org', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hidden: [] }),
+    })
+    expect(forbidden.status).toBe(403)
+  })
+})
+
+describe('public list domain', () => {
+  it('answers on the site domain only, while writes stay on the Worker domain', async () => {
+    expect((await SELF.fetch(`${origin}/api/status`)).status).toBe(404)
+    expect((await SELF.fetch(`${siteOrigin}/api/status`)).status).toBe(200)
+
+    const posted = await SELF.fetch(`${origin}/api/status`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer test-org', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sales: 'available', congestion: 'low' }),
+    })
+    expect(posted.status).toBe(200)
+    expect((await SELF.fetch(`${origin}/api/me`, { headers: adminHeaders })).status).toBe(200)
   })
 })

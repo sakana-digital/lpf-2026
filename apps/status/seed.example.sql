@@ -8,4 +8,12 @@ INSERT INTO org_tokens (token_hash, org_id) VALUES
 ON CONFLICT (org_id) DO UPDATE SET token_hash = excluded.token_hash;
 
 INSERT INTO admin_tokens (token_hash) VALUES
-  ('f37837a0953cdad0b2908f982c310813daec9cf4f1950c7b82a22e8d277b0aad');
+  ('f37837a0953cdad0b2908f982c310813daec9cf4f1950c7b82a22e8d277b0aad')
+ON CONFLICT (token_hash) DO NOTHING;
+
+-- ローカルで公開サイトの表示を確認するためのサンプル
+INSERT INTO org_status (org_id, sales, congestion, updated_at) VALUES
+  ('c1-1', 'available', 'low', unixepoch()),
+  ('c1-2', 'low', 'high', unixepoch())
+ON CONFLICT (org_id) DO UPDATE
+  SET sales = excluded.sales, congestion = excluded.congestion, updated_at = excluded.updated_at;

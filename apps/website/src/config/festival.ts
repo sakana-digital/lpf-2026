@@ -17,6 +17,11 @@ export function resolveFestivalDay(): FestivalDay | null {
   return null
 }
 
+export function isFestivalDay(): boolean {
+  const day = resolveFestivalDay()
+  return day === 1 || day === 2
+}
+
 function weekday(date: string, locale: string): string {
   return new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: 'Asia/Tokyo' }).format(
     new Date(`${date}T00:00:00+09:00`),
