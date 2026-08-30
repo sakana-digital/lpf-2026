@@ -169,18 +169,22 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
 </template>
 
 <style scoped>
+/* The viewport draws the whole tab, so a height here would only push the
+   document past the screen by the header padding above it */
 .map {
-  min-height: 100svh;
-
+  /* Absolute against the initial containing block: the screen, but scrolling
+     with the document, so an overscroll drags the map along visibly.
+     `clip` instead of `hidden` keeps this full-screen layer from swallowing
+     the swipe as a scroll container */
   .viewport {
-    position: fixed;
+    position: absolute;
     z-index: 0;
     inset: 0;
     isolation: isolate;
     width: 100vw;
     height: 100svh;
     height: 100dvh;
-    overflow: hidden;
+    overflow: clip;
 
     canvas,
     .map-icons {
