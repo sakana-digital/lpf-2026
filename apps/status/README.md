@@ -6,7 +6,7 @@
 ## アーキテクチャ
 
 ```
-閲覧: ブラウザ → Pages /api/status → Pages Functions (GET のみ)
+閲覧: ブラウザ → Pages /api/status → Pages Functions (GET のみ、30 秒キャッシュ)
         → Service Binding STATUS → Worker → D1
 
 更新: 団体スマホ → Worker ドメインの入力 SPA (?t=<トークン>)
@@ -17,6 +17,7 @@
 ```
 
 - 書き込みは Worker ドメイン直のみ。本体ドメイン経由の POST は 405
+- `GET /api/status` だけが `public, max-age=30`。Pages Functions がエッジにキャッシュし、D1 は最大 30 秒に 1 回しか読まない。認証つきの応答は `no-store`
 - 値の型は [shared/status.ts](../../shared/status.ts) を Worker / 入力 SPA / 本体 SPA で共有
 
 ## API
@@ -115,7 +116,7 @@ bun run deploy
 - `https://<本体ドメイン>/api/status` が JSON を返す
   - index.html が返る → Pages Functions が未検出
   - 500 → Service Binding 未設定
-- `https://happo-sai-status.<account>.workers.dev/?t=<実トークン>` で送信 → 本体 `/explore/events/` のセル展開でバッジに反映（ポーリングは 60 秒間隔）
+- `https://happo-sai-status.<account>.workers.dev/?t=<実トークン>` で送信 → 本体 `/explore/events/` のセル展開でバッジに反映（キャッシュ 30 秒 + ポーリング 60 秒で最大 90 秒）
 - 本体ドメインへの `POST /api/status` が 405
 
 ## トークン運用

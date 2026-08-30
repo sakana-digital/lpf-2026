@@ -24,6 +24,7 @@ const VIDEO_MAX_SIZE = 1024 ** 3
 const VIDEO_PART_SIZE = 16 * 1024 ** 2
 const FOOTER_MAX_LENGTH = 120
 const ALERT_MAX_LENGTH = 200
+const PUBLIC_STATUS_MAX_AGE = 30
 
 interface StatusRow {
   org_id: string
@@ -52,7 +53,7 @@ function toOrgStatus(row: StatusRow): OrgStatus {
 
 function json(data: unknown, status = 200, headers?: HeadersInit): Response {
   const responseHeaders = new Headers(headers)
-  responseHeaders.set('Cache-Control', 'no-store')
+  if (!responseHeaders.has('Cache-Control')) responseHeaders.set('Cache-Control', 'no-store')
   return Response.json(data, {
     status,
     headers: responseHeaders,
@@ -171,9 +172,10 @@ async function fetchOrgIds(env: Env): Promise<string[]> {
 }
 
 async function getAllStatuses(env: Env): Promise<Response> {
+  const headers = { 'Cache-Control': `public, max-age=${PUBLIC_STATUS_MAX_AGE}` }
   const windows = await getWindows(env)
-  if (!isSubmitOpen(windows, Math.floor(Date.now() / 1000))) return json([])
-  return json(await fetchStatuses(env))
+  if (!isSubmitOpen(windows, Math.floor(Date.now() / 1000))) return json([], 200, headers)
+  return json(await fetchStatuses(env), 200, headers)
 }
 
 async function getMe(request: Request, env: Env): Promise<Response> {

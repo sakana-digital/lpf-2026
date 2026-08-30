@@ -185,3 +185,16 @@ describe('signage videos', () => {
     expect(deletion.status).toBe(409)
   })
 })
+
+describe('public status endpoint', () => {
+  it('is cacheable for a minute while authenticated responses are not', async () => {
+    const status = await SELF.fetch(`${origin}/api/status`)
+    expect(status.headers.get('Cache-Control')).toBe('public, max-age=30')
+
+    const me = await SELF.fetch(`${origin}/api/me`, {
+      headers: { Authorization: 'Bearer test-org' },
+    })
+    expect(me.status).toBe(200)
+    expect(me.headers.get('Cache-Control')).toBe('no-store')
+  })
+})
