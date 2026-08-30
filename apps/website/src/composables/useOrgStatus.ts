@@ -31,7 +31,7 @@ function fetchStatuses(): Promise<void> {
   }
   lastRequestAt = now
   // Outside the festival days the API always answers with an empty list
-  if (!isFestivalDay()) return Promise.resolve()
+  if (!import.meta.env.DEV && !isFestivalDay()) return Promise.resolve()
   requestInFlight = requestStatuses().finally(() => {
     requestInFlight = undefined
   })

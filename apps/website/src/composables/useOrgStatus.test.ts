@@ -26,6 +26,7 @@ async function mountSubscriber(now: string) {
 
 beforeEach(() => {
   vi.useFakeTimers()
+  vi.stubEnv('DEV', false)
   fetchSpy.mockReset()
   fetchSpy.mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
   vi.stubGlobal('fetch', fetchSpy)
@@ -34,6 +35,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers()
   vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
 })
 
 describe('useOrgStatus', () => {
@@ -54,6 +56,13 @@ describe('useOrgStatus', () => {
     const app = await mountSubscriber(BEFORE_FESTIVAL)
     await vi.advanceTimersByTimeAsync(180_000)
     expect(fetchSpy).not.toHaveBeenCalled()
+    app.unmount()
+  })
+
+  it('開発サーバーでは開催期間外でも取得する', async () => {
+    vi.stubEnv('DEV', true)
+    const app = await mountSubscriber(BEFORE_FESTIVAL)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
     app.unmount()
   })
 })
