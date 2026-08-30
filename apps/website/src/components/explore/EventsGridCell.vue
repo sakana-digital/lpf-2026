@@ -38,6 +38,7 @@ const cellLabel = computed(() => (props.org ? organizationLabel(props.org, local
 
 <style scoped>
 .cell {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -80,6 +81,13 @@ const cellLabel = computed(() => (props.org ? organizationLabel(props.org, local
     text-align: left;
     cursor: pointer;
 
+    /* セル全体をクリック領域にする */
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+    }
+
     .label {
       font-size: 12px;
       font-variant-numeric: tabular-nums;
@@ -95,6 +103,11 @@ const cellLabel = computed(() => (props.org ? organizationLabel(props.org, local
       text-overflow: ellipsis;
     }
   }
+}
+
+/* 詳細のうち操作要素だけを当たり判定より上に出す */
+.cell :deep(.org-detail :is(a, button)) {
+  position: relative;
 }
 
 .detail-enter-active {
