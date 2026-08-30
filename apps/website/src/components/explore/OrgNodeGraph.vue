@@ -117,7 +117,6 @@ function nodeStyle(p: (typeof projected.value)[number]) {
       >
         {{ nodeLabels.get(p.id) }}
       </button>
-      <span v-if="!selectedOrg" class="hint">{{ t('explore.nodes.hint') }}</span>
     </div>
 
     <div v-if="selectedOrg" class="detail">
@@ -207,15 +206,6 @@ function nodeStyle(p: (typeof projected.value)[number]) {
         border-color: var(--color-heading);
         color: var(--color-heading);
       }
-    }
-
-    .hint {
-      position: absolute;
-      right: 12px;
-      bottom: 8px;
-      color: var(--color-text-mute);
-      font-size: 11px;
-      pointer-events: none;
     }
   }
 

@@ -100,6 +100,7 @@
       "noImage": "No Image",
       "location": "{floor}F",
       "viewSwitch": "表示切り替え",
+      "hint": "各団体の詳細を表示します",
       "views": {
         "grid": "一覧",
         "graph": "グラフ"
@@ -107,7 +108,7 @@
     },
     "nodes": {
       "graphLabel": "団体ノードグラフ",
-      "hint": "ドラッグで回転",
+      "hint": "ドラッグして回転",
       "close": "詳細を閉じる"
     },
     "schedule": {

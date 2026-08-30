@@ -25,6 +25,10 @@ const viewOptions = computed(() =>
   views.map((v) => ({ value: v, label: t(`explore.events.views.${v}`) })),
 )
 
+const hintKey = computed(() =>
+  view.value === 'graph' ? 'explore.nodes.hint' : 'explore.events.hint',
+)
+
 const { selectedId, select } = useSelectedOrg()
 
 function setView(v: EventsView) {
@@ -44,7 +48,9 @@ function onSelect(id: string | null) {
       :model-value="view"
       :aria-label="t('explore.events.viewSwitch')"
       @update:model-value="setView"
-    />
+    >
+      <template #hint>{{ t(hintKey) }}</template>
+    </SegmentedSwitch>
 
     <EventsGrid
       v-if="view === 'grid'"
