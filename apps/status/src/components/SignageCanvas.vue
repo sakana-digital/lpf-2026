@@ -29,15 +29,22 @@ const CONGESTION_LABELS = {
   high: '混雑',
 } as const
 
-const PAGE_SIZE = 8
+const MIN_ROWS = 8
+const MAX_ROWS = 12
 const page = ref(0)
 const videoFailed = ref(false)
 let timer: ReturnType<typeof setInterval> | undefined
 
-const pageCount = computed(() => Math.max(1, Math.ceil(props.config.orgIds.length / PAGE_SIZE)))
+// Spread organizations evenly so the last page is never nearly empty.
+const rows = computed(() => {
+  const pages = Math.max(1, Math.ceil(props.config.orgIds.length / MAX_ROWS))
+  const even = Math.ceil(props.config.orgIds.length / pages)
+  return Math.min(MAX_ROWS, Math.max(MIN_ROWS, even))
+})
+const pageCount = computed(() => Math.max(1, Math.ceil(props.config.orgIds.length / rows.value)))
 const visibleOrgIds = computed(() => {
-  const start = page.value * PAGE_SIZE
-  return props.config.orgIds.slice(start, start + PAGE_SIZE)
+  const start = page.value * rows.value
+  return props.config.orgIds.slice(start, start + rows.value)
 })
 const statusMap = computed(() => new Map(props.statuses.map((status) => [status.orgId, status])))
 
@@ -81,7 +88,7 @@ onUnmounted(() => clearInterval(timer))
           <span v-if="pageCount > 1" class="page-count">{{ page + 1 }}/{{ pageCount }}</span>
         </header>
 
-        <div class="status-list">
+        <div class="status-list" :style="{ '--rows': rows }">
           <article v-for="orgId in visibleOrgIds" :key="orgId" class="status-row">
             <strong class="org-name">{{ orgLabel(orgId) }}</strong>
             <template v-if="statusMap.get(orgId)">
@@ -155,8 +162,10 @@ onUnmounted(() => clearInterval(timer))
 }
 
 .signage-frame {
+  --gutter: 1.1cqw;
+
   display: grid;
-  grid-template-columns: 38fr 62fr;
+  grid-template-columns: 45fr 55fr;
   grid-template-rows: minmax(0, 1fr) 8.9%;
   width: min(100vw, calc(100vh * 16 / 9));
   height: min(100vh, calc(100vw * 9 / 16));
@@ -172,6 +181,8 @@ onUnmounted(() => clearInterval(timer))
 
 .status-panel {
   position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   min-width: 0;
   overflow: hidden;
   border-right: 0.22cqw solid #f7f7f2;
@@ -186,8 +197,7 @@ onUnmounted(() => clearInterval(timer))
   display: flex;
   align-items: end;
   justify-content: space-between;
-  height: 14%;
-  padding: 1.1cqw 1.25cqw 0.8cqw;
+  padding: 1.55cqw var(--gutter) 1.1cqw;
   border-bottom: 0.17cqw solid #f7f7f2;
   background: #f7f7f2;
   color: #080808;
@@ -218,17 +228,17 @@ onUnmounted(() => clearInterval(timer))
 
 .status-list {
   display: grid;
-  grid-template-rows: repeat(8, 1fr);
-  height: 86%;
+  grid-template-rows: repeat(var(--rows, 8), minmax(0, 1fr));
+  min-height: 0;
 }
 
 .status-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 8.6cqw 8.6cqw;
   align-items: center;
-  gap: 0.5cqw;
+  gap: 0.55cqw;
   min-height: 0;
-  padding: 0.45cqw 0.7cqw;
+  padding: 0.2cqw var(--gutter);
   border-bottom: 0.08cqw solid rgb(255 255 255 / 50%);
 
   &:nth-child(even) {
@@ -241,20 +251,34 @@ onUnmounted(() => clearInterval(timer))
 }
 
 .org-name {
-  font-size: 1.18cqw;
+  display: flex;
+  align-items: center;
+  gap: 0.6cqw;
+  font-size: 1.3cqw;
   font-weight: 950;
   letter-spacing: 0.03em;
   white-space: nowrap;
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 0.09cqw;
+    background: repeating-linear-gradient(
+      90deg,
+      rgb(255 255 255 / 45%) 0 0.09cqw,
+      transparent 0.09cqw 0.36cqw
+    );
+  }
 }
 
 .badge,
 .unreported {
   display: grid;
   place-items: center;
-  min-height: 2.05cqw;
-  padding: 0.2cqw 0.25cqw;
+  min-height: 1.75cqw;
+  padding: 0.14cqw 0.3cqw;
   border: 0.1cqw solid currentColor;
-  font-size: 0.72cqw;
+  font-size: 0.8cqw;
   font-weight: 900;
   line-height: 1.15;
   text-align: center;
@@ -318,11 +342,9 @@ onUnmounted(() => clearInterval(timer))
   align-content: center;
   width: 100%;
   height: 100%;
-  border: 0.6cqw solid #f7f7f2;
   background:
     radial-gradient(circle, #777 0 0.09cqw, transparent 0.1cqw) 0 0 / 0.55cqw 0.55cqw,
     #171717;
-  box-shadow: inset 0 0 0 0.35cqw #050505;
 
   span {
     padding: 0.45cqw 1cqw;
@@ -369,7 +391,7 @@ onUnmounted(() => clearInterval(timer))
 
 .footer-text {
   width: 100%;
-  padding: 0 1.15cqw;
+  padding: 0 var(--gutter);
   overflow: hidden;
   font-size: 1.18cqw;
   font-weight: 950;
