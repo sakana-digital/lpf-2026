@@ -26,7 +26,6 @@ const title = computed(() => t(props.titleKey))
   top: var(--header-height);
   left: 0;
   right: 0;
-  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;

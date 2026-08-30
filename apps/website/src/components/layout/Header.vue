@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import IconLogo from '@/components/icons/IconLogo.vue'
 import IconSearch from '@/components/icons/IconSearch.vue'
 import IconExplore from '@/components/icons/IconExplore.vue'
 import Breadcrumb from './Breadcrumb.vue'
+import PageHeader from './PageHeader.vue'
 import DayBadge from './DayBadge.vue'
 import MenuDropdown from './MenuDropdown.vue'
 import ProgressiveBlur from '@/components/ui/ProgressiveBlur.vue'
 import { useSearch } from '@/stores/search'
 import { isDirectRootEntrance } from '@/lib/rootEntrance'
 
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { localePath } from '@/config/pages'
+import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue'
+import { isRootPath, localePath } from '@/config/pages'
 
+const route = useRoute()
 const { t, locale } = useI18n()
 const { open } = useSearch()
 
@@ -42,13 +45,20 @@ onBeforeUnmount(() => {
   screen.orientation?.removeEventListener('change', applyOrientation)
 })
 
+const pageTitleKey = computed(() => (isRootPath(route.path) ? undefined : route.meta.pageTitle))
+
+watchEffect(() => {
+  document.documentElement.toggleAttribute('data-page-header', !!pageTitleKey.value)
+})
+
 const homePath = computed(() => localePath('/', locale.value))
 const explorePath = computed(() => localePath('/explore/', locale.value))
 </script>
 
 <template>
-  <header class="header" :class="{ 'is-entrance': entrance }">
+  <header class="header" :class="{ 'is-entrance': entrance, 'has-page-header': pageTitleKey }">
     <ProgressiveBlur class="header-blur" :blur="3" />
+    <PageHeader v-if="pageTitleKey" :title-key="pageTitleKey" />
     <nav class="global-nav">
       <div class="header-breadcrumb">
         <RouterLink :to="homePath" class="logo"><IconLogo /></RouterLink>
@@ -84,11 +94,21 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
     top: 0;
     left: 0;
     right: 0;
-    height: 64px;
+    height: calc(var(--header-height) + 16px);
     z-index: -1;
 
     @media (max-width: 768px) {
       display: none;
+    }
+  }
+
+  &.has-page-header .header-blur {
+    height: calc(var(--header-height) + var(--page-title-height) + 16px);
+
+    @media (max-height: 500px) {
+      html[data-orientation^='landscape'] & {
+        height: calc(var(--header-height) + 16px);
+      }
     }
   }
 
