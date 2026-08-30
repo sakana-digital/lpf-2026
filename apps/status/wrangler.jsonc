@@ -28,9 +28,5 @@
       "binding": "SIGNAGE_MEDIA",
       "bucket_name": "happo-sai-signage",
     },
-    {
-      "bucket_name": "happo-sai-signage",
-      "binding": "happo_sai_signage",
-    },
   ],
 }

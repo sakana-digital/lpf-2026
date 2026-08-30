@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vp dev",
     "build": "vp build",
-    "dev:worker": "wrangler dev",
-    "cf-typegen": "wrangler types",
+    "dev:worker": "wrangler dev --no-types",
+    "cf-typegen": "wrangler types --include-runtime=false",
     "migrate": "wrangler d1 migrations apply happo-sai-status",
     "seed": "wrangler d1 execute happo-sai-status --local --file seed.example.sql",
     "test": "vitest run",

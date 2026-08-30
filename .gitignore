@@ -41,3 +41,5 @@ __screenshots__/
 # Wrangler
 .wrangler
 apps/status/seed.sql
+
+apps/status/worker-configuration.d.ts
