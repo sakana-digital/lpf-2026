@@ -100,6 +100,7 @@
       "noImage": "No Image",
       "location": "{floor}F",
       "viewSwitch": "Switch view",
+      "hint": "Shows details for each organization",
       "views": {
         "grid": "List",
         "graph": "Graph"

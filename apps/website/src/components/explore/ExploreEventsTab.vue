@@ -25,6 +25,10 @@ const viewOptions = computed(() =>
   views.map((v) => ({ value: v, label: t(`explore.events.views.${v}`) })),
 )
 
+const hintKey = computed(() =>
+  view.value === 'graph' ? 'explore.nodes.hint' : 'explore.events.hint',
+)
+
 const { selectedId, select } = useSelectedOrg()
 
 function setView(v: EventsView) {
@@ -44,15 +48,20 @@ function onSelect(id: string | null) {
       :model-value="view"
       :aria-label="t('explore.events.viewSwitch')"
       @update:model-value="setView"
-    />
+    >
+      <template #hint>{{ t(hintKey) }}</template>
+    </SegmentedSwitch>
 
-    <div v-if="view === 'grid'" class="grid-wrap">
-      <EventsGrid :selected-id="selectedId" :statuses="statuses" @select="onSelect">
-        <template #cell-actions="{ org }">
-          <BookmarkToggle v-if="org" :org-id="org.id" />
-        </template>
-      </EventsGrid>
-    </div>
+    <EventsGrid
+      v-if="view === 'grid'"
+      :selected-id="selectedId"
+      :statuses="statuses"
+      @select="onSelect"
+    >
+      <template #cell-actions="{ org }">
+        <BookmarkToggle v-if="org" :org-id="org.id" />
+      </template>
+    </EventsGrid>
     <OrgNodeGraph v-else :selected-id="selectedId" :statuses="statuses" @select="onSelect" />
   </div>
 </template>
@@ -62,11 +71,6 @@ function onSelect(id: string | null) {
   .view-switch {
     justify-content: flex-end;
     margin: 24px 16px 0;
-  }
-
-  .grid-wrap {
-    padding: 24px 16px 48px;
-    overflow-x: auto;
   }
 
   &.graph {

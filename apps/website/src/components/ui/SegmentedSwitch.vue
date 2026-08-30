@@ -9,6 +9,7 @@ defineEmits<{ 'update:modelValue': [value: T] }>()
 
 <template>
   <div class="segmented-switch" role="group">
+    <span v-if="$slots.hint" class="hint"><slot name="hint" /></span>
     <button
       type="button"
       v-for="option in options"
@@ -27,7 +28,15 @@ defineEmits<{ 'update:modelValue': [value: T] }>()
   display: flex;
   gap: 8px;
 
+  .hint {
+    margin-right: auto;
+    align-self: center;
+    color: var(--color-text-mute);
+    font-size: 11px;
+  }
+
   button {
+    flex-shrink: 0;
     padding: 6px 16px;
     border: 1px solid var(--color-border);
     background: transparent;

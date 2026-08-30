@@ -3,6 +3,11 @@ import type { Organization } from '@/config/organizations'
 
 export const EVENT_COLUMNS = classNumbers.length
 
+// Grid metrics shared with the CSS; GUTTER is both the row head width and the column head height
+export const GUTTER = 32
+export const GAP = 8
+export const INLINE_PADDING = 16
+
 export interface EventRow {
   id: string
   labelKey?: string
@@ -56,15 +61,20 @@ export function buildEventRows(orgs: Organization[]): EventRow[] {
   return rows
 }
 
-const EXPANDED_COLUMN = 'min(560px, 100vw - 32px)'
+// Narrow enough to clear the sticky row head
+const EXPANDED_COLUMN = `min(560px, 100vw - ${INLINE_PADDING * 2 + GUTTER + GAP}px)`
 
 // セル内余白 18px を除いた 4:3 画像の高さ + 見出し・ステータス・メタ分
 const EXPANDED_ROW = `calc((${EXPANDED_COLUMN} - 18px) * 3 / 4 + 110px)`
 
-// 非選択時の 1fr 相当幅（ガター 40px + 左右余白 32px + 8px ギャップ）を
-// px 系で表し，grid-template のトラック補間を効かせる
+// Room for the head and the status badges side by side
+const MIN_COLUMN = 128
+const BASE_ROW = 64
+
+// 非選択時の 1fr 相当幅を px 系で表し，grid-template のトラック補間を効かせる
 function baseColumn(count: number): string {
-  return `max(88px, calc((100vw - ${40 + 32 + 8 * count}px) / ${count}))`
+  const fixed = INLINE_PADDING * 2 + GUTTER + GAP * count
+  return `max(${MIN_COLUMN}px, calc((100vw - ${fixed}px) / ${count}))`
 }
 
 export function columnTracks(count: number, selected: number | null): string {
@@ -75,7 +85,7 @@ export function columnTracks(count: number, selected: number | null): string {
 
 export function rowTracks(rows: EventRow[], selected: number | null): string {
   return rows
-    .map((row, i) => (i === selected ? EXPANDED_ROW : row.spacer ? '32px' : '56px'))
+    .map((row, i) => (i === selected ? EXPANDED_ROW : row.spacer ? `${GUTTER}px` : `${BASE_ROW}px`))
     .join(' ')
 }
 
