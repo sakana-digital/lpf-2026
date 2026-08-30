@@ -135,7 +135,7 @@ onMounted(scrollSelectedIntoView)
 
 .events-grid {
   display: grid;
-  /* sticky な行見出しがトラック全幅を追随できるよう，はみ出す分まで箱を広げる */
+  /* Widen the box to the tracks so the sticky row head can travel the whole scroll */
   width: max-content;
   gap: var(--gap);
   transition:

@@ -100,7 +100,7 @@ const cellLabel = computed(() => (props.org ? organizationLabel(props.org, local
     text-align: left;
     cursor: pointer;
 
-    /* セル全体をクリック領域にする */
+    /* Stretch the hit area over the whole cell */
     &::after {
       content: '';
       position: absolute;
@@ -129,7 +129,7 @@ const cellLabel = computed(() => (props.org ? organizationLabel(props.org, local
   line-height: 1.2;
 }
 
-/* 詳細のうち操作要素だけを当たり判定より上に出す */
+/* Only the controls in the detail sit above that hit area */
 .cell :deep(.org-detail :is(a, button)) {
   position: relative;
 }

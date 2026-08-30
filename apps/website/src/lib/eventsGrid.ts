@@ -3,7 +3,7 @@ import type { Organization } from '@/config/organizations'
 
 export const EVENT_COLUMNS = classNumbers.length
 
-// CSS と共有するグリッド寸法．GUTTER は行見出しの幅と列見出しの高さの共通値
+// Grid metrics shared with the CSS; GUTTER is both the row head width and the column head height
 export const GUTTER = 32
 export const GAP = 8
 export const INLINE_PADDING = 16
@@ -61,13 +61,13 @@ export function buildEventRows(orgs: Organization[]): EventRow[] {
   return rows
 }
 
-// sticky な行見出しの下に潜り込まない幅に収める
+// Narrow enough to clear the sticky row head
 const EXPANDED_COLUMN = `min(560px, 100vw - ${INLINE_PADDING * 2 + GUTTER + GAP}px)`
 
 // セル内余白 18px を除いた 4:3 画像の高さ + 見出し・ステータス・メタ分
 const EXPANDED_ROW = `calc((${EXPANDED_COLUMN} - 18px) * 3 / 4 + 110px)`
 
-// 見出しとステータスバッジが並ぶだけの幅と高さ
+// Room for the head and the status badges side by side
 const MIN_COLUMN = 128
 const BASE_ROW = 64
 
