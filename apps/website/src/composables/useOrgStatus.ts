@@ -1,5 +1,6 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import type { OrgStatus } from '@shared/status'
+import { isFestivalDay } from '@/config/festival'
 
 const POLL_INTERVAL_MS = 60_000
 
@@ -29,6 +30,8 @@ function fetchStatuses(): Promise<void> {
     return Promise.resolve()
   }
   lastRequestAt = now
+  // Outside the festival days the API always answers with an empty list
+  if (!isFestivalDay()) return Promise.resolve()
   requestInFlight = requestStatuses().finally(() => {
     requestInFlight = undefined
   })
