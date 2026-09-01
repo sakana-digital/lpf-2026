@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { updateHiddenOrgs } from '@/lib/api'
-import { classOrgParams } from '@/lib/orgLabel'
+import { classOrgLabel } from '@/lib/orgLabel'
 
 const props = defineProps<{
   token: string
@@ -17,11 +17,6 @@ const saved = ref(false)
 const failed = ref(false)
 
 const shownCount = computed(() => props.orgs.filter((id) => !hidden.value.has(id)).length)
-
-function orgLabel(id: string): string {
-  const params = classOrgParams(id)
-  return params ? `${params.grade}年${params.classNo}組` : id
-}
 
 function toggle(id: string) {
   const next = new Set(hidden.value)
@@ -55,7 +50,7 @@ async function save() {
 
 <template>
   <section class="orgs-editor">
-    <h2>ステータスを表示する団体</h2>
+    <h2 class="section-label">ステータスを表示する団体</h2>
     <p class="hint">
       外した団体は公開サイトにステータスが出ません（{{ shownCount }} / {{ orgs.length }} 団体）
     </p>
@@ -67,13 +62,13 @@ async function save() {
       <li v-for="id in orgs" :key="id">
         <label>
           <input type="checkbox" :checked="!hidden.has(id)" @change="toggle(id)" />
-          <span>{{ orgLabel(id) }}</span>
+          <span>{{ classOrgLabel(id) }}</span>
         </label>
       </li>
     </ul>
     <p v-if="failed" class="result error" role="status">保存に失敗しました</p>
     <p v-else-if="saved" class="result" role="status">保存しました</p>
-    <button type="button" class="save" :disabled="saving" @click="save">
+    <button type="button" class="save outline-button" :disabled="saving" @click="save">
       {{ saving ? '保存中…' : '表示する団体を保存' }}
     </button>
   </section>
@@ -86,17 +81,12 @@ async function save() {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
 
-  h2 {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    color: var(--color-text-mute);
-  }
-
   .hint {
     margin-top: 2px;
-    font-size: 12px;
-    color: var(--color-text-mute);
+  }
+
+  .result {
+    margin: 12px auto 0;
   }
 
   .bulk {
@@ -108,9 +98,7 @@ async function save() {
       padding: 6px 12px;
       border: 1px solid var(--color-border);
       background: var(--color-surface-soft);
-      color: var(--color-text);
       font-size: 12px;
-      font-weight: 700;
       cursor: pointer;
 
       &:hover:not(:disabled) {
@@ -131,8 +119,8 @@ async function save() {
 
   .list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 4px 8px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 6px;
     margin-top: 12px;
     padding: 0;
     list-style: none;
@@ -140,64 +128,36 @@ async function save() {
     label {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 4px;
+      gap: 8px;
+      padding: 9px 10px;
+      border: 1px solid var(--color-border);
       font-size: 13px;
-      color: var(--color-text);
+      cursor: pointer;
 
-      input {
-        accent-color: var(--color-accent);
+      &:hover {
+        background: var(--color-surface-soft);
       }
-    }
-  }
 
-  .result {
-    margin: 12px auto 0;
-    padding: 6px 12px;
-    width: fit-content;
-    background: var(--color-status-good-soft);
-    color: var(--color-status-good);
-    font-size: 12px;
-    font-weight: 700;
-    text-align: center;
+      &:has(input:checked) {
+        border-color: var(--color-accent);
+        background: var(--color-accent);
+        color: var(--color-on-accent);
 
-    &.error {
-      background: var(--color-status-bad-soft);
-      color: var(--color-status-bad);
+        input {
+          accent-color: var(--color-on-accent);
+        }
+      }
+
+      &:has(input:focus-visible) {
+        outline: 2px solid var(--color-accent);
+        outline-offset: -2px;
+      }
     }
   }
 
   .save {
     width: 100%;
     margin-top: 16px;
-    padding: 12px 16px;
-    border: 1px solid var(--color-border);
-    color: var(--color-text);
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    cursor: pointer;
-    transition:
-      background 0.18s ease,
-      transform 0.1s ease;
-
-    &:hover:not(:disabled) {
-      background: var(--color-surface-soft);
-    }
-
-    &:active:not(:disabled) {
-      transform: scale(0.98);
-    }
-
-    &:focus-visible {
-      outline: 2px solid var(--color-accent);
-      outline-offset: 2px;
-    }
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
   }
 }
 </style>

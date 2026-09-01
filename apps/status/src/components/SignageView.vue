@@ -75,7 +75,7 @@ onUnmounted(() => clearInterval(timer))
 
   p {
     font-size: clamp(24px, 3vw, 54px);
-    font-weight: 900;
+    font-weight: var(--weight-black);
     letter-spacing: 0.12em;
   }
 

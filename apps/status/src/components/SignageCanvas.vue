@@ -2,7 +2,8 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { hidesCongestion } from '@shared/status'
 import type { OrgStatus, SignageConfig } from '@shared/status'
-import { classOrgParams } from '@/lib/orgLabel'
+import { classOrgLabel } from '@/lib/orgLabel'
+import { CONGESTION_LABELS, SIGNAGE_SALES_LABELS } from '@/lib/statusLabel'
 
 const props = withDefaults(
   defineProps<{
@@ -15,43 +16,22 @@ const props = withDefaults(
   { videoUrl: null, connected: true, preview: false },
 )
 
-const SALES_LABELS = {
-  available: '販売中',
-  paused: '販売休止',
-  partial: '一部完売',
-  low: '残りわずか',
-  soldout: '全て完売',
-} as const
-
-const CONGESTION_LABELS = {
-  low: '空いている',
-  medium: 'やや混雑',
-  high: '混雑',
-} as const
-
 const MIN_ROWS = 8
 const MAX_ROWS = 12
 const page = ref(0)
 const videoFailed = ref(false)
 let timer: ReturnType<typeof setInterval> | undefined
 
+const pageCount = computed(() => Math.max(1, Math.ceil(props.config.orgIds.length / MAX_ROWS)))
 // Spread organizations evenly so the last page is never nearly empty.
-const rows = computed(() => {
-  const pages = Math.max(1, Math.ceil(props.config.orgIds.length / MAX_ROWS))
-  const even = Math.ceil(props.config.orgIds.length / pages)
-  return Math.min(MAX_ROWS, Math.max(MIN_ROWS, even))
-})
-const pageCount = computed(() => Math.max(1, Math.ceil(props.config.orgIds.length / rows.value)))
+const rows = computed(() =>
+  Math.max(MIN_ROWS, Math.ceil(props.config.orgIds.length / pageCount.value)),
+)
 const visibleOrgIds = computed(() => {
   const start = page.value * rows.value
   return props.config.orgIds.slice(start, start + rows.value)
 })
 const statusMap = computed(() => new Map(props.statuses.map((status) => [status.orgId, status])))
-
-function orgLabel(id: string) {
-  const params = classOrgParams(id)
-  return params ? `${params.grade}年${params.classNo}組` : id
-}
 
 watch(
   () => props.config.orgIds.join('\0'),
@@ -90,10 +70,10 @@ onUnmounted(() => clearInterval(timer))
 
         <div class="status-list" :style="{ '--rows': rows }">
           <article v-for="orgId in visibleOrgIds" :key="orgId" class="status-row">
-            <strong class="org-name">{{ orgLabel(orgId) }}</strong>
+            <strong class="org-name">{{ classOrgLabel(orgId) }}</strong>
             <template v-if="statusMap.get(orgId)">
               <span class="badge sales" :class="`level-${statusMap.get(orgId)!.sales}`">
-                {{ SALES_LABELS[statusMap.get(orgId)!.sales] }}
+                {{ SIGNAGE_SALES_LABELS[statusMap.get(orgId)!.sales] }}
               </span>
               <span
                 v-if="
@@ -153,6 +133,7 @@ onUnmounted(() => clearInterval(timer))
   background: #050505;
   color: #f7f7f2;
   font-family: 'futura-pt', 'Futura', 'Noto Sans JP', sans-serif;
+  font-weight: var(--weight-black);
 
   &.preview {
     width: 100%;
@@ -169,9 +150,7 @@ onUnmounted(() => clearInterval(timer))
   grid-template-rows: minmax(0, 1fr) 8.9%;
   width: min(100vw, calc(100vh * 16 / 9));
   height: min(100vh, calc(100vw * 9 / 16));
-  overflow: hidden;
   border: 0.2cqw solid #f7f7f2;
-  background: #050505;
 
   .preview & {
     width: 100%;
@@ -180,7 +159,6 @@ onUnmounted(() => clearInterval(timer))
 }
 
 .status-panel {
-  position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   min-width: 0;
@@ -204,7 +182,6 @@ onUnmounted(() => clearInterval(timer))
 
   .eyebrow {
     font-size: 0.62cqw;
-    font-weight: 900;
     letter-spacing: 0.24em;
     line-height: 1;
   }
@@ -212,7 +189,7 @@ onUnmounted(() => clearInterval(timer))
   h1 {
     margin-top: 0.25cqw;
     font-size: 1.42cqw;
-    font-weight: 950;
+    font-weight: var(--weight-black);
     letter-spacing: 0.04em;
     line-height: 1;
   }
@@ -222,14 +199,12 @@ onUnmounted(() => clearInterval(timer))
   padding: 0.2cqw 0.45cqw;
   border: 0.1cqw solid #080808;
   font-size: 0.68cqw;
-  font-weight: 900;
   font-variant-numeric: tabular-nums;
 }
 
 .status-list {
   display: grid;
-  grid-template-rows: repeat(var(--rows, 8), minmax(0, 1fr));
-  min-height: 0;
+  grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
 }
 
 .status-row {
@@ -255,7 +230,7 @@ onUnmounted(() => clearInterval(timer))
   align-items: center;
   gap: 0.6cqw;
   font-size: 1.3cqw;
-  font-weight: 950;
+  font-weight: var(--weight-black);
   letter-spacing: 0.03em;
   white-space: nowrap;
 
@@ -279,7 +254,6 @@ onUnmounted(() => clearInterval(timer))
   padding: 0.14cqw 0.3cqw;
   border: 0.1cqw solid currentColor;
   font-size: 0.8cqw;
-  font-weight: 900;
   line-height: 1.15;
   text-align: center;
 }
@@ -323,7 +297,6 @@ onUnmounted(() => clearInterval(timer))
 .video-panel {
   position: relative;
   display: grid;
-  place-items: center;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -338,10 +311,8 @@ onUnmounted(() => clearInterval(timer))
 
 .video-fallback {
   display: grid;
-  place-items: center;
   align-content: center;
-  width: 100%;
-  height: 100%;
+  justify-items: center;
   background:
     radial-gradient(circle, #777 0 0.09cqw, transparent 0.1cqw) 0 0 / 0.55cqw 0.55cqw,
     #171717;
@@ -351,7 +322,6 @@ onUnmounted(() => clearInterval(timer))
     background: #f7f7f2;
     color: #050505;
     font-size: 2.2cqw;
-    font-weight: 950;
     letter-spacing: 0.18em;
   }
 
@@ -360,7 +330,6 @@ onUnmounted(() => clearInterval(timer))
     padding: 0.1cqw 0.4cqw;
     background: #050505;
     font-size: 0.72cqw;
-    font-weight: 900;
     letter-spacing: 0.35em;
   }
 }
@@ -374,7 +343,6 @@ onUnmounted(() => clearInterval(timer))
   background: #090909;
   color: #ff6f75;
   font-size: 0.62cqw;
-  font-weight: 900;
 }
 
 .signage-footer {
@@ -394,7 +362,6 @@ onUnmounted(() => clearInterval(timer))
   padding: 0 var(--gutter);
   overflow: hidden;
   font-size: 1.18cqw;
-  font-weight: 950;
   letter-spacing: 0.05em;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -415,7 +382,6 @@ onUnmounted(() => clearInterval(timer))
   flex-shrink: 0;
   align-items: center;
   gap: 1.1cqw;
-  min-width: max-content;
   animation: ticker 20s linear infinite;
 
   span {
@@ -423,7 +389,6 @@ onUnmounted(() => clearInterval(timer))
     background: #ff6f75;
     color: #050505;
     font-size: 0.85cqw;
-    font-weight: 950;
     letter-spacing: 0.12em;
   }
 
