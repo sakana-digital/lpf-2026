@@ -215,6 +215,11 @@ onMounted(() => {
 
 .about {
   text-align: center;
+  font-family: var(--font-display);
+
+  p {
+    font-family: inherit;
+  }
 
   .title {
     font-size: clamp(2rem, 6vw, 3rem);
@@ -275,8 +280,6 @@ onMounted(() => {
 
 .overview {
   .list {
-    font-family: var(--font-display);
-
     .row {
       display: grid;
       grid-template-columns: 120px 1fr;
