@@ -41,8 +41,12 @@ const loading = ref(true)
 const saving = ref(false)
 const saved = ref(false)
 const failed = ref(false)
-const viewerUrl = ref('')
+// Only the hash reaches D1, so the plain URL has to be kept on this device.
+const VIEWER_URL_KEY = 'signage-viewer-url'
+const viewerUrl = ref(localStorage.getItem(VIEWER_URL_KEY) ?? '')
 const issuingUrl = ref(false)
+const copied = ref(false)
+let copyTimer: ReturnType<typeof setTimeout> | undefined
 const uploadProgress = ref<number | null>(null)
 const uploadError = ref('')
 const activeUpload = ref<SignageUploadStartResponse | null>(null)
@@ -67,11 +71,11 @@ function toggleOrg(id: string) {
 
 function moveOrg(index: number, direction: -1 | 1) {
   const target = index + direction
-  if (target < 0 || target >= config.orgIds.length) return
-  const current = config.orgIds[index]
-  const other = config.orgIds[target]
-  if (!current || !other) return
-  config.orgIds.splice(index, 2, ...(direction === -1 ? [current, other] : [other, current]))
+  const moved = config.orgIds[index]
+  const swapped = config.orgIds[target]
+  if (moved === undefined || swapped === undefined) return
+  config.orgIds[index] = swapped
+  config.orgIds[target] = moved
 }
 
 async function load() {
@@ -121,6 +125,7 @@ async function issueUrl() {
   failed.value = false
   try {
     viewerUrl.value = (await issueSignageViewerToken(props.token)).url
+    localStorage.setItem(VIEWER_URL_KEY, viewerUrl.value)
   } catch {
     failed.value = true
   } finally {
@@ -131,6 +136,11 @@ async function issueUrl() {
 async function copyUrl() {
   if (!viewerUrl.value) return
   await navigator.clipboard.writeText(viewerUrl.value)
+  copied.value = true
+  clearTimeout(copyTimer)
+  copyTimer = setTimeout(() => {
+    copied.value = false
+  }, 2000)
 }
 
 async function retryPart(
@@ -214,7 +224,10 @@ function formatSize(bytes: number) {
 }
 
 onMounted(load)
-onUnmounted(cancelUpload)
+onUnmounted(() => {
+  cancelUpload()
+  clearTimeout(copyTimer)
+})
 </script>
 
 <template>
@@ -224,10 +237,10 @@ onUnmounted(cancelUpload)
       <div class="editor-grid">
         <div class="settings-column">
           <section class="block">
-            <div class="block-heading">
-              <h2>表示する団体</h2>
+            <h2 class="block-heading">
+              表示する団体
               <span>{{ config.orgIds.length }} 団体</span>
-            </div>
+            </h2>
             <div class="org-picker">
               <button
                 v-for="id in orgs"
@@ -257,10 +270,8 @@ onUnmounted(cancelUpload)
           </section>
 
           <section class="block">
-            <div class="block-heading">
-              <h2>フッター情報</h2>
-            </div>
-            <label class="field">
+            <h2 class="block-heading">フッター情報</h2>
+            <label class="field hint">
               <span>固定案内（{{ config.footerText.length }}/120）</span>
               <input v-model="config.footerText" maxlength="120" />
             </label>
@@ -268,16 +279,14 @@ onUnmounted(cancelUpload)
               <input v-model="config.alertEnabled" type="checkbox" />
               <span>速報を配信する</span>
             </label>
-            <label class="field">
+            <label class="field hint">
               <span>速報文（{{ config.alertText.length }}/200）</span>
               <textarea v-model="config.alertText" maxlength="200" rows="3" />
             </label>
           </section>
 
           <section class="block">
-            <div class="block-heading">
-              <h2>動画</h2>
-            </div>
+            <h2 class="block-heading">動画</h2>
             <label class="upload-button" :class="{ disabled: activeUpload }">
               MP4 をアップロード（最大 1 GiB）
               <input
@@ -316,17 +325,15 @@ onUnmounted(cancelUpload)
           </section>
 
           <section class="block">
-            <div class="block-heading">
-              <h2>閲覧 URL</h2>
-            </div>
+            <h2 class="block-heading">閲覧 URL</h2>
             <p class="hint">再発行すると、以前の URL と表示端末は無効になります。</p>
             <button type="button" class="issue" :disabled="issuingUrl" @click="issueUrl">
               {{ issuingUrl ? '発行中…' : viewerUrl ? '閲覧 URL を再発行' : '閲覧 URL を発行' }}
             </button>
-            <div v-if="viewerUrl" class="issued-url">
-              <input :value="viewerUrl" readonly />
-              <button type="button" @click="copyUrl">コピー</button>
-            </div>
+            <button v-if="viewerUrl" type="button" class="issued-url" @click="copyUrl">
+              <span>{{ viewerUrl }}</span>
+              <small>{{ copied ? 'コピーしました' : 'クリックでコピー' }}</small>
+            </button>
           </section>
         </div>
 
@@ -386,15 +393,13 @@ onUnmounted(cancelUpload)
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
-
-  h2 {
-    font-size: 18px;
-    line-height: 1.2;
-  }
+  font-size: 18px;
+  line-height: 1.2;
 
   > span {
     color: var(--color-text-mute);
     font-size: 11px;
+    font-weight: normal;
     letter-spacing: 0.12em;
   }
 }
@@ -455,8 +460,6 @@ onUnmounted(cancelUpload)
   display: grid;
   gap: 5px;
   margin-top: 12px;
-  color: var(--color-text-mute);
-  font-size: 12px;
 
   input,
   textarea {
@@ -578,18 +581,30 @@ onUnmounted(cancelUpload)
 
 .issued-url {
   display: grid;
-  grid-template-columns: 1fr auto;
+  gap: 4px;
+  width: 100%;
   margin-top: 8px;
+  padding: 9px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-soft);
+  font-size: 11px;
+  text-align: left;
+  word-break: break-all;
+  cursor: pointer;
 
-  input,
-  button {
-    min-width: 0;
-    padding: 9px;
-    border: 1px solid var(--color-border);
-    background: var(--color-surface-soft);
-    color: var(--color-text);
-    font-family: inherit;
-    font-size: 11px;
+  &:hover {
+    border-color: var(--color-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  small {
+    color: var(--color-text-mute);
+    font-size: 10px;
+    letter-spacing: 0.08em;
   }
 }
 

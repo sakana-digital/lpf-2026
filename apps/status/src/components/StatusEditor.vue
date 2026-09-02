@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { CONGESTION_LEVELS, SALES_STATUSES, hidesCongestion, isSubmitOpen } from '@shared/status'
 import type { CongestionLevel, OrgStatus, SalesStatus, SubmitWindows } from '@shared/status'
 import { ApiError, updateStatus } from '@/lib/api'
@@ -26,8 +26,8 @@ const current = computed(
 )
 const savedAt = computed(() => current.value?.updatedAt ?? null)
 
-const sales = ref<SalesStatus | null>(current.value?.sales ?? null)
-const congestion = ref<CongestionLevel | null>(current.value?.congestion ?? null)
+const sales = ref<SalesStatus | null>(null)
+const congestion = ref<CongestionLevel | null>(null)
 const saving = ref(false)
 const saveError = ref<string | null>(null)
 const justSaved = ref(false)
@@ -72,17 +72,16 @@ function scheduleResultClear() {
   }, RESULT_TIMEOUT_MS)
 }
 
-function applyOrgStatus() {
-  sales.value = current.value?.sales ?? null
-  congestion.value = current.value?.congestion ?? null
-  justSaved.value = false
-  saveError.value = null
-}
-
-function selectOrg(id: string) {
-  selectedOrg.value = id
-  applyOrgStatus()
-}
+watch(
+  selectedOrg,
+  () => {
+    sales.value = current.value?.sales ?? null
+    congestion.value = current.value?.congestion ?? null
+    justSaved.value = false
+    saveError.value = null
+  },
+  { immediate: true },
+)
 
 function selectSales(value: SalesStatus) {
   if (value === 'soldout' && sales.value !== 'soldout') {
@@ -143,7 +142,7 @@ onUnmounted(() => {
     <form @submit.prevent="submit">
       <label v-if="admin" class="org-select section-label">
         <span>団体</span>
-        <select v-model="selectedOrg" @change="applyOrgStatus">
+        <select v-model="selectedOrg">
           <option v-for="id in orgs" :key="id" :value="id">{{ classOrgLabel(id) }}</option>
         </select>
       </label>
@@ -154,7 +153,7 @@ onUnmounted(() => {
             type="button"
             :class="{ selected: selectedOrg === id }"
             :aria-pressed="selectedOrg === id"
-            @click="selectOrg(id)"
+            @click="selectedOrg = id"
           >
             {{ classOrgLabel(id) }}
           </button>
@@ -162,7 +161,7 @@ onUnmounted(() => {
       </ul>
 
       <div class="groups">
-        <p v-if="savedAt !== null" class="updated">
+        <p v-if="savedAt !== null" class="updated hint">
           最終更新 {{ savedTime }}（{{ elapsedLabel }}）
         </p>
 
@@ -229,8 +228,6 @@ onUnmounted(() => {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    color: var(--color-text-mute);
-    font-size: 12px;
     font-variant-numeric: tabular-nums;
 
     &::before {
@@ -264,12 +261,12 @@ onUnmounted(() => {
   .org-select {
     display: none;
     flex-direction: column;
+    gap: 6px;
+    text-align: center;
 
     @media (max-width: 560px) {
       display: flex;
     }
-    gap: 6px;
-    text-align: center;
 
     select {
       padding: 9px 12px;
@@ -291,15 +288,15 @@ onUnmounted(() => {
   .org-list {
     display: grid;
     align-content: start;
+    gap: 2px;
+    max-height: 420px;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
 
     @media (max-width: 560px) {
       display: none;
     }
-    gap: 2px;
-    padding: 0;
-    max-height: 420px;
-    overflow-y: auto;
-    list-style: none;
 
     button {
       width: 100%;

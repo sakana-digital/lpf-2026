@@ -1,4 +1,5 @@
-import type { ScheduleSlot } from '@/config/schedule'
+import { parseTime } from '@shared/schedule'
+import type { ScheduleSlot } from '@shared/schedule'
 
 export const SLOT_MINUTES = 5
 
@@ -10,11 +11,6 @@ export interface TimeAxis {
   endMinutes: number
   rowCount: number
   hourMarks: { label: string; row: number }[]
-}
-
-export function parseTime(time: string): number {
-  const [h = 0, m = 0] = time.split(':').map(Number)
-  return h * 60 + m
 }
 
 export function formatMinutes(minutes: number): string {

@@ -80,11 +80,11 @@ async function save() {
     <fieldset v-for="day in SUBMIT_DAYS" :key="day" class="day">
       <legend class="section-label">{{ DAY_LABELS[day] }}</legend>
       <div class="fields">
-        <label>
+        <label class="hint">
           <span>開始</span>
           <input v-model="fields[day].from" type="datetime-local" />
         </label>
-        <label>
+        <label class="hint">
           <span>終了</span>
           <input v-model="fields[day].until" type="datetime-local" />
         </label>
@@ -140,8 +140,6 @@ async function save() {
       flex-direction: column;
       gap: 4px;
       min-width: 0;
-      font-size: 12px;
-      color: var(--color-text-mute);
 
       input {
         width: 100%;

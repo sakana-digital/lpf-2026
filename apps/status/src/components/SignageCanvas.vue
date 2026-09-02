@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { hidesCongestion } from '@shared/status'
 import type { OrgStatus, SignageConfig } from '@shared/status'
 import { classOrgLabel } from '@/lib/orgLabel'
+import { clockOffset, footerMessages } from '@/lib/signageSchedule'
 import { CONGESTION_LABELS, SIGNAGE_SALES_LABELS } from '@/lib/statusLabel'
 
 const props = withDefaults(
@@ -18,11 +19,15 @@ const props = withDefaults(
 
 const MIN_ROWS = 8
 const MAX_ROWS = 12
-const page = ref(0)
+const ROTATE_MS = 10_000
+const tick = ref(0)
+const offset = typeof window === 'undefined' ? 0 : clockOffset(window.location.search)
+const now = ref(new Date(Date.now() + offset))
 const videoFailed = ref(false)
 let timer: ReturnType<typeof setInterval> | undefined
 
 const pageCount = computed(() => Math.max(1, Math.ceil(props.config.orgIds.length / MAX_ROWS)))
+const page = computed(() => tick.value % pageCount.value)
 // Spread organizations evenly so the last page is never nearly empty.
 const rows = computed(() =>
   Math.max(MIN_ROWS, Math.ceil(props.config.orgIds.length / pageCount.value)),
@@ -33,10 +38,19 @@ const visibleOrgIds = computed(() => {
 })
 const statusMap = computed(() => new Map(props.statuses.map((status) => [status.orgId, status])))
 
+// The alert wins over the timetable, which in turn wins over the fixed notice.
+const alerting = computed(() => props.config.alertEnabled && props.config.alertText !== '')
+const footer = computed(() => {
+  if (alerting.value) return props.config.alertText
+  const messages = footerMessages(now.value)
+  if (messages.length === 0) return props.config.footerText
+  return messages[tick.value % messages.length]!
+})
+
 watch(
   () => props.config.orgIds.join('\0'),
   () => {
-    page.value = 0
+    tick.value = 0
   },
 )
 
@@ -49,8 +63,9 @@ watch(
 
 onMounted(() => {
   timer = setInterval(() => {
-    page.value = (page.value + 1) % pageCount.value
-  }, 10_000)
+    tick.value += 1
+    now.value = new Date(Date.now() + offset)
+  }, ROTATE_MS)
 })
 
 onUnmounted(() => clearInterval(timer))
@@ -108,14 +123,12 @@ onUnmounted(() => clearInterval(timer))
         <span v-if="!connected" class="offline">通信を確認しています</span>
       </section>
 
-      <footer class="signage-footer">
-        <p class="footer-text">{{ config.footerText || 'INFORMATION' }}</p>
-        <div v-if="config.alertEnabled && config.alertText" class="alert-track">
-          <div class="alert-content">
-            <span>速報</span><strong>{{ config.alertText }}</strong>
-            <span aria-hidden="true">速報</span
-            ><strong aria-hidden="true">{{ config.alertText }}</strong>
-          </div>
+      <footer class="signage-footer" :class="{ alerting }">
+        <span class="label">INFORMATION</span>
+        <div class="ticker">
+          <p :key="footer" class="ticker-content">
+            <span v-if="alerting" class="alert">速報</span><strong>{{ footer }}</strong>
+          </p>
         </div>
       </footer>
     </div>
@@ -133,7 +146,7 @@ onUnmounted(() => clearInterval(timer))
   background: #050505;
   color: #f7f7f2;
   font-family: 'futura-pt', 'Futura', 'Noto Sans JP', sans-serif;
-  font-weight: var(--weight-black);
+  font-weight: var(--weight-bold);
 
   &.preview {
     width: 100%;
@@ -346,45 +359,50 @@ onUnmounted(() => clearInterval(timer))
 }
 
 .signage-footer {
-  position: relative;
   grid-column: 1 / -1;
   display: flex;
   align-items: center;
+  gap: 0.8cqw;
   min-width: 0;
+  padding-left: var(--gutter);
   overflow: hidden;
   border-top: 0.22cqw solid #f7f7f2;
   background: #f7f7f2;
   color: #050505;
+
+  .label {
+    flex-shrink: 0;
+    padding: 0.2cqw 0.6cqw;
+    background: #050505;
+    color: #f7f7f2;
+    font-size: 0.7cqw;
+    letter-spacing: 0.3em;
+  }
+
+  &.alerting .ticker {
+    background: #050505;
+    color: #f7f7f2;
+  }
 }
 
-.footer-text {
-  width: 100%;
-  padding: 0 var(--gutter);
-  overflow: hidden;
-  font-size: 1.18cqw;
-  letter-spacing: 0.05em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.alert-track {
-  position: absolute;
-  inset: 0;
+.ticker {
   display: flex;
+  flex: 1;
   align-items: center;
+  align-self: stretch;
+  min-width: 0;
   overflow: hidden;
-  background: #050505;
-  color: #f7f7f2;
 }
 
-.alert-content {
+.ticker-content {
   display: flex;
   flex-shrink: 0;
   align-items: center;
   gap: 1.1cqw;
-  animation: ticker 20s linear infinite;
+  padding-left: 100%;
+  animation: ticker 26s linear infinite;
 
-  span {
+  .alert {
     padding: 0.25cqw 0.6cqw;
     background: #ff6f75;
     color: #050505;
@@ -393,24 +411,22 @@ onUnmounted(() => clearInterval(timer))
   }
 
   strong {
-    min-width: 100cqw;
-    font-size: 1.15cqw;
-    letter-spacing: 0.08em;
+    font-size: 1.18cqw;
+    font-weight: inherit;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
   }
 }
 
 @keyframes ticker {
-  from {
-    transform: translateX(100cqw);
-  }
   to {
     transform: translateX(-100%);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .alert-content {
-    animation-duration: 60s;
+  .ticker-content {
+    animation-duration: 78s;
   }
 }
 </style>
