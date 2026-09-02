@@ -18,20 +18,15 @@ const props = defineProps<{
 const { t } = useI18n()
 
 const wrapper = ref<HTMLElement | null>(null)
-const { positions, gridWidth, gridHeight, laneWidth } = useMasonryLayout(
-  wrapper,
-  props.items.length,
-  {
-    laneWidth: LANE_MIN_WIDTH,
-    maxLaneWidth: LANE_MAX_WIDTH,
-    gap: LANE_GAP,
-    maxLanes: Math.min(3, props.items.length),
-    itemSelector: '.lane-item',
-  },
-)
+const { positions, gridHeight, laneWidth } = useMasonryLayout(wrapper, props.items.length, {
+  laneWidth: LANE_MIN_WIDTH,
+  maxLaneWidth: LANE_MAX_WIDTH,
+  gap: LANE_GAP,
+  maxLanes: Math.min(3, props.items.length),
+  itemSelector: '.lane-item',
+})
 
 const gridStyle = computed(() => ({
-  width: `${gridWidth.value}px`,
   height: `${gridHeight.value}px`,
 }))
 
@@ -76,7 +71,7 @@ onBeforeUnmount(() => stopEmbedObserver?.())
 
   .links-grid {
     position: relative;
-    margin: 0 auto;
+    width: 100%;
 
     .lane-item {
       position: absolute;
