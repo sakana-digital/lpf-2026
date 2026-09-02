@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { scheduleSlots, scheduleVenues } from '@/config/schedule'
-import type { ScheduleSlot } from '@/config/schedule'
-import { festivalDates, resolveFestivalDay } from '@/config/festival'
+import { localized } from '@shared/locale'
+import {
+  daySlots,
+  festivalDates,
+  scheduleVenues,
+  slotDisplayName,
+  venueLabels,
+} from '@shared/schedule'
+import type { FestivalDay, ScheduleSlot } from '@shared/schedule'
+import { resolveFestivalDay } from '@/config/festival'
 import { getOrganization, organizationName } from '@/config/organizations'
 import { buildTimeAxis, slotRows } from '@/lib/scheduleGrid'
 import { useOrgStatus } from '@/composables/useOrgStatus'
@@ -16,12 +23,12 @@ const { t, locale } = useI18n()
 const { statuses } = useOrgStatus()
 
 const days = [1, 2] as const
-const day = ref<1 | 2>(resolveFestivalDay() === 2 ? 2 : 1)
+const day = ref<FestivalDay>(resolveFestivalDay() === 2 ? 2 : 1)
 
 const dayOptions = computed(() => days.map((d) => ({ value: d, label: dayLabel(d) })))
 
-const daySlots = computed(() => scheduleSlots.filter((slot) => slot.day === day.value))
-const axis = computed(() => buildTimeAxis(daySlots.value))
+const slots = computed(() => daySlots(day.value))
+const axis = computed(() => buildTimeAxis(slots.value))
 
 const { selectedId, toggle } = useSelectedOrg()
 
@@ -54,13 +61,13 @@ async function onSlotClick(slot: ScheduleSlot) {
     ?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
 }
 
-function dayLabel(d: 1 | 2): string {
+function dayLabel(d: FestivalDay): string {
   const [, month = '', dayNum = ''] = (festivalDates[d - 1] ?? '').split('-')
   return t('explore.schedule.dayLabel', { day: d, date: `${Number(month)}/${Number(dayNum)}` })
 }
 
 function slotTitle(slot: ScheduleSlot): string {
-  return slot.titleKey ? t(slot.titleKey) : ''
+  return slotDisplayName(slot, locale.value)
 }
 
 function slotStyle(slot: ScheduleSlot) {
@@ -81,7 +88,7 @@ function slotStyle(slot: ScheduleSlot) {
       :aria-label="t('explore.schedule.daySwitch')"
     />
 
-    <p v-if="daySlots.length === 0" class="empty">{{ t('explore.schedule.empty') }}</p>
+    <p v-if="slots.length === 0" class="empty">{{ t('explore.schedule.empty') }}</p>
 
     <div
       ref="gridRef"
@@ -96,7 +103,7 @@ function slotStyle(slot: ScheduleSlot) {
         class="venue-head"
         :style="{ gridColumn: i + 2 }"
       >
-        {{ t(`explore.schedule.venues.${venue}`) }}
+        {{ localized(venueLabels[venue], locale) }}
       </div>
 
       <template v-for="mark in axis.hourMarks" :key="mark.row">
@@ -104,7 +111,7 @@ function slotStyle(slot: ScheduleSlot) {
         <span class="rule" :style="{ gridRow: mark.row + 1 }" aria-hidden="true"></span>
       </template>
 
-      <template v-for="slot in daySlots" :key="slot.id">
+      <template v-for="slot in slots" :key="slot.id">
         <div
           v-if="slot.organizationId"
           class="slot linked"

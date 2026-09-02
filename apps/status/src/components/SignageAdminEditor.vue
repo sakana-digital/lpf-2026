@@ -18,7 +18,7 @@ import {
   updateSignageConfig,
   uploadSignagePart,
 } from '@/lib/api'
-import { classOrgParams } from '@/lib/orgLabel'
+import { classOrgLabel } from '@/lib/orgLabel'
 import SignageCanvas from '@/components/SignageCanvas.vue'
 
 const props = defineProps<{
@@ -41,8 +41,12 @@ const loading = ref(true)
 const saving = ref(false)
 const saved = ref(false)
 const failed = ref(false)
-const viewerUrl = ref('')
+// Only the hash reaches D1, so the plain URL has to be kept on this device.
+const VIEWER_URL_KEY = 'signage-viewer-url'
+const viewerUrl = ref(localStorage.getItem(VIEWER_URL_KEY) ?? '')
 const issuingUrl = ref(false)
+const copied = ref(false)
+let copyTimer: ReturnType<typeof setTimeout> | undefined
 const uploadProgress = ref<number | null>(null)
 const uploadError = ref('')
 const activeUpload = ref<SignageUploadStartResponse | null>(null)
@@ -51,11 +55,6 @@ let uploadController: AbortController | null = null
 const previewVideoUrl = computed(() =>
   config.activeVideoKey ? `/api/signage/video/${encodeURIComponent(config.activeVideoKey)}` : null,
 )
-
-function orgLabel(id: string) {
-  const params = classOrgParams(id)
-  return params ? `${params.grade}年${params.classNo}組` : id
-}
 
 function isSelected(id: string) {
   return config.orgIds.includes(id)
@@ -72,11 +71,11 @@ function toggleOrg(id: string) {
 
 function moveOrg(index: number, direction: -1 | 1) {
   const target = index + direction
-  if (target < 0 || target >= config.orgIds.length) return
-  const current = config.orgIds[index]
-  const other = config.orgIds[target]
-  if (!current || !other) return
-  config.orgIds.splice(index, 2, ...(direction === -1 ? [current, other] : [other, current]))
+  const moved = config.orgIds[index]
+  const swapped = config.orgIds[target]
+  if (moved === undefined || swapped === undefined) return
+  config.orgIds[index] = swapped
+  config.orgIds[target] = moved
 }
 
 async function load() {
@@ -126,6 +125,7 @@ async function issueUrl() {
   failed.value = false
   try {
     viewerUrl.value = (await issueSignageViewerToken(props.token)).url
+    localStorage.setItem(VIEWER_URL_KEY, viewerUrl.value)
   } catch {
     failed.value = true
   } finally {
@@ -136,6 +136,11 @@ async function issueUrl() {
 async function copyUrl() {
   if (!viewerUrl.value) return
   await navigator.clipboard.writeText(viewerUrl.value)
+  copied.value = true
+  clearTimeout(copyTimer)
+  copyTimer = setTimeout(() => {
+    copied.value = false
+  }, 2000)
 }
 
 async function retryPart(
@@ -219,7 +224,10 @@ function formatSize(bytes: number) {
 }
 
 onMounted(load)
-onUnmounted(cancelUpload)
+onUnmounted(() => {
+  cancelUpload()
+  clearTimeout(copyTimer)
+})
 </script>
 
 <template>
@@ -229,13 +237,10 @@ onUnmounted(cancelUpload)
       <div class="editor-grid">
         <div class="settings-column">
           <section class="block">
-            <div class="block-heading">
-              <div>
-                <p class="index">01 / ORGANIZATIONS</p>
-                <h2>表示する団体</h2>
-              </div>
+            <h2 class="block-heading">
+              表示する団体
               <span>{{ config.orgIds.length }} 団体</span>
-            </div>
+            </h2>
             <div class="org-picker">
               <button
                 v-for="id in orgs"
@@ -245,13 +250,13 @@ onUnmounted(cancelUpload)
                 :aria-pressed="isSelected(id)"
                 @click="toggleOrg(id)"
               >
-                {{ orgLabel(id) }}
+                {{ classOrgLabel(id) }}
               </button>
             </div>
             <ol class="org-order">
               <li v-for="(id, index) in config.orgIds" :key="id">
                 <span>{{ String(index + 1).padStart(2, '0') }}</span>
-                <strong>{{ orgLabel(id) }}</strong>
+                <strong>{{ classOrgLabel(id) }}</strong>
                 <button type="button" :disabled="index === 0" @click="moveOrg(index, -1)">↑</button>
                 <button
                   type="button"
@@ -265,13 +270,8 @@ onUnmounted(cancelUpload)
           </section>
 
           <section class="block">
-            <div class="block-heading">
-              <div>
-                <p class="index">02 / INFORMATION</p>
-                <h2>フッター情報</h2>
-              </div>
-            </div>
-            <label class="field">
+            <h2 class="block-heading">フッター情報</h2>
+            <label class="field hint">
               <span>固定案内（{{ config.footerText.length }}/120）</span>
               <input v-model="config.footerText" maxlength="120" />
             </label>
@@ -279,19 +279,14 @@ onUnmounted(cancelUpload)
               <input v-model="config.alertEnabled" type="checkbox" />
               <span>速報を配信する</span>
             </label>
-            <label class="field">
+            <label class="field hint">
               <span>速報文（{{ config.alertText.length }}/200）</span>
               <textarea v-model="config.alertText" maxlength="200" rows="3" />
             </label>
           </section>
 
           <section class="block">
-            <div class="block-heading">
-              <div>
-                <p class="index">03 / VIDEO</p>
-                <h2>R2 動画</h2>
-              </div>
-            </div>
+            <h2 class="block-heading">動画</h2>
             <label class="upload-button" :class="{ disabled: activeUpload }">
               MP4 をアップロード（最大 1 GiB）
               <input
@@ -306,7 +301,7 @@ onUnmounted(cancelUpload)
               <span>{{ uploadProgress }}%</span>
               <button type="button" @click="cancelUpload">中止</button>
             </div>
-            <p v-if="uploadError" class="message error">{{ uploadError }}</p>
+            <p v-if="uploadError" class="result error">{{ uploadError }}</p>
             <div class="video-list">
               <label class="video-item none">
                 <input v-model="config.activeVideoKey" type="radio" :value="null" />
@@ -330,25 +325,20 @@ onUnmounted(cancelUpload)
           </section>
 
           <section class="block">
-            <div class="block-heading">
-              <div>
-                <p class="index">04 / ACCESS</p>
-                <h2>閲覧 URL</h2>
-              </div>
-            </div>
+            <h2 class="block-heading">閲覧 URL</h2>
             <p class="hint">再発行すると、以前の URL と表示端末は無効になります。</p>
             <button type="button" class="issue" :disabled="issuingUrl" @click="issueUrl">
               {{ issuingUrl ? '発行中…' : viewerUrl ? '閲覧 URL を再発行' : '閲覧 URL を発行' }}
             </button>
-            <div v-if="viewerUrl" class="issued-url">
-              <input :value="viewerUrl" readonly />
-              <button type="button" @click="copyUrl">コピー</button>
-            </div>
+            <button v-if="viewerUrl" type="button" class="issued-url" @click="copyUrl">
+              <span>{{ viewerUrl }}</span>
+              <small>{{ copied ? 'コピーしました' : 'クリックでコピー' }}</small>
+            </button>
           </section>
         </div>
 
         <aside class="preview-column">
-          <p>LIVE PREVIEW / 16:9</p>
+          <p class="section-label">プレビュー</p>
           <SignageCanvas
             :config="config"
             :statuses="statuses"
@@ -359,8 +349,8 @@ onUnmounted(cancelUpload)
       </div>
 
       <div class="save-bar">
-        <p v-if="failed" class="message error">保存または取得に失敗しました</p>
-        <p v-else-if="saved" class="message">保存しました</p>
+        <p v-if="failed" class="result error">保存または取得に失敗しました</p>
+        <p v-else-if="saved" class="result">保存しました</p>
         <button type="button" :disabled="saving || config.orgIds.length === 0" @click="save">
           {{ saving ? '保存中…' : 'サイネージ設定を保存' }}
         </button>
@@ -370,10 +360,6 @@ onUnmounted(cancelUpload)
 </template>
 
 <style scoped>
-.signage-editor {
-  color: var(--color-text);
-}
-
 .editor-notice,
 .block,
 .preview-column,
@@ -407,19 +393,13 @@ onUnmounted(cancelUpload)
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid var(--color-text);
+  font-size: 18px;
+  line-height: 1.2;
 
-  h2 {
-    font-size: 18px;
-    line-height: 1.2;
-  }
-
-  > span,
-  .index {
+  > span {
     color: var(--color-text-mute);
     font-size: 11px;
-    font-weight: 800;
+    font-weight: normal;
     letter-spacing: 0.12em;
   }
 }
@@ -439,7 +419,6 @@ onUnmounted(cancelUpload)
       border-color: var(--color-text);
       background: var(--color-text);
       color: var(--color-background);
-      font-weight: 800;
     }
   }
 }
@@ -481,9 +460,6 @@ onUnmounted(cancelUpload)
   display: grid;
   gap: 5px;
   margin-top: 12px;
-  color: var(--color-text-mute);
-  font-size: 12px;
-  font-weight: 700;
 
   input,
   textarea {
@@ -503,7 +479,7 @@ onUnmounted(cancelUpload)
   gap: 8px;
   margin-top: 14px;
   font-size: 13px;
-  font-weight: 700;
+  cursor: pointer;
 }
 
 .upload-button,
@@ -514,7 +490,7 @@ onUnmounted(cancelUpload)
   background: var(--color-text);
   color: var(--color-background);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: var(--weight-bold);
   text-align: center;
   cursor: pointer;
 
@@ -572,6 +548,7 @@ onUnmounted(cancelUpload)
   padding: 8px 10px;
   border: 1px solid var(--color-border);
   font-size: 12px;
+  cursor: pointer;
 
   > span {
     display: grid;
@@ -600,24 +577,29 @@ onUnmounted(cancelUpload)
 
 .hint {
   margin-bottom: 10px;
-  color: var(--color-text-mute);
-  font-size: 12px;
 }
 
 .issued-url {
   display: grid;
-  grid-template-columns: 1fr auto;
+  gap: 4px;
+  width: 100%;
   margin-top: 8px;
+  padding: 9px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-soft);
+  font-size: 11px;
+  text-align: left;
+  word-break: break-all;
+  cursor: pointer;
 
-  input,
-  button {
-    min-width: 0;
-    padding: 9px;
-    border: 1px solid var(--color-border);
-    background: var(--color-surface-soft);
-    color: var(--color-text);
-    font: inherit;
-    font-size: 11px;
+  &:hover {
+    border-color: var(--color-text);
+  }
+
+  small {
+    color: var(--color-text-mute);
+    font-size: 10px;
+    letter-spacing: 0.08em;
   }
 }
 
@@ -629,10 +611,6 @@ onUnmounted(cancelUpload)
 
   > p {
     margin-bottom: 8px;
-    color: var(--color-text-mute);
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.14em;
   }
 }
 
@@ -652,21 +630,10 @@ onUnmounted(cancelUpload)
     border: 1px solid var(--color-text);
     background: var(--color-text);
     color: var(--color-background);
-    font-weight: 800;
 
     &:disabled {
       opacity: 0.4;
     }
-  }
-}
-
-.message {
-  color: var(--color-status-good);
-  font-size: 12px;
-  font-weight: 700;
-
-  &.error {
-    color: var(--color-status-bad);
   }
 }
 

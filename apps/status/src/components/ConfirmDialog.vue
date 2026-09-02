@@ -49,7 +49,6 @@ function onClose() {
 
   .message {
     font-size: 14px;
-    font-weight: 600;
     line-height: 1.7;
   }
 
@@ -62,7 +61,6 @@ function onClose() {
     button {
       padding: 11px 4px;
       font-size: 14px;
-      font-weight: 700;
       cursor: pointer;
       transition:
         background 0.18s ease,
@@ -70,11 +68,6 @@ function onClose() {
 
       &:active {
         transform: scale(0.96);
-      }
-
-      &:focus-visible {
-        outline: 2px solid var(--color-accent);
-        outline-offset: 2px;
       }
     }
 

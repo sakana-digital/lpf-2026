@@ -6,8 +6,11 @@ import {
   committeeNumbers,
   committeeOrgId,
   grades,
+  organizationNames,
 } from '@shared/organizations'
 import type { ClassNumber, Grade } from '@shared/organizations'
+import { localized } from '@shared/locale'
+import type { LocalizedText } from '@shared/locale'
 
 export { classNumbers, grades }
 export type { ClassNumber, Grade }
@@ -21,8 +24,8 @@ export interface VenueLocation {
 
 interface OrganizationBase {
   id: string
-  name: string
-  nameEn?: string
+  /** 名前が決まっていない団体は未設定のまま。 */
+  name?: LocalizedText
   location?: VenueLocation
   image?: string
 }
@@ -45,31 +48,28 @@ export interface CommitteeOrganization extends OrganizationBase {
 export type Organization = ClassOrganization | ClubOrganization | CommitteeOrganization
 
 interface OrganizationProfile {
-  name?: string
-  nameEn?: string
   group?: string
   image?: string
 }
 
-// Organization ids live in shared/; only what the site displays belongs here.
+// Ids and names live in shared/; only what the site alone renders belongs here.
 const profiles: Record<string, OrganizationProfile> = {}
 
-function profileOf(id: string): OrganizationProfile {
-  return profiles[id] ?? {}
+function profileOf(id: string) {
+  return { name: organizationNames[id], ...profiles[id] }
 }
 
 function cls(grade: Grade, classNo: ClassNumber): ClassOrganization {
   // 1年が最上階 (4F) で，学年が上がるほど下の階になる
   const floor = (5 - grade) as Floor
   const id = classOrgId(grade, classNo)
-  const { name = '', nameEn, image } = profileOf(id)
+  const { name, image } = profileOf(id)
   return {
     kind: 'class',
     id,
     grade,
     classNo,
     name,
-    nameEn,
     image,
     location: { floor, room: `r${floor}0${classNo}` },
   }
@@ -77,14 +77,14 @@ function cls(grade: Grade, classNo: ClassNumber): ClassOrganization {
 
 function club(no: number): ClubOrganization {
   const id = clubOrgId(no)
-  const { name = '', nameEn, group = '', image } = profileOf(id)
-  return { kind: 'club', id, group, name, nameEn, image }
+  const { name, group = '', image } = profileOf(id)
+  return { kind: 'club', id, group, name, image }
 }
 
 function committee(no: number): CommitteeOrganization {
   const id = committeeOrgId(no)
-  const { name = '', nameEn, image } = profileOf(id)
-  return { kind: 'committee', id, name, nameEn, image }
+  const { name, image } = profileOf(id)
+  return { kind: 'committee', id, name, image }
 }
 
 export const organizations: Organization[] = [
@@ -102,7 +102,7 @@ export function getOrganizationByRoom(room: string): Organization | undefined {
 }
 
 export function organizationName(org: Organization, locale: string): string {
-  return (locale === 'en' && org.nameEn) || org.name
+  return localized(org.name, locale)
 }
 
 /**

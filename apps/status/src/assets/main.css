@@ -11,13 +11,14 @@ html {
   --color-status-good: oklch(72.428% 0.15175 158.84);
   --color-status-good-soft: oklch(72% 0.17 152.505 / 0.16);
   --color-status-warn: oklch(82% 0.16 75);
-  --color-status-warn-soft: oklch(82% 0.16 75 / 0.18);
   --color-status-bad: oklch(68% 0.23 10.492);
   --color-status-bad-soft: oklch(68% 0.23 10.492 / 0.16);
   --color-status-soldout: oklch(52% 0.22 27);
   --color-status-pause: oklch(72% 0.19 55);
   --color-on-status: oklch(15% 0.02 260);
   --color-on-status-warn: oklch(25% 0.06 75);
+  --weight-bold: 700;
+  --weight-black: 900;
 }
 
 *,
@@ -28,12 +29,81 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
+input[type='checkbox'],
+input[type='radio'] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
 button {
   font-family: inherit;
+  font-weight: var(--weight-bold);
   color: inherit;
   border: none;
   background: transparent;
   appearance: none;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* チェックボックスとラジオはラベル側で囲うので、ブラウザ既定に任せる。 */
+:is(button, select, textarea, input:not([type='checkbox'], [type='radio'])):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.section-label {
+  color: var(--color-text-mute);
+  font-size: 13px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.06em;
+}
+
+.hint {
+  color: var(--color-text-mute);
+  font-size: 12px;
+}
+
+.outline-button {
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    transform 0.1s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--color-surface-soft);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+  }
+}
+
+.result {
+  width: fit-content;
+  padding: 6px 12px;
+  background: var(--color-status-good-soft);
+  color: var(--color-status-good);
+  font-size: 12px;
+  font-weight: var(--weight-bold);
+  text-align: center;
+
+  &.error {
+    background: var(--color-status-bad-soft);
+    color: var(--color-status-bad);
+  }
 }
 
 body {

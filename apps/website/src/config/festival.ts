@@ -1,25 +1,20 @@
-export const festivalDates = ['2026-09-26', '2026-09-27'] as const
+import { festivalDates, festivalNow, jstDate } from '@shared/schedule'
+import type { FestivalDay } from '@shared/schedule'
 
 const firstDate = festivalDates[0]
 const lastDate = festivalDates[festivalDates.length - 1]!
 
-export type FestivalDay = 1 | 2 | 'ended'
+export type FestivalPhase = FestivalDay | 'ended'
 
-function todayInJst(): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(new Date())
-}
-
-export function resolveFestivalDay(): FestivalDay | null {
-  const today = todayInJst()
-  const index = festivalDates.indexOf(today as (typeof festivalDates)[number])
-  if (index !== -1) return (index + 1) as FestivalDay
-  if (today > lastDate) return 'ended'
-  return null
+export function resolveFestivalDay(): FestivalPhase | null {
+  const now = new Date()
+  const today = festivalNow(now)
+  if (today) return today.day
+  return jstDate(now) > lastDate ? 'ended' : null
 }
 
 export function isFestivalDay(): boolean {
-  const day = resolveFestivalDay()
-  return day === 1 || day === 2
+  return festivalNow(new Date()) !== null
 }
 
 function weekday(date: string, locale: string): string {

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { SignagePayload } from '@shared/status'
+import { clockOffset } from '@/lib/signageSchedule'
 import SignageCanvas from '@/components/SignageCanvas.vue'
 
+const offset = clockOffset(window.location.search)
 const payload = ref<SignagePayload | null>(null)
 const failures = ref(0)
 const unauthorized = ref(false)
@@ -44,6 +46,7 @@ onUnmounted(() => clearInterval(timer))
     :statuses="payload.statuses"
     :video-url="videoUrl"
     :connected="failures < 2"
+    :clock-offset="offset"
   />
   <main v-else class="signage-loading">
     <div>
@@ -75,7 +78,7 @@ onUnmounted(() => clearInterval(timer))
 
   p {
     font-size: clamp(24px, 3vw, 54px);
-    font-weight: 900;
+    font-weight: var(--weight-black);
     letter-spacing: 0.12em;
   }
 
