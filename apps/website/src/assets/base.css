@@ -24,8 +24,7 @@
 
   --vt-c-indigo: oklch(35.64% 0.0391 248.97);
 
-  --vt-c-accent: oklch(61.528% 0.19605 260.671);
-  --vt-c-orange: oklch(72% 0.18 55);
+  --vt-c-accent: oklch(68% 0.19 45);
 
   --vt-c-divider-light-1: oklch(35.62% 0 0 / 0.29);
   --vt-c-divider-light-2: oklch(35.62% 0 0 / 0.12);
@@ -60,8 +59,7 @@ html[data-theme='light'] {
   --color-text: var(--vt-c-text-light-1);
   --color-text-mute: var(--vt-c-text-light-2);
   --color-accent: var(--vt-c-accent);
-  --color-notice: var(--vt-c-orange);
-  --color-notice-text: var(--vt-c-black);
+  --color-accent-text: var(--vt-c-black);
 
   --progressive-blur-brightness: 1;
   --progressive-blur-veil-strong: rgb(255 255 255 / 0.13);
@@ -80,8 +78,7 @@ html[data-theme='dark'] {
   --color-text: var(--vt-c-text-dark-1);
   --color-text-mute: var(--vt-c-text-dark-2);
   --color-accent: var(--vt-c-accent);
-  --color-notice: var(--vt-c-orange);
-  --color-notice-text: var(--vt-c-black);
+  --color-accent-text: var(--vt-c-black);
 
   --progressive-blur-brightness: 0.92;
   --progressive-blur-veil-strong: rgb(0 0 0 / 0.13);

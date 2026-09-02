@@ -47,8 +47,8 @@ function dismiss() {
   gap: 12px;
   max-width: calc(100vw - 32px);
   padding: 14px 18px;
-  background: var(--color-notice);
-  color: var(--color-notice-text);
+  background: var(--color-accent);
+  color: var(--color-accent-text);
   box-shadow: 0 8px 28px oklch(0% 0 0 / 0.28);
 
   @media (max-width: 600px) {
@@ -89,7 +89,7 @@ function dismiss() {
   }
 
   :focus-visible {
-    outline-color: var(--color-notice-text);
+    outline-color: var(--color-accent-text);
   }
 }
 
