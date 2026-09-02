@@ -24,6 +24,11 @@ const ESTIMATED_HEIGHT = 480
  * Shortest-column masonry via absolute positioning. Items stay put in the DOM
  * and are only moved with transforms, so the embeds inside them are never
  * re-created (and never reload) when the lane count changes on resize.
+ *
+ * The lanes are centred through the item positions rather than by giving the
+ * container an explicit pixel width: a fixed width on the measured element
+ * feeds its own intrinsic size back into ancestors that size to content, which
+ * pins the measurement to the widest lane layout and never lets it shrink.
  */
 export function useMasonryLayout(
   container: Ref<HTMLElement | null>,
@@ -71,6 +76,10 @@ export function useMasonryLayout(
     return Math.min(maxLaneWidth, available)
   })
 
+  const gridWidth = computed(() => count.value * laneWidth.value + (count.value - 1) * gap)
+
+  const offsetX = computed(() => Math.max(0, (containerWidth.value - gridWidth.value) / 2))
+
   // Each item goes to the shortest column so lanes stay level; ties take the
   // leftmost, which keeps the initial (equal-height) pass in source order.
   const layout = computed(() => {
@@ -82,15 +91,13 @@ export function useMasonryLayout(
         if ((columnHeights[c] ?? 0) < (columnHeights[col] ?? 0)) col = c
       }
       const y = columnHeights[col] ?? 0
-      positions.push({ x: col * (laneWidth.value + gap), y })
+      positions.push({ x: offsetX.value + col * (laneWidth.value + gap), y })
       columnHeights[col] = y + (heights.value[i] ?? ESTIMATED_HEIGHT) + gap
     }
     return { positions, columnHeights }
   })
 
   const positions = computed(() => layout.value.positions)
-
-  const gridWidth = computed(() => count.value * laneWidth.value + (count.value - 1) * gap)
 
   const gridHeight = computed(() => Math.max(0, ...layout.value.columnHeights.map((h) => h - gap)))
 
