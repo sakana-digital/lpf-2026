@@ -8,7 +8,7 @@ import NewsLinksGrid from '@/components/news/NewsLinksGrid.vue'
 import { consumeDirectRootEntrance } from '@/lib/rootEntrance'
 import { formatFestivalPeriod } from '@/config/festival'
 import { newsLinks } from '@/config/newsLinks'
-import { mapUrl, schoolFestivalUrl } from '@/config/social'
+import { mapUrl, schoolUrl } from '@/config/social'
 import { localePath } from '@/config/pages'
 
 const { t, tm, rt, locale } = useI18n()
@@ -107,8 +107,8 @@ onMounted(() => {
         <li>
           <i18n-t keypath="home.notes.cancellation.text" tag="span">
             <template #link>
-              <a :href="schoolFestivalUrl" target="_blank" rel="noopener noreferrer">
-                {{ t('home.notes.cancellation.link') }}
+              <a :href="schoolUrl" target="_blank" rel="noopener noreferrer">
+                {{ t('home.notes.cancellation.linkText') }}
               </a>
             </template>
           </i18n-t>

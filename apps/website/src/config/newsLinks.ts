@@ -1,5 +1,3 @@
-import { schoolFestivalUrl } from './social'
-
 export type NewsItem =
   | { type: 'instagram'; url: string }
   | { type: 'link'; url: string; titleKey: string; source: 'school' }
@@ -8,7 +6,7 @@ export type NewsItem =
 const news: NewsItem[] = [
   {
     type: 'link',
-    url: schoolFestivalUrl,
+    url: 'https://www.pen-kanagawa.ed.jp/kanagawasogosangyo-h/zennichi/seikatsu/bunkasai.html',
     titleKey: 'news.links.bunkasai',
     source: 'school',
   },

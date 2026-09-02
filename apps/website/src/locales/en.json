@@ -178,7 +178,7 @@
       ],
       "cancellation": {
         "text": "If the festival is called off due to unforeseen circumstances, we will announce it on the {link}.",
-        "link": "school's official website"
+        "linkText": "school's official website"
       }
     },
     "contact": {
