@@ -43,44 +43,58 @@ function dismiss() {
   bottom: max(24px, env(safe-area-inset-bottom));
   z-index: 160;
   display: flex;
-  align-items: start;
+  align-items: center;
   gap: 12px;
-  width: min(320px, calc(100vw - 32px));
-  padding: 14px 16px;
-  border: 1px solid var(--color-border);
+  max-width: calc(100vw - 32px);
+  padding: 14px 18px;
   border-radius: 20px;
-  background: var(--color-background);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
+  background: color-mix(in oklab, var(--color-accent), var(--vt-c-black) 16%);
+  color: var(--vt-c-white);
+  box-shadow: 0 8px 28px oklch(0% 0 0 / 0.28);
+
+  html[data-theme='dark'] & {
+    background: color-mix(in oklab, var(--color-accent), var(--vt-c-black) 9%);
+  }
 
   @media (max-width: 600px) {
     left: 16px;
-    bottom: calc(max(24px, env(safe-area-inset-bottom)) + 100px);
-    width: auto;
+    bottom: calc(max(24px, env(safe-area-inset-bottom)) + 88px);
+    align-items: start;
   }
 
   .message {
     margin: 0;
-    flex: 1;
+    color: inherit;
     font-size: 13px;
     line-height: 1.6;
-    color: var(--color-text);
+    white-space: nowrap;
+
+    @media (max-width: 600px) {
+      flex: 1;
+      white-space: normal;
+    }
   }
 
   .close {
     flex-shrink: 0;
-    padding: 0 4px;
+    padding: 0 2px;
     border: none;
     background: transparent;
-    color: var(--color-text-mute);
+    color: inherit;
     font: inherit;
     font-size: 16px;
     line-height: 1.4;
     cursor: pointer;
-    transition: color 0.15s;
+    opacity: 0.8;
+    transition: opacity 0.15s;
 
     &:hover {
-      color: var(--color-heading);
+      opacity: 1;
     }
+  }
+
+  :focus-visible {
+    outline-color: var(--vt-c-white);
   }
 }
 
