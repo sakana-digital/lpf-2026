@@ -38,6 +38,7 @@ const visible = useScrolledPast(160)
   border-radius: 999px;
   background: var(--color-background-mute);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+  white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
   opacity: 0;

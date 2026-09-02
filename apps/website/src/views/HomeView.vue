@@ -8,7 +8,7 @@ import NewsLinksGrid from '@/components/news/NewsLinksGrid.vue'
 import { consumeDirectRootEntrance } from '@/lib/rootEntrance'
 import { formatFestivalPeriod } from '@/config/festival'
 import { newsLinks } from '@/config/newsLinks'
-import { mapUrl } from '@/config/social'
+import { mapUrl, schoolFestivalUrl } from '@/config/social'
 import { localePath } from '@/config/pages'
 
 const { t, tm, rt, locale } = useI18n()
@@ -104,6 +104,15 @@ onMounted(() => {
       <h2 class="title">{{ t('home.notes.title') }}</h2>
       <ul class="notes-list">
         <li v-for="(note, index) in notes" :key="index">{{ note }}</li>
+        <li>
+          <i18n-t keypath="home.notes.cancellation.text" tag="span">
+            <template #link>
+              <a :href="schoolFestivalUrl" target="_blank" rel="noopener noreferrer">
+                {{ t('home.notes.cancellation.link') }}
+              </a>
+            </template>
+          </i18n-t>
+        </li>
       </ul>
     </section>
 
@@ -266,6 +275,8 @@ onMounted(() => {
 
 .overview {
   .list {
+    font-family: var(--font-display);
+
     .row {
       display: grid;
       grid-template-columns: 120px 1fr;
@@ -386,6 +397,16 @@ onMounted(() => {
       padding-left: 20px;
       line-height: 1.7;
       color: var(--color-text);
+
+      a {
+        color: var(--color-heading);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+
+        &:hover {
+          opacity: 0.75;
+        }
+      }
 
       &::before {
         content: '';
