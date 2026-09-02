@@ -28,5 +28,9 @@ const props = defineProps<{
   min-width: 0 !important;
   max-width: 540px !important;
   margin: 0 auto !important;
+
+  a {
+    overflow-wrap: anywhere;
+  }
 }
 </style>
