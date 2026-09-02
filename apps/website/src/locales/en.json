@@ -55,6 +55,11 @@
     "copy": "Copy link",
     "copied": "Copied"
   },
+  "paymentNotice": {
+    "title": "Payments",
+    "message": "Only transit IC e-money can be used on campus.",
+    "close": "Close"
+  },
   "sitemap": {
     "caption": "Pages",
     "home": "/",
@@ -148,7 +153,7 @@
     },
     "overview": {
       "title": "Overview",
-      "date": { "label": "Date", "note": "⚠️ TBD: Day 1 10:30–15:30 / Day 2 10:00–15:00" },
+      "date": { "label": "Date", "note": "Day 1: 10:30–15:30 / Day 2: 10:00–15:00" },
       "venue": {
         "label": "Venue",
         "value": "Kanagawa Sogo Sangyo High School",
@@ -174,12 +179,17 @@
     "notes": {
       "title": "Notes",
       "items": [
+        "Our school is shoes-on, so you do not need slippers.",
+        "Please come by public transportation or bicycle. Please refrain from coming by car.",
+        "Payments on campus accept transit IC e-money only. Cash is not accepted, so please charge your card in advance.",
         "Smoking and alcohol are prohibited within the school buildings.",
-        "Please come by public transportation or bicycle.",
         "Please sort your trash and dispose of it in the designated area.",
-        "⚠️ TBD: Whether cash will be accepted is still undefined.",
-        "⚠️ TBD: Photography and video recording rules are still undefined."
-      ]
+        "Please refrain from posting photos or videos taken on campus to social media."
+      ],
+      "cancellation": {
+        "text": "If the festival is called off due to unforeseen circumstances, we will announce it on the {link}.",
+        "link": "school's official website"
+      }
     },
     "contact": {
       "title": "Contact",
