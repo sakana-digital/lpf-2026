@@ -6,12 +6,6 @@
   --font-text: system-ui, sans-serif;
 }
 
-@media (max-height: 500px) {
-  html[data-orientation^='landscape'] {
-    --page-title-height: 36px;
-  }
-}
-
 /* color palette from <https://github.com/vuejs/theme> */
 :root {
   --vt-c-white: oklch(100% 0 0);
