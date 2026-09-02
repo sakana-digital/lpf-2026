@@ -47,14 +47,9 @@ function dismiss() {
   gap: 12px;
   max-width: calc(100vw - 32px);
   padding: 14px 18px;
-  border-radius: 20px;
-  background: color-mix(in oklab, var(--color-accent), var(--vt-c-black) 16%);
-  color: var(--vt-c-white);
+  background: var(--color-notice);
+  color: var(--color-notice-text);
   box-shadow: 0 8px 28px oklch(0% 0 0 / 0.28);
-
-  html[data-theme='dark'] & {
-    background: color-mix(in oklab, var(--color-accent), var(--vt-c-black) 9%);
-  }
 
   @media (max-width: 600px) {
     left: 16px;
@@ -94,7 +89,7 @@ function dismiss() {
   }
 
   :focus-visible {
-    outline-color: var(--vt-c-white);
+    outline-color: var(--color-notice-text);
   }
 }
 
