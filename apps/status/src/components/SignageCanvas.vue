@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { hidesCongestion } from '@shared/status'
 import type { OrgStatus, SignageConfig } from '@shared/status'
 import { classOrgLabel } from '@/lib/orgLabel'
-import { clockOffset, footerMessages } from '@/lib/signageSchedule'
+import { footerMessages } from '@/lib/signageSchedule'
 import { CONGESTION_LABELS, SIGNAGE_SALES_LABELS } from '@/lib/statusLabel'
 
 const props = withDefaults(
@@ -13,16 +13,16 @@ const props = withDefaults(
     videoUrl?: string | null
     connected?: boolean
     preview?: boolean
+    clockOffset?: number
   }>(),
-  { videoUrl: null, connected: true, preview: false },
+  { videoUrl: null, connected: true, preview: false, clockOffset: 0 },
 )
 
 const MIN_ROWS = 8
 const MAX_ROWS = 12
 const ROTATE_MS = 10_000
 const tick = ref(0)
-const offset = typeof window === 'undefined' ? 0 : clockOffset(window.location.search)
-const now = ref(new Date(Date.now() + offset))
+const now = ref(new Date(Date.now() + props.clockOffset))
 const videoFailed = ref(false)
 let timer: ReturnType<typeof setInterval> | undefined
 
@@ -64,7 +64,7 @@ watch(
 onMounted(() => {
   timer = setInterval(() => {
     tick.value += 1
-    now.value = new Date(Date.now() + offset)
+    now.value = new Date(Date.now() + props.clockOffset)
   }, ROTATE_MS)
 })
 

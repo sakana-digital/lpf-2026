@@ -596,11 +596,6 @@ onUnmounted(() => {
     border-color: var(--color-text);
   }
 
-  &:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-  }
-
   small {
     color: var(--color-text-mute);
     font-size: 10px;

@@ -151,11 +151,6 @@ async function save() {
         font-family: inherit;
         font-size: 13px;
         color-scheme: dark;
-
-        &:focus-visible {
-          outline: 2px solid var(--color-accent);
-          outline-offset: 2px;
-        }
       }
     }
   }

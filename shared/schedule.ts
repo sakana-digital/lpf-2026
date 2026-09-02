@@ -1,4 +1,6 @@
+import { localized } from './locale'
 import type { LocalizedText } from './locale'
+import { organizationNames } from './organizations'
 
 export const festivalDates = ['2026-09-26', '2026-09-27'] as const
 
@@ -97,4 +99,13 @@ export function daySlots(day: FestivalDay): ScheduleSlot[] {
   return scheduleSlots
     .filter((slot) => slot.day === day)
     .sort((a, b) => parseTime(a.start) - parseTime(b.start))
+}
+
+/**
+ * コマの表示名。公開サイトとサイネージが同じ文字列を出すよう、企画名と団体名を
+ * 決まっている方から並べる。両方あれば「企画名 / 団体名」になる。
+ */
+export function slotDisplayName(slot: ScheduleSlot, locale: string): string {
+  const org = slot.organizationId ? organizationNames[slot.organizationId] : undefined
+  return [localized(slot.title, locale), localized(org, locale)].filter(Boolean).join(' / ')
 }

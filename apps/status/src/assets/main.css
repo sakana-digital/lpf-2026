@@ -44,6 +44,16 @@ button {
   border: none;
   background: transparent;
   appearance: none;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* チェックボックスとラジオはラベル側で囲うので、ブラウザ既定に任せる。 */
+:is(button, select, textarea, input:not([type='checkbox'], [type='radio'])):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .section-label {
@@ -76,14 +86,8 @@ button {
     transform: scale(0.98);
   }
 
-  &:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-  }
-
   &:disabled {
     opacity: 0.4;
-    cursor: not-allowed;
   }
 }
 

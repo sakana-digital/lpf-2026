@@ -1,7 +1,6 @@
 import { localized } from '@shared/locale'
 import type { Locale } from '@shared/locale'
-import { organizationNames } from '@shared/organizations'
-import { daySlots, festivalNow, parseTime, venueLabels } from '@shared/schedule'
+import { daySlots, festivalNow, parseTime, slotDisplayName, venueLabels } from '@shared/schedule'
 import type { ScheduleSlot } from '@shared/schedule'
 
 /** How long before a slot starts the footer begins announcing it. */
@@ -11,8 +10,7 @@ export const LEAD_MINUTES = 10
 const LOCALE: Locale = 'ja'
 
 function label(slot: ScheduleSlot, minutes: number): string {
-  const org = slot.organizationId ? localized(organizationNames[slot.organizationId], LOCALE) : ''
-  const where = `${org || localized(slot.title, LOCALE)} @ ${localized(venueLabels[slot.venue], LOCALE)}`
+  const where = `${slotDisplayName(slot, LOCALE)} @ ${localized(venueLabels[slot.venue], LOCALE)}`
   const start = parseTime(slot.start)
   if (start <= minutes) {
     return `開催中 ${slot.start}-${slot.end} ${where}`
@@ -26,10 +24,10 @@ function label(slot: ScheduleSlot, minutes: number): string {
  * comes next. Outside a slot only an imminent one qualifies, so the footer falls
  * back to the fixed notice for most of the day.
  */
-export function footerMessages(now: Date): string[] {
+export function footerMessages(now: Date, timetable = daySlots): string[] {
   const today = festivalNow(now)
   if (!today) return []
-  const slots = daySlots(today.day)
+  const slots = timetable(today.day)
   const running = slots.filter(
     (slot) => parseTime(slot.start) <= today.minutes && today.minutes < parseTime(slot.end),
   )

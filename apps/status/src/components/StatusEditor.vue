@@ -277,11 +277,6 @@ onUnmounted(() => {
       text-align: center;
       cursor: pointer;
       color-scheme: light;
-
-      &:focus-visible {
-        outline: 2px solid var(--color-accent);
-        outline-offset: 2px;
-      }
     }
   }
 
@@ -384,11 +379,6 @@ onUnmounted(() => {
         transform: scale(0.96);
       }
 
-      &:focus-visible {
-        outline: 2px solid var(--color-accent);
-        outline-offset: 2px;
-      }
-
       &.sales-available,
       &.congestion-low {
         --c: var(--color-status-good);
@@ -471,11 +461,6 @@ onUnmounted(() => {
 
     &:active:not(:disabled) {
       transform: scale(0.98);
-    }
-
-    &:focus-visible {
-      outline: 2px solid var(--color-accent);
-      outline-offset: 2px;
     }
 
     &:disabled {

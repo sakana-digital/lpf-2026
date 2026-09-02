@@ -2,7 +2,13 @@
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { localized } from '@shared/locale'
-import { daySlots, festivalDates, scheduleVenues, venueLabels } from '@shared/schedule'
+import {
+  daySlots,
+  festivalDates,
+  scheduleVenues,
+  slotDisplayName,
+  venueLabels,
+} from '@shared/schedule'
 import type { FestivalDay, ScheduleSlot } from '@shared/schedule'
 import { resolveFestivalDay } from '@/config/festival'
 import { getOrganization, organizationName } from '@/config/organizations'
@@ -61,7 +67,7 @@ function dayLabel(d: FestivalDay): string {
 }
 
 function slotTitle(slot: ScheduleSlot): string {
-  return localized(slot.title, locale.value)
+  return slotDisplayName(slot, locale.value)
 }
 
 function slotStyle(slot: ScheduleSlot) {

@@ -109,11 +109,6 @@ async function save() {
         opacity: 0.4;
         cursor: not-allowed;
       }
-
-      &:focus-visible {
-        outline: 2px solid var(--color-accent);
-        outline-offset: 2px;
-      }
     }
   }
 
