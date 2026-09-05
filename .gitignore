@@ -43,3 +43,7 @@ __screenshots__/
 apps/status/seed.sql
 
 apps/status/worker-configuration.d.ts
+
+# VitePress
+docs/.vitepress/dist
+docs/.vitepress/cache

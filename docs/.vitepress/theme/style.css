@@ -1,0 +1,51 @@
+:root {
+  text-autospace: normal;
+}
+
+:root {
+  --vp-sidebar-bg-color: var(--vp-c-bg);
+  --nav-veil: 60%;
+  --vp-c-brand-1: oklch(70.492% 0.15113 237.686);
+  --vp-c-brand-2: oklch(59.662% 0.15113 237.686);
+  --vp-c-brand-3: oklch(75.125% 0.15113 237.686);
+  --vp-c-brand-soft: oklch(91.305% 0.15113 237.686 / 0.14);
+  --vp-button-brand-text: var(--vp-c-black);
+  --vp-button-brand-hover-text: var(--vp-c-black);
+  --vp-button-brand-active-text: var(--vp-c-black);
+
+  &.dark {
+    --vp-c-bg: #000;
+    --vp-c-bg-alt: #000;
+    --vp-c-bg-elv: #000;
+    --vp-c-bg-soft: #000;
+    --vp-c-brand-1: oklch(80.769% 0.18041 113.966);
+    --vp-c-brand-2: oklch(59.662% 0.18041 113.966);
+    --vp-c-brand-3: oklch(78.125% 0.18041 113.966);
+    --vp-c-brand-soft: oklch(91.305% 0.18041 113.966 / 0.8);
+
+    .VPFeature {
+      border-color: var(--vp-c-divider);
+    }
+  }
+}
+
+.VPNavBar,
+.VPLocalNav {
+  --vp-nav-bg-color: color-mix(in srgb, var(--vp-c-bg) var(--nav-veil), transparent);
+  --vp-local-nav-bg-color: var(--vp-nav-bg-color);
+}
+
+.VPNavBar,
+.VPNavBar .content-body,
+.VPLocalNav {
+  backdrop-filter: blur(10px) saturate(120%);
+}
+
+.VPNavBar,
+.VPLocalNav {
+  --vp-c-gutter: transparent;
+}
+
+.VPNavBarTitle {
+  --vp-c-divider: transparent;
+}

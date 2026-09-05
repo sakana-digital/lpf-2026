@@ -26,6 +26,9 @@
     "status:migrate": "vp run status#migrate",
     "status:seed": "vp run status#seed",
     "status:typegen": "vp run status#cf-typegen",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "test": "vp run -r test",
     "type-check": "vp run -r type-check",
     "format": "vp fmt",
@@ -34,7 +37,9 @@
   "devDependencies": {
     "typescript": "~6.0.3",
     "vite": "catalog:",
-    "vite-plus": "catalog:"
+    "vite-plus": "catalog:",
+    "vitepress": "^2.0.0-alpha.19",
+    "vue": "^3.6.0-beta.17"
   },
   "overrides": {
     "@vue/compat": "beta",
