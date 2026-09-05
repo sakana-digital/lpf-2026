@@ -97,7 +97,7 @@
     "events": {
       "gridLabel": "企画一覧",
       "classHeader": "{classNo}組",
-      "gradeHeader": "{grade}年",
+      "gradeHeader": "{grade}年次",
       "clubHeader": "部活",
       "committeeHeader": "委員会",
       "classLabel": "{grade}-{classNo}",
