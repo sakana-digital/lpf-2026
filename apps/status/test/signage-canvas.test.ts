@@ -44,8 +44,8 @@ describe('SignageCanvas', () => {
   it('renders organizations, statuses, footer and video fallback', async () => {
     const html = await render(makeConfig(9))
 
-    expect(html).toContain('1年1組')
-    expect(html).toContain('1年9組')
+    expect(html).toContain('1年次1組')
+    expect(html).toContain('1年次9組')
     expect(html).toContain('販売中')
     expect(html).toContain('未報告')
     expect(html).toContain('INFORMATION')

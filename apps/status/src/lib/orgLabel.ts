@@ -6,5 +6,5 @@ function classOrgParams(orgId: string): { grade: number; classNo: number } | nul
 
 export function classOrgLabel(orgId: string): string {
   const params = classOrgParams(orgId)
-  return params ? `${params.grade}年${params.classNo}組` : orgId
+  return params ? `${params.grade}年次${params.classNo}組` : orgId
 }
