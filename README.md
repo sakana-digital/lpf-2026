@@ -10,6 +10,10 @@
 
 - 混雑状況，販売状況を表示
 
+## 利用者向けドキュメント
+
+団体・管理者・サイネージ端末の使い方は [docs/ja/](docs/ja/index.md) に置き、GitHub Pages（VitePress）で https://sakana-digital.github.io/lpf-2026/ に公開する。ローカルでは `bun run docs:dev`。
+
 ## デプロイ
 
 - 本体（Pages）: main に push すると Git 連携で自動ビルド・デプロイ
