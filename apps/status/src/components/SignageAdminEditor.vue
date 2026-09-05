@@ -19,6 +19,7 @@ import {
   uploadSignagePart,
 } from '@/lib/api'
 import { classOrgLabel } from '@/lib/orgLabel'
+import { fromLocalInput, toLocalInput } from '@/lib/localDateTime'
 import SignageCanvas from '@/components/SignageCanvas.vue'
 
 const props = defineProps<{
@@ -30,6 +31,7 @@ const props = defineProps<{
 const emptyConfig: SignageConfig = {
   orgIds: [],
   activeVideoKey: null,
+  videoStartAt: null,
   footerText: '',
   alertEnabled: false,
   alertText: '',
@@ -37,6 +39,7 @@ const emptyConfig: SignageConfig = {
 }
 const config = reactive<SignageConfig>({ ...emptyConfig })
 const videos = ref<SignageVideo[]>([])
+const videoStart = ref('')
 const loading = ref(true)
 const saving = ref(false)
 const saved = ref(false)
@@ -87,6 +90,7 @@ async function load() {
       getSignageVideos(props.token),
     ])
     Object.assign(config, payload.config)
+    videoStart.value = toLocalInput(payload.config.videoStartAt)
     videos.value = videoList
   } catch {
     failed.value = true
@@ -106,11 +110,13 @@ async function save() {
       await updateSignageConfig(props.token, {
         orgIds: [...config.orgIds],
         activeVideoKey: config.activeVideoKey,
+        videoStartAt: fromLocalInput(videoStart.value),
         footerText: config.footerText,
         alertEnabled: config.alertEnabled,
         alertText: config.alertText,
       }),
     )
+    videoStart.value = toLocalInput(config.videoStartAt)
     saved.value = true
   } catch {
     failed.value = true
@@ -302,6 +308,15 @@ onUnmounted(() => {
               <button type="button" @click="cancelUpload">中止</button>
             </div>
             <p v-if="uploadError" class="result error">{{ uploadError }}</p>
+            <div class="video-start">
+              <label class="field hint">
+                <span>再生を始める時刻</span>
+                <input v-model="videoStart" type="datetime-local" />
+              </label>
+              <button type="button" :disabled="!videoStart" @click="videoStart = ''">
+                すぐ再生
+              </button>
+            </div>
             <div class="video-list">
               <label class="video-item none">
                 <input v-model="config.activeVideoKey" type="radio" :value="null" />
@@ -401,6 +416,39 @@ onUnmounted(() => {
     font-size: 11px;
     font-weight: normal;
     letter-spacing: 0.12em;
+  }
+}
+
+.video-start {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  margin-top: 12px;
+
+  .field {
+    flex: 1;
+  }
+
+  input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: inherit;
+    font: inherit;
+  }
+
+  button {
+    padding: 9px 12px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-soft);
+    font-size: 12px;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
   }
 }
 

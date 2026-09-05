@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 import { SUBMIT_DAYS } from '@shared/status'
 import type { SubmitWindows } from '@shared/status'
 import { updateWindows } from '@/lib/api'
+import { fromLocalInput, toLocalInput } from '@/lib/localDateTime'
 
 const props = defineProps<{
   token: string
@@ -14,20 +15,6 @@ const emit = defineEmits<{ updated: [SubmitWindows] }>()
 const DAY_LABELS: Record<(typeof SUBMIT_DAYS)[number], string> = {
   day1: 'Day 1',
   day2: 'Day 2',
-}
-
-function toLocalInput(epoch: number | null): string {
-  if (epoch === null) return ''
-  const date = new Date(epoch * 1000)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const ymd = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
-  return `${ymd}T${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
-
-function fromLocalInput(value: string): number | null {
-  if (!value) return null
-  const time = new Date(value).getTime()
-  return Number.isNaN(time) ? null : Math.floor(time / 1000)
 }
 
 const fields = reactive(

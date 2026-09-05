@@ -28,6 +28,8 @@ export interface SubmitWindows {
 export interface SignageConfig {
   orgIds: string[]
   activeVideoKey: string | null
+  /** Unix seconds. Until then the signage shows the standby panel instead of the video. */
+  videoStartAt: number | null
   footerText: string
   alertEnabled: boolean
   alertText: string

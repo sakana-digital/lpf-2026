@@ -4,6 +4,8 @@ import type { SignagePayload } from '@shared/status'
 import { clockOffset } from '@/lib/signageSchedule'
 import SignageCanvas from '@/components/SignageCanvas.vue'
 
+const REFRESH_MS = 60_000
+
 const offset = clockOffset(window.location.search)
 const payload = ref<SignagePayload | null>(null)
 const failures = ref(0)
@@ -33,7 +35,7 @@ async function refresh() {
 
 onMounted(() => {
   void refresh()
-  timer = setInterval(refresh, 10_000)
+  timer = setInterval(refresh, REFRESH_MS)
 })
 
 onUnmounted(() => clearInterval(timer))

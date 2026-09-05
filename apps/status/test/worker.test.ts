@@ -97,6 +97,7 @@ describe('signage authentication and configuration', () => {
       body: JSON.stringify({
         orgIds: ['c1-2', 'c1-1'],
         activeVideoKey: null,
+        videoStartAt: 1790000000,
         footerText: '文化祭開催中',
         alertEnabled: true,
         alertText: '速報テスト',
@@ -107,10 +108,11 @@ describe('signage authentication and configuration', () => {
     const cookie = await issueViewerCookie()
     const response = await SELF.fetch(`${origin}/api/signage`, { headers: { Cookie: cookie } })
     const payload = (await response.json()) as {
-      config: { orgIds: string[] }
+      config: { orgIds: string[]; videoStartAt: number | null }
       statuses: Array<{ orgId: string }>
     }
     expect(payload.config.orgIds).toEqual(['c1-2', 'c1-1'])
+    expect(payload.config.videoStartAt).toBe(1790000000)
     expect(payload.statuses).toEqual([expect.objectContaining({ orgId: 'c1-2' })])
     expect(await (await SELF.fetch(`${siteOrigin}/api/status`)).json()).toEqual([])
   })
@@ -122,6 +124,7 @@ describe('signage authentication and configuration', () => {
       body: JSON.stringify({
         orgIds: ['missing'],
         activeVideoKey: null,
+        videoStartAt: 'noon',
         footerText: 'x'.repeat(121),
         alertEnabled: false,
         alertText: '',
@@ -190,9 +193,9 @@ describe('signage videos', () => {
 })
 
 describe('public status endpoint', () => {
-  it('is cacheable for a minute while authenticated responses are not', async () => {
+  it('is briefly cacheable while authenticated responses are not', async () => {
     const status = await SELF.fetch(`${siteOrigin}/api/status`)
-    expect(status.headers.get('Cache-Control')).toBe('public, max-age=30')
+    expect(status.headers.get('Cache-Control')).toBe('public, max-age=15')
 
     const me = await SELF.fetch(`${origin}/api/me`, {
       headers: { Authorization: 'Bearer test-org' },

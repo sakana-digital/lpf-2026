@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue'
 import { hidesCongestion } from '@shared/status'
 import type { OrgStatus, SignageConfig } from '@shared/status'
 import { classOrgLabel } from '@/lib/orgLabel'
@@ -24,6 +24,8 @@ const ROTATE_MS = 10_000
 const tick = ref(0)
 const now = ref(new Date(Date.now() + props.clockOffset))
 const videoFailed = ref(false)
+const muted = ref(true)
+const video = useTemplateRef<HTMLVideoElement>('video')
 let timer: ReturnType<typeof setInterval> | undefined
 
 const pageCount = computed(() => Math.max(1, Math.ceil(props.config.orgIds.length / MAX_ROWS)))
@@ -54,12 +56,30 @@ watch(
   },
 )
 
+// Scheduled to the second, but the clock only advances on the rotation tick.
+const videoReady = computed(() => {
+  const startAt = props.config.videoStartAt
+  return props.preview || startAt === null || now.value.getTime() >= startAt * 1000
+})
+
 watch(
   () => props.videoUrl,
   () => {
     videoFailed.value = false
   },
 )
+
+/** Autoplay only survives while muted, so sound needs a tap on the device. */
+async function enableSound() {
+  const element = video.value
+  if (!element) return
+  muted.value = false
+  try {
+    await element.play()
+  } catch {
+    muted.value = true
+  }
+}
 
 onMounted(() => {
   timer = setInterval(() => {
@@ -108,10 +128,11 @@ onUnmounted(() => clearInterval(timer))
 
       <section class="video-panel">
         <video
-          v-if="videoUrl && !videoFailed"
+          v-if="videoUrl && videoReady && !videoFailed"
+          ref="video"
           :src="videoUrl"
+          :muted
           autoplay
-          muted
           loop
           playsinline
           @error="videoFailed = true"
@@ -120,6 +141,14 @@ onUnmounted(() => clearInterval(timer))
           <span>映像準備中</span>
           <small>VIDEO STANDBY</small>
         </div>
+        <button
+          v-if="videoUrl && videoReady && !videoFailed && !preview && muted"
+          type="button"
+          class="sound"
+          @click="enableSound"
+        >
+          音声を有効にする
+        </button>
         <span v-if="!connected" class="offline">通信を確認しています</span>
       </section>
 
@@ -345,6 +374,18 @@ onUnmounted(() => clearInterval(timer))
     font-size: 0.72cqw;
     letter-spacing: 0.35em;
   }
+}
+
+.sound {
+  position: absolute;
+  right: 0.6cqw;
+  bottom: 0.6cqw;
+  padding: 0.3cqw 0.6cqw;
+  border: 0.1cqw solid #fff;
+  background: #090909cc;
+  color: #fff;
+  font-size: 0.62cqw;
+  cursor: pointer;
 }
 
 .offline {

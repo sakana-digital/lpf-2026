@@ -22,9 +22,11 @@ const SIGNAGE_COOKIE_MAX_AGE = 60 * 60 * 24 * 30
 const VIDEO_PREFIX = 'signage/videos/'
 const VIDEO_MAX_SIZE = 1024 ** 3
 const VIDEO_PART_SIZE = 16 * 1024 ** 2
+// Every upload gets its own key, so a viewer never has to revalidate.
+const VIDEO_CACHE_CONTROL = 'private, max-age=86400, immutable'
 const FOOTER_MAX_LENGTH = 120
 const ALERT_MAX_LENGTH = 200
-const PUBLIC_STATUS_MAX_AGE = 30
+const PUBLIC_STATUS_MAX_AGE = 15
 const WORKER_DOMAIN_SUFFIX = '.workers.dev'
 
 interface StatusRow {
@@ -37,6 +39,7 @@ interface StatusRow {
 interface SignageConfigRow {
   org_ids: string
   active_video_key: string | null
+  video_start_at: number | null
   footer_text: string
   alert_enabled: number
   alert_text: string
@@ -125,9 +128,10 @@ async function authorizeSignage(
   }
   const cookie = cookieToken(request)
   if (!cookie) return null
+  // Signage devices poll far more often than admins, so spend one query on them.
+  if (await isViewerToken(cookie, env)) return { kind: 'viewer', token: cookie }
   const auth = await authorizeToken(cookie, env)
-  if (auth?.kind === 'admin') return { kind: 'admin', token: cookie }
-  return (await isViewerToken(cookie, env)) ? { kind: 'viewer', token: cookie } : null
+  return auth?.kind === 'admin' ? { kind: 'admin', token: cookie } : null
 }
 
 async function requireAdmin(request: Request, env: Env): Promise<Auth | Response> {
@@ -340,13 +344,14 @@ function parseOrgIds(value: string): string[] {
 
 async function fetchSignageConfig(env: Env): Promise<SignageConfig> {
   const row = await env.DB.prepare(
-    `SELECT org_ids, active_video_key, footer_text, alert_enabled, alert_text, updated_at
+    `SELECT org_ids, active_video_key, video_start_at, footer_text, alert_enabled, alert_text, updated_at
      FROM signage_config WHERE id = 1`,
   ).first<SignageConfigRow>()
   if (!row) {
     return {
       orgIds: await fetchOrgIds(env),
       activeVideoKey: null,
+      videoStartAt: null,
       footerText: '',
       alertEnabled: false,
       alertText: '',
@@ -357,6 +362,7 @@ async function fetchSignageConfig(env: Env): Promise<SignageConfig> {
   return {
     orgIds: savedOrgIds.length > 0 ? savedOrgIds : await fetchOrgIds(env),
     activeVideoKey: row.active_video_key,
+    videoStartAt: row.video_start_at,
     footerText: row.footer_text,
     alertEnabled: row.alert_enabled === 1,
     alertText: row.alert_text,
@@ -389,12 +395,14 @@ async function putSignageConfig(request: Request, env: Env): Promise<Response> {
     return json({ error: 'invalid_json' }, 400)
   }
   const raw = (body ?? {}) as Record<string, unknown>
+  const videoStartAt = raw.videoStartAt ?? null
   if (
     !Array.isArray(raw.orgIds) ||
     raw.orgIds.length === 0 ||
     !raw.orgIds.every((id) => typeof id === 'string') ||
     new Set(raw.orgIds).size !== raw.orgIds.length ||
     (raw.activeVideoKey !== null && typeof raw.activeVideoKey !== 'string') ||
+    (videoStartAt !== null && !Number.isSafeInteger(videoStartAt)) ||
     typeof raw.footerText !== 'string' ||
     raw.footerText.length > FOOTER_MAX_LENGTH ||
     typeof raw.alertEnabled !== 'boolean' ||
@@ -416,14 +424,16 @@ async function putSignageConfig(request: Request, env: Env): Promise<Response> {
 
   const row = await env.DB.prepare(
     `UPDATE signage_config
-     SET org_ids = ?1, active_video_key = ?2, footer_text = ?3,
-         alert_enabled = ?4, alert_text = ?5, updated_at = unixepoch()
+     SET org_ids = ?1, active_video_key = ?2, video_start_at = ?3, footer_text = ?4,
+         alert_enabled = ?5, alert_text = ?6, updated_at = unixepoch()
      WHERE id = 1
-     RETURNING org_ids, active_video_key, footer_text, alert_enabled, alert_text, updated_at`,
+     RETURNING org_ids, active_video_key, video_start_at, footer_text, alert_enabled,
+               alert_text, updated_at`,
   )
     .bind(
       JSON.stringify(raw.orgIds),
       raw.activeVideoKey,
+      videoStartAt,
       raw.footerText,
       raw.alertEnabled ? 1 : 0,
       raw.alertText,
@@ -433,6 +443,7 @@ async function putSignageConfig(request: Request, env: Env): Promise<Response> {
   return json({
     orgIds: parseOrgIds(row.org_ids),
     activeVideoKey: row.active_video_key,
+    videoStartAt: row.video_start_at,
     footerText: row.footer_text,
     alertEnabled: row.alert_enabled === 1,
     alertText: row.alert_text,
@@ -536,7 +547,7 @@ async function startUpload(request: Request, env: Env): Promise<Response> {
   }
   const key = `${VIDEO_PREFIX}${crypto.randomUUID()}.mp4`
   const upload = await env.SIGNAGE_MEDIA.createMultipartUpload(key, {
-    httpMetadata: { contentType: 'video/mp4', cacheControl: 'private, max-age=3600' },
+    httpMetadata: { contentType: 'video/mp4', cacheControl: VIDEO_CACHE_CONTROL },
     customMetadata: { originalName: name },
   })
   return json({ key, uploadId: upload.uploadId, partSize: VIDEO_PART_SIZE }, 201)
@@ -650,7 +661,7 @@ async function streamVideo(request: Request, env: Env, encodedKey: string): Prom
   object.writeHttpMetadata(headers)
   headers.set('ETag', object.httpEtag)
   headers.set('Accept-Ranges', 'bytes')
-  headers.set('Cache-Control', 'private, max-age=3600')
+  headers.set('Cache-Control', VIDEO_CACHE_CONTROL)
   if (!('body' in object)) {
     const notModified =
       request.headers.has('If-None-Match') || request.headers.has('If-Modified-Since')

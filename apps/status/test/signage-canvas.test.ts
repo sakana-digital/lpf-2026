@@ -10,6 +10,7 @@ function makeConfig(count: number, alertEnabled = false): SignageConfig {
   return {
     orgIds: orgIds.slice(0, count),
     activeVideoKey: null,
+    videoStartAt: null,
     footerText: '固定案内テスト',
     alertEnabled,
     alertText: '速報テスト',
@@ -17,18 +18,27 @@ function makeConfig(count: number, alertEnabled = false): SignageConfig {
   }
 }
 
-function render(config: SignageConfig) {
+function render(config: SignageConfig, props: Record<string, unknown> = { preview: true }) {
   return renderToString(
     createSSRApp({
       render: () =>
         h(SignageCanvas, {
           config,
           statuses: [{ orgId: 'c1-1', sales: 'available', congestion: 'low', updatedAt: 1 }],
-          preview: true,
+          ...props,
         }),
     }),
   )
 }
+
+function onSignage(videoStartAt: number | null) {
+  return render(
+    { ...makeConfig(9), activeVideoKey: 'signage/videos/a.mp4', videoStartAt },
+    { videoUrl: '/api/signage/video/a.mp4' },
+  )
+}
+
+const nowSec = Math.floor(Date.now() / 1000)
 
 describe('SignageCanvas', () => {
   it('renders organizations, statuses, footer and video fallback', async () => {
@@ -49,6 +59,30 @@ describe('SignageCanvas', () => {
     expect(html).toContain('INFORMATION')
     expect(html).toContain('速報テスト')
     expect(html).not.toContain('固定案内テスト')
+  })
+
+  it('waits for the scheduled start before playing the video', async () => {
+    expect(await onSignage(nowSec + 3600)).toContain('映像準備中')
+    expect(await onSignage(nowSec + 3600)).not.toContain('<video')
+  })
+
+  it('plays muted once the start time has passed, offering to enable sound', async () => {
+    const html = await onSignage(nowSec - 3600)
+
+    expect(html).toContain('<video')
+    expect(html).toContain('muted')
+    expect(html).toContain('音声を有効にする')
+    expect(html).not.toContain('映像準備中')
+  })
+
+  it('ignores the schedule in the admin preview', async () => {
+    const html = await render(
+      { ...makeConfig(9), activeVideoKey: 'signage/videos/a.mp4', videoStartAt: nowSec + 3600 },
+      { preview: true, videoUrl: '/api/signage/video/a.mp4' },
+    )
+
+    expect(html).toContain('<video')
+    expect(html).not.toContain('音声を有効にする')
   })
 
   it('keeps a page between eight and twelve rows', async () => {
