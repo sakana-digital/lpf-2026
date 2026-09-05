@@ -39,12 +39,12 @@ afterEach(() => {
 })
 
 describe('useOrgStatus', () => {
-  it('開催日は購読している間だけ 60 秒ごとに取得する', async () => {
+  it('開催日は購読している間だけ 45 秒ごとに取得する', async () => {
     const app = await mountSubscriber(DURING_FESTIVAL)
     expect(fetchSpy).toHaveBeenCalledTimes(1)
     expect(fetchSpy).toHaveBeenCalledWith('/api/status')
 
-    await vi.advanceTimersByTimeAsync(60_000)
+    await vi.advanceTimersByTimeAsync(45_000)
     expect(fetchSpy).toHaveBeenCalledTimes(2)
 
     app.unmount()

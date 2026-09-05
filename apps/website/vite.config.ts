@@ -39,6 +39,9 @@ export default defineConfig({
       '/api': 'http://localhost:8787',
     },
   },
+  preview: {
+    host: true,
+  },
   plugins: lazyPlugins(() => [vue(), vueDevTools(), emitRedirects()]),
   resolve: {
     alias: {

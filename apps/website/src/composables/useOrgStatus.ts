@@ -2,7 +2,7 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import type { OrgStatus } from '@shared/status'
 import { isFestivalDay } from '@/config/festival'
 
-const POLL_INTERVAL_MS = 60_000
+const POLL_INTERVAL_MS = 45_000
 
 const statuses = ref<ReadonlyMap<string, OrgStatus>>(new Map())
 
