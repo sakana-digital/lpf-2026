@@ -32,7 +32,7 @@ export interface IsoMapArea {
   z: number
   w: number
   d: number
-  /** 矩形以外の形の場合の輪郭 (時計回り)。x, z は外接矩形として扱う */
+  /** Outline for non-rectangular shapes (clockwise). x, z are the bounding box */
   outline?: readonly (readonly [number, number])[]
   icons?: readonly IsoMapAreaIcon[]
   label?: IsoMapLabel
@@ -64,7 +64,7 @@ export interface FloorPlan {
 
 const MAP_W = 66
 const ROOM_D = 8
-// 隣接する区画は辺を共有し、境界線を一本だけ描画する
+// Adjacent areas share an edge, so the border is drawn only once
 const ROOM_GAP = 0
 const CORRIDOR_D = 4
 const ARM_W = 6
@@ -87,14 +87,14 @@ const TOILET_LEFT_X = ARM_W + ROOM_GAP
 const TOILET_RIGHT_X = MAP_W - ARM_W - ROOM_GAP - TOILET_W
 const EAST_ARM_CENTER_X = ARM_W / 2
 
-// 学年は上の階から数える (4F = 1年)
+// Grades count down from the top floor (4F = grade 1)
 function gradeOf(floor: Floor): number {
   return 5 - floor
 }
 
 const CORRIDOR_INNER_Z = LOWER_CORRIDOR_Z + CORRIDOR_D
 
-// 両腕が手前の端まで伸びて横一本でつながる H 字。継ぎ目の線が出ないよう一枚の輪郭にする
+// An H shape whose arms reach the front edge and join in one bar. A single outline keeps seams from showing
 const CORRIDOR_OUTLINE: readonly (readonly [number, number])[] = [
   [0, FRONT_Z],
   [ARM_W, FRONT_Z],
@@ -124,7 +124,7 @@ function corridors(): IsoMapArea[] {
   ]
 }
 
-// 1F は南側に教室が無いぶん南廊下が南端まで広く、上階の 1 クラス目の幅だけ伸びて途切れる
+// 1F has no classrooms on the south side, so its south corridor reaches the south edge and stops after the width of the first classroom of the upper floors
 const SOUTH_CORRIDOR_EAST_END_X = CLASSROOM_ROW_X + CLASSROOM_W
 const SOUTH_CORRIDOR_WEST_END_X = MAP_W - SOUTH_CORRIDOR_EAST_END_X
 
@@ -200,7 +200,7 @@ function sideRow(floor: Floor): IsoMapArea[] {
       z: SIDE_ROW_Z,
       w: TOILET_W,
       d: SIDE_ROW_D,
-      // 時計回りの投影では座標上の左側が画面右側に表示される
+      // In the clockwise projection, the left side in coordinates shows on the right of the screen
       icons: [menOnScreenLeft ? 'toilet-women' : 'toilet-men'],
     },
     {

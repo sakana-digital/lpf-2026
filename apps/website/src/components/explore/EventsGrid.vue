@@ -58,7 +58,6 @@ function isExpanded(rowIndex: number, colIndex: number): boolean {
 
 const gridRef = useTemplateRef<HTMLElement>('gridRef')
 
-// グリッドトラックの遷移後に呼ばれ，展開セルを可視範囲へ収める
 function scrollSelectedIntoView() {
   if (!props.selectedId) return
   gridRef.value

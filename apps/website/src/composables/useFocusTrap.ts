@@ -11,9 +11,9 @@ const FOCUSABLE = [
 ].join(',')
 
 /**
- * モーダルが開いている間、Tab をコンテナ内で循環させる。
- * 背後のページには inert を当て、閉じたら起動元にフォーカスを戻す。
- * コンテナは body に Teleport されている前提（#app の外側にある）。
+ * Cycles Tab within the container while the modal is open.
+ * The page behind it gets inert, and closing returns focus to the opener.
+ * The container is assumed to be teleported to body, outside of #app.
  */
 export function useFocusTrap(container: Ref<HTMLElement | null>, active: Ref<boolean>) {
   let restoreTo: HTMLElement | null = null

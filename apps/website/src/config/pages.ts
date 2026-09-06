@@ -5,23 +5,23 @@ export const LANGUAGES = ['ja', 'en'] as const
 export type Language = (typeof LANGUAGES)[number]
 
 /**
- * 正規 URL の origin。独自ドメインが無く、デプロイごとに
- * <hash>.happo-sai.pages.dev が生えるため、本番では必ずここを指す。
+ * Origin of the canonical URLs. There is no custom domain and every deploy gets
+ * its own <hash>.happo-sai.pages.dev, so production must always point here.
  */
 export const SITE_ORIGIN = 'https://happo-sai.pages.dev'
 
 export interface PageDefinition {
-  /** 日本語側のパス。必ず末尾スラッシュ */
+  /** Path on the Japanese side. Always ends with a slash */
   path: string
-  /** SEO メタのロケールキー接尾辞（meta.pages.*）。ルートはサイト名のみなので title を持たない */
+  /** Locale key suffix of the SEO meta (meta.pages.*). The root has no title, only the site name */
   metaKey: string
-  /** UI 表示用ラベルのロケールキー（PageTree / PageHeader） */
+  /** Locale key of the label shown in the UI (PageTree / PageHeader) */
   labelKey: string
-  /** 検索結果に出す見出しのロケールキー。未指定なら labelKey を使う */
+  /** Locale key of the heading in search results. Falls back to labelKey */
   titleKey?: string
-  /** sitemap.xml に載せ、robots を index, follow にする */
+  /** Listed in sitemap.xml and served with robots index, follow */
   indexable: boolean
-  /** PageTree / SearchModal に出す */
+  /** Shown in PageTree / SearchModal */
   navigable: boolean
   keywordsKey?: string
 }
@@ -88,14 +88,14 @@ const byPath = new Map(pages.map((page) => [page.path, page]))
 
 export const sitemapPaths = pages.filter((page) => page.indexable).map((page) => page.path)
 
-/** PageTree / SearchModal に出すページ。先頭がルート。 */
+/** Pages shown in PageTree / SearchModal. The root comes first. */
 export const navigablePages = pages.filter((page) => page.navigable)
 
 export function isEnPath(pathname: string): boolean {
   return pathname === '/en' || pathname === '/en/' || pathname.startsWith('/en/')
 }
 
-/** 末尾スラッシュを補い、`/en` を剥がした日本語側パスと英語側パスを返す。 */
+/** Adds the trailing slash and returns the Japanese path without `/en`, plus the English one. */
 export function localizedPath(pathname: string): {
   language: Language
   jaPath: string
@@ -115,7 +115,7 @@ function enPath(jaPath: string): string {
   return jaPath === '/' ? '/en/' : `/en${jaPath}`
 }
 
-/** 日本語側パスを、指定ロケール向けのパスに変換する。 */
+/** Converts a Japanese path into the path for the given locale. */
 export function localePath(jaPath: string, language: string): string {
   return language === 'en' ? enPath(jaPath) : jaPath
 }
@@ -124,7 +124,7 @@ export function findPage(jaPath: string): PageDefinition | undefined {
   return byPath.get(jaPath)
 }
 
-/** ja/en どちらのトップページか。 */
+/** Whether this is the ja or en top page. */
 export function isRootPath(pathname: string): boolean {
   return localizedPath(pathname).jaPath === '/'
 }

@@ -1,6 +1,6 @@
 export type Locale = 'ja' | 'en'
 
-/** 日本語は必須、他言語は決まった分だけ足す。 */
+/** Japanese is required; other locales are added as they are decided. */
 export type LocalizedText = { ja: string } & Partial<Record<Locale, string>>
 
 export function localized(text: LocalizedText | undefined, locale: string): string {

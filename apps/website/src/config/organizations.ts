@@ -24,7 +24,7 @@ export interface VenueLocation {
 
 interface OrganizationBase {
   id: string
-  /** 名前が決まっていない団体は未設定のまま。 */
+  /** Left unset for groups whose name is not decided yet. */
   name?: LocalizedText
   location?: VenueLocation
   image?: string
@@ -60,7 +60,7 @@ function profileOf(id: string) {
 }
 
 function cls(grade: Grade, classNo: ClassNumber): ClassOrganization {
-  // 1年が最上階 (4F) で，学年が上がるほど下の階になる
+  // Grade 1 is on the top floor (4F), and higher grades sit lower
   const floor = (5 - grade) as Floor
   const id = classOrgId(grade, classNo)
   const { name, image } = profileOf(id)
@@ -105,10 +105,7 @@ export function organizationName(org: Organization, locale: string): string {
   return localized(org.name, locale)
 }
 
-/**
- * 一覧やパネルの見出しに出す短いラベル。
- * クラスは学年-組、それ以外は団体名を使い、名前未定なら空文字を返す。
- */
+/** Short label for list and panel heads. Empty while a group's name is undecided. */
 export function organizationLabel(
   org: Organization,
   locale: string,

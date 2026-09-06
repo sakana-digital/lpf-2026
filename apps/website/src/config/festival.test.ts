@@ -12,7 +12,7 @@ function atJst(iso: string) {
 }
 
 describe('isFestivalDay', () => {
-  it('JST の開催 2 日間だけ true を返す', () => {
+  it('returns true only on the two festival days in JST', () => {
     atJst('2026-09-25T14:59:00Z')
     expect(isFestivalDay()).toBe(false)
 

@@ -2,13 +2,13 @@ import { watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { localizedPath, SITE_ORIGIN } from '@/config/pages'
 
-// 本番は必ず SITE_ORIGIN を指す。middleware が入れた値と一致させ、
-// デプロイごとの <hash>.happo-sai.pages.dev で自己参照させない。
+// Production always points at SITE_ORIGIN, matching what the middleware injected,
+// so a deploy never self-references its own <hash>.happo-sai.pages.dev.
 function origin(): string {
   return import.meta.env.PROD ? SITE_ORIGIN : window.location.origin
 }
 
-/** SPA 遷移のたびに canonical と hreflang を貼り直す。 */
+/** Rewrites canonical and hreflang on every SPA navigation. */
 export function useCanonicalLinks() {
   const route = useRoute()
 

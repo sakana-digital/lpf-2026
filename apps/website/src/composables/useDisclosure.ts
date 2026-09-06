@@ -2,9 +2,8 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import type { Ref } from 'vue'
 
 /**
- * 開閉するドロップダウンの共通挙動。
- * 外側クリックと Escape で閉じ、Escape のときはトリガーにフォーカスを戻す。
- * root にはトリガーのボタンとパネルの両方を含む要素を渡す。
+ * An outside click or Escape closes it, and Escape returns focus to the trigger.
+ * Pass an element covering both the trigger button and the panel as root.
  */
 export function useDisclosure(root: Ref<HTMLElement | null>) {
   const isOpen = ref(false)

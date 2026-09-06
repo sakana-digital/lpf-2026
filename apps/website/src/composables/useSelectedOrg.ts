@@ -3,8 +3,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { getOrganization } from '@/config/organizations'
 
 /**
- * 選択中の団体を `?org=` で持つ。存在しない ID は未選択として扱う。
- * explore の 3 タブが同じクエリを読み書きする。
+ * Holds the selected group in `?org=`. An unknown ID counts as no selection.
+ * The three explore tabs read and write the same query.
  */
 export function useSelectedOrg() {
   const route = useRoute()

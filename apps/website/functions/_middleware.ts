@@ -47,8 +47,8 @@ const ORGANIZER_NAMES: Record<Language, string> = {
 }
 
 /**
- * ブランチプレビューが本番と検索結果を食い合わないようにする。
- * Pages が必ず注入する CF_PAGES_BRANCH で判定する。
+ * Keeps branch previews from competing with production in search results.
+ * Decided by CF_PAGES_BRANCH, which Pages always injects.
  */
 const PRODUCTION_BRANCH = 'main'
 
@@ -108,7 +108,7 @@ function setAttribute(rewriter: Rewriter, selector: string, name: string, value:
   })
 }
 
-/** ルートから当該ページまでの、テーブルに存在する祖先ページを列挙する。 */
+/** Lists the ancestor pages present in the table, from the root down to the page. */
 function ancestors(jaPath: string): PageDefinition[] {
   const paths = ['/']
   let current = ''
@@ -167,7 +167,7 @@ function structuredData(origin: string, pathname: string): string {
   const crumbs = breadcrumbList(origin, jaPath, language)
   if (crumbs) graph.push(crumbs)
 
-  // `</script>` での早期終了を防ぐため、`<` のみ JSON のユニコードエスケープに置き換える
+  // Only `<` is replaced with its JSON unicode escape, so a `</script>` cannot end the block early
   const json = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(
     /</g,
     '\\u003c',

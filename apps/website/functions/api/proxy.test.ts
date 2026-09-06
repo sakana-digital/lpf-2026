@@ -43,7 +43,7 @@ beforeEach(() => {
 })
 
 describe('onRequestGet', () => {
-  it('public なレスポンスを保存し、次のリクエストは Worker を呼ばない', async () => {
+  it('stores a public response and serves the next request without the Worker', async () => {
     const cacheable = new Response('[]', { headers: { 'Cache-Control': 'public, max-age=60' } })
 
     const miss = createContext(cacheable)
@@ -57,7 +57,7 @@ describe('onRequestGet', () => {
     expect(await response.text()).toBe('[]')
   })
 
-  it('キャッシュ不可のレスポンスは保存しない', async () => {
+  it('does not store a response that must not be cached', async () => {
     const ctx = createContext(new Response('{}', { headers: { 'Cache-Control': 'no-store' } }))
     await onRequestGet(ctx.context)
     await ctx.settled()

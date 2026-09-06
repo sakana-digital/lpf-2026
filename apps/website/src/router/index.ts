@@ -9,7 +9,7 @@ import HomeView from '@/views/HomeView.vue'
 
 declare module 'vue-router' {
   interface RouteMeta {
-    /** PageHeader の見出しに使うロケールキー */
+    /** Locale key for the PageHeader heading */
     pageTitle?: string
     locale?: 'en'
   }
@@ -112,7 +112,7 @@ router.beforeEach((to) => {
   document.documentElement.lang = isEn ? 'en' : 'ja'
 })
 
-// タイトルは middleware と同じ config/pages + meta.pages.* から引き、SSR と SPA でズレないようにする
+// Titles come from the same config/pages + meta.pages.* as the middleware, so SSR and SPA agree
 router.afterEach((to) => {
   const { jaPath } = localizedPath(to.path)
   const page = findPage(jaPath)

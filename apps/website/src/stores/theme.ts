@@ -7,7 +7,7 @@ export type ResolvedTheme = 'light' | 'dark'
 
 const STORAGE_KEY = 'theme'
 
-// アプリ全体で共有する単一の状態
+// A single state shared across the whole app
 const theme = ref<Theme>('system')
 const resolvedTheme = ref<ResolvedTheme>('light')
 let initialized = false
@@ -32,7 +32,7 @@ function setTheme(t: Theme) {
   writeStored(STORAGE_KEY, t)
 }
 
-// アプリ起動時に一度だけ呼ぶ（コンポーネントのマウントに依存させない）
+// Call once on startup, so it does not depend on a component mounting
 export function initTheme() {
   if (initialized) return
   initialized = true

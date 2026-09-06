@@ -39,7 +39,7 @@ afterEach(() => {
 })
 
 describe('useOrgStatus', () => {
-  it('開催日は購読している間だけ 45 秒ごとに取得する', async () => {
+  it('fetches every 45 seconds on festival days, only while subscribed', async () => {
     const app = await mountSubscriber(DURING_FESTIVAL)
     expect(fetchSpy).toHaveBeenCalledTimes(1)
     expect(fetchSpy).toHaveBeenCalledWith('/api/status')
@@ -52,14 +52,14 @@ describe('useOrgStatus', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(2)
   })
 
-  it('開催期間外は購読しても一度も取得しない', async () => {
+  it('never fetches outside the festival, even with a subscriber', async () => {
     const app = await mountSubscriber(BEFORE_FESTIVAL)
     await vi.advanceTimersByTimeAsync(180_000)
     expect(fetchSpy).not.toHaveBeenCalled()
     app.unmount()
   })
 
-  it('開発サーバーでは開催期間外でも取得する', async () => {
+  it('fetches outside the festival on the dev server', async () => {
     vi.stubEnv('DEV', true)
     const app = await mountSubscriber(BEFORE_FESTIVAL)
     expect(fetchSpy).toHaveBeenCalledTimes(1)

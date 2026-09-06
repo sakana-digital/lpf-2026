@@ -106,7 +106,7 @@ export function createIsoMapScene(
     const mapZ = point.z - cz
     const unitScale = scale()
     return {
-      // 上面から見て時計回りに 90° 回転したアイソメトリック投影
+      // Isometric projection rotated 90 degrees clockwise seen from above
       x: viewportWidth / 2 - (mapX + mapZ) * ISO_X * unitScale,
       z: viewportHeight / 2 + ((mapX - mapZ) * ISO_Y - elevation * ISO_ELEVATION) * unitScale,
     }
@@ -177,7 +177,7 @@ export function createIsoMapScene(
     if (state.opacity <= EPSILON) return
     const elevation = state.y
 
-    // 前面の床を背景色で塗り、全階表示で背面の線が透けないようにする
+    // Fill the front floor with the background color so the lines behind it do not show through in the all-floors view
     context.save()
     context.globalAlpha = state.opacity
     context.fillStyle = colors.background

@@ -6,7 +6,7 @@ import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import { localePath, pages } from './src/config/pages'
 
-/** src/config/pages.ts から Cloudflare Pages の _redirects を組み立てる。 */
+/** Builds the Cloudflare Pages _redirects from src/config/pages.ts. */
 export function redirectRules(): string {
   const trailingSlash = pages
     .flatMap((page) => [page.path, localePath(page.path, 'en')])
