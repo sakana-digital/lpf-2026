@@ -11,8 +11,9 @@ import PublicOrgsEditor from '@/components/PublicOrgsEditor.vue'
 
 const token = resolveToken()
 
-type Phase = 'missing' | 'loading' | 'ready' | 'invalid' | 'error'
-const phase = ref<Phase>(token ? 'loading' : 'missing')
+type Phase = 'invalid' | 'loading' | 'ready' | 'error'
+// A missing token is as actionable as a rejected one: check the URL.
+const phase = ref<Phase>(token ? 'loading' : 'invalid')
 
 const isAdmin = ref(false)
 const orgs = ref<string[]>([])
@@ -73,11 +74,8 @@ onMounted(async () => {
       </nav>
     </header>
 
-    <p v-if="phase === 'missing'" class="notice">
+    <p v-if="phase === 'invalid'" class="notice">
       アクセス用 URL が正しくありません。配布された URL からアクセスしてください。
-    </p>
-    <p v-else-if="phase === 'invalid'" class="notice">
-      トークンが無効です。配布された URL を確認してください。
     </p>
     <p v-else-if="phase === 'error'" class="notice">
       読み込みに失敗しました。ページを再読み込みしてください。
