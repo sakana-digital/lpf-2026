@@ -41,7 +41,7 @@
 コマンドはすべてリポジトリルートで実行する。
 
 ```sh
-# 初回: ローカル D1 にスキーマとダミートークンを投入
+# 初回: ローカル D1 にスキーマを適用（seed は流すたびローカルのトークンとステータスを入れ直す）
 bun run status:migrate -- --local
 bun run status:seed
 
@@ -49,7 +49,7 @@ bun run status:seed
 bun run status:dev
 ```
 
-- 入力 SPA: `http://localhost:8787/?t=dev-token-c1-1`（トークンは [seed.example.sql](seed.example.sql) 参照）
+- 入力 SPA: `http://localhost:8787/?t=dev-token-c3-9`（トークンは [seed.example.sql](seed.example.sql) 参照）
 - サイネージは管理者画面の「サイネージ設定」で閲覧 URL を発行して開く
 - 本体サイトは `bun dev`（:5173）。`/api` は vite の proxy で :8787 に転送される
 - 入力 SPA 自体を開発するときは `bun run status:dev:spa`（別ポートの vite dev。API は proxy で :8787 へ）

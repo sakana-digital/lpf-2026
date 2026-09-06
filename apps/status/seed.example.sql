@@ -1,19 +1,19 @@
--- 実運用では平文トークンを保存せず、SHA-256 ハッシュだけをこの形式で投入する。
--- 新しい値は `bun run token:generate` で生成する（seed.sql は gitignore 済み）。
---   bunx wrangler d1 execute happo-sai-status --local --file seed.sql
---   bunx wrangler d1 execute happo-sai-status --remote --file seed.sql
+-- ローカル D1 専用のダミー。`bun run status:seed` が org_tokens / admin_tokens / org_status を
+-- 空にしてから流すので、実行後の状態は必ずこのファイルの中身と一致する。
+-- 本番のトークンは `bun run status:token -- --remote` が直接 D1 に入れるため、ここは通らない。
+
+-- c3-9 は実在しない組なので、ダミーが本番の団体と混ざらない
 INSERT INTO org_tokens (token_hash, org_id) VALUES
-  ('8b709bce1e16d3e4d23764ff532a9902d09c4b07b543d0400c43f7a2e4bbb51a', 'c1-1'),
-  ('c8afa90c64349e9005428a1fc611db38797b6e0c5c4150cc646633573a0a09a0', 'c1-2')
+  ('437e16c727dcf8472c334afdd6c5b58514e9e5aeee4fc1b94b6cae76bccc4638', 'c3-9')
 ON CONFLICT (org_id) DO UPDATE SET token_hash = excluded.token_hash;
 
+-- このハッシュは公開されているので、本番の admin_tokens に入れてはいけない
 INSERT INTO admin_tokens (token_hash) VALUES
   ('f37837a0953cdad0b2908f982c310813daec9cf4f1950c7b82a22e8d277b0aad')
 ON CONFLICT (token_hash) DO NOTHING;
 
--- ローカルで公開サイトの表示を確認するためのサンプル
+-- ローカルで入力 SPA とサイネージの表示を確認するためのサンプル
 INSERT INTO org_status (org_id, sales, congestion, updated_at) VALUES
-  ('c1-1', 'available', 'low', unixepoch()),
-  ('c1-2', 'low', 'high', unixepoch())
+  ('c3-9', 'available', 'low', unixepoch())
 ON CONFLICT (org_id) DO UPDATE
   SET sales = excluded.sales, congestion = excluded.congestion, updated_at = excluded.updated_at;

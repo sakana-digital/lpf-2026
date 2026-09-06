@@ -79,7 +79,7 @@ describe('footerMessages', () => {
 })
 
 describe('slotDisplayName', () => {
-  const orgId = 'test-org'
+  const orgId = 'c3-9'
   const opening = { ...fixture[0]!, organizationId: orgId }
 
   afterEach(() => {
