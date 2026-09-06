@@ -9,7 +9,6 @@ import {
   organizationNames,
 } from '@shared/organizations'
 import type { ClassNumber, Grade } from '@shared/organizations'
-import { localized } from '@shared/locale'
 import type { LocalizedText } from '@shared/locale'
 
 export { classNumbers, grades }
@@ -99,19 +98,4 @@ export function getOrganization(id: string): Organization | undefined {
 
 export function getOrganizationByRoom(room: string): Organization | undefined {
   return organizations.find((org) => org.location?.room === room)
-}
-
-export function organizationName(org: Organization, locale: string): string {
-  return localized(org.name, locale)
-}
-
-/** Short label for list and panel heads. Empty while a group's name is undecided. */
-export function organizationLabel(
-  org: Organization,
-  locale: string,
-  t: (key: string, params?: Record<string, unknown>) => string,
-): string {
-  return org.kind === 'class'
-    ? t('explore.events.classLabel', { grade: org.grade, classNo: org.classNo })
-    : organizationName(org, locale)
 }

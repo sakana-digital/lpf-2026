@@ -1,6 +1,6 @@
-import { floorPlans } from '@/config/isoMap'
-import type { FloorPlan, IsoMapArea } from '@/config/isoMap'
-import type { Floor } from '@/config/organizations'
+import { floorPlans } from '@/data/isoMap'
+import type { FloorPlan, IsoMapArea } from '@/data/isoMap'
+import type { Floor } from '@/data/organizations'
 import { areaPath, floorSegments, labelText, planBounds } from './geometry'
 import type { IsoMapLabels, MapColors, MapPoint, MapSegment } from './geometry'
 

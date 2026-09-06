@@ -2,12 +2,12 @@
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { localePath, navigablePages } from '@/config/pages'
+import { keywordsKey, labelKey, localePath, navigablePages, titleKey } from '@/data/pages'
 import { useSearch } from '@/stores/search'
 import { filterEntries } from '@/lib/search'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 
-const { t, locale, messages, availableLocales } = useI18n()
+const { t, te, locale, messages, availableLocales } = useI18n()
 const { isOpen, close } = useSearch()
 const router = useRouter()
 
@@ -29,17 +29,18 @@ function resolvePath(tree: unknown, path: string): unknown {
 // Collect keywords and names from every locale, so either language matches
 const entries = computed(() =>
   navigablePages.map((page) => {
+    const heading = te(titleKey(page.id)) ? titleKey(page.id) : labelKey(page.id)
     const keywords: string[] = []
     for (const loc of availableLocales) {
       const tree = (messages.value as Record<string, unknown>)[loc]
-      const kw = page.keywordsKey ? resolvePath(tree, page.keywordsKey) : undefined
+      const kw = resolvePath(tree, keywordsKey(page.id))
       if (Array.isArray(kw)) keywords.push(...(kw as string[]))
-      const title = resolvePath(tree, page.titleKey ?? page.labelKey)
+      const title = resolvePath(tree, heading)
       if (typeof title === 'string') keywords.push(title)
     }
     return {
       to: localePath(page.path, locale.value),
-      label: t(page.titleKey ?? page.labelKey),
+      label: t(heading),
       keywords,
     }
   }),

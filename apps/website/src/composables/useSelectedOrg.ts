@@ -1,6 +1,6 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getOrganization } from '@/config/organizations'
+import { getOrganization } from '@/data/organizations'
 
 /**
  * Holds the selected group in `?org=`. An unknown ID counts as no selection.

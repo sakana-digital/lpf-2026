@@ -1,4 +1,4 @@
-import { isRootPath } from '@/config/pages'
+import { isRootPath } from '@/data/pages'
 
 // Whether the session started by landing directly on the root page,
 // rather than reaching it through in-app navigation. Captured once at

@@ -1,5 +1,5 @@
-import { classNumbers, grades } from '@/config/organizations'
-import type { Organization } from '@/config/organizations'
+import { classNumbers, grades } from '@/data/organizations'
+import type { Organization } from '@/data/organizations'
 
 export const EVENT_COLUMNS = classNumbers.length
 

@@ -10,7 +10,7 @@ async function mountSubscriber(now: string) {
   vi.setSystemTime(new Date(now))
   vi.resetModules()
   const { createApp, defineComponent, h } = await import('vue')
-  const { useOrgStatus } = await import('./useOrgStatus')
+  const { useOrgStatus } = await import('./orgStatus')
   const app = createApp(
     defineComponent({
       setup() {

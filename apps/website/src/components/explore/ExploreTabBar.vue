@@ -2,15 +2,17 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TabBar from '@/components/ui/TabBar.vue'
-import { localePath } from '@/config/pages'
+import { EXPLORE_TABS } from '@/lib/exploreTab'
+import { localePath, pagePath } from '@/data/pages'
 
 const { t, locale } = useI18n()
 
-const tabs = computed(() => [
-  { to: localePath('/explore/events/', locale.value), label: t('explore.tabs.events') },
-  { to: localePath('/explore/schedule/', locale.value), label: t('explore.tabs.schedule') },
-  { to: localePath('/explore/map/', locale.value), label: t('explore.tabs.map') },
-])
+const tabs = computed(() =>
+  EXPLORE_TABS.map((tab) => ({
+    to: localePath(pagePath(tab), locale.value),
+    label: t(`explore.tabs.${tab}`),
+  })),
+)
 </script>
 
 <template>

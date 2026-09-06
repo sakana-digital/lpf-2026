@@ -11,77 +11,29 @@ export type Language = (typeof LANGUAGES)[number]
 export const SITE_ORIGIN = 'https://happo-sai.pages.dev'
 
 export interface PageDefinition {
+  /**
+   * Suffix of every locale key belonging to the page: meta.pages.*, and
+   * sitemap.* / search.titles.* / search.keywords.* while it is navigable.
+   */
+  id: string
   /** Path on the Japanese side. Always ends with a slash */
   path: string
-  /** Locale key suffix of the SEO meta (meta.pages.*). The root has no title, only the site name */
-  metaKey: string
-  /** Locale key of the label shown in the UI (PageTree / PageHeader) */
-  labelKey: string
-  /** Locale key of the heading in search results. Falls back to labelKey */
-  titleKey?: string
   /** Listed in sitemap.xml and served with robots index, follow */
   indexable: boolean
   /** Shown in PageTree / SearchModal */
   navigable: boolean
-  keywordsKey?: string
+  /** Older path the app redirects. Listed so its meta matches the target */
+  legacy?: boolean
 }
 
 export const pages: PageDefinition[] = [
-  {
-    path: '/',
-    metaKey: 'home',
-    labelKey: 'sitemap.home',
-    titleKey: 'search.titles.home',
-    indexable: true,
-    navigable: true,
-    keywordsKey: 'search.keywords.home',
-  },
-  {
-    path: '/explore/',
-    metaKey: 'explore',
-    labelKey: 'sitemap.explore',
-    titleKey: 'search.titles.explore',
-    indexable: false,
-    navigable: true,
-    keywordsKey: 'search.keywords.explore',
-  },
-  {
-    path: '/news/',
-    metaKey: 'news',
-    labelKey: 'sitemap.news',
-    titleKey: 'search.titles.news',
-    indexable: true,
-    navigable: true,
-    keywordsKey: 'search.keywords.news',
-  },
-  {
-    path: '/explore/events/',
-    metaKey: 'events',
-    labelKey: 'explore.tabs.events',
-    indexable: true,
-    navigable: false,
-  },
-  {
-    path: '/explore/schedule/',
-    metaKey: 'schedule',
-    labelKey: 'explore.tabs.schedule',
-    indexable: true,
-    navigable: false,
-  },
-  {
-    path: '/explore/map/',
-    metaKey: 'map',
-    labelKey: 'explore.tabs.map',
-    indexable: true,
-    navigable: false,
-  },
-  {
-    path: '/explore/nodes/',
-    metaKey: 'events',
-    labelKey: 'explore.tabs.events',
-    indexable: false,
-    navigable: false,
-  },
+  { id: 'home', path: '/', indexable: true, navigable: true },
+  { id: 'explore', path: '/explore/', indexable: false, navigable: true },
+  { id: 'news', path: '/news/', indexable: true, navigable: true },
+  { id: 'events', path: '/explore/events/', indexable: true, navigable: false },
+  { id: 'schedule', path: '/explore/schedule/', indexable: true, navigable: false },
+  { id: 'map', path: '/explore/map/', indexable: true, navigable: false },
+  { id: 'events', path: '/explore/nodes/', indexable: false, navigable: false, legacy: true },
 ]
 
 const byPath = new Map(pages.map((page) => [page.path, page]))
@@ -90,6 +42,29 @@ export const sitemapPaths = pages.filter((page) => page.indexable).map((page) =>
 
 /** Pages shown in PageTree / SearchModal. The root comes first. */
 export const navigablePages = pages.filter((page) => page.navigable)
+
+export const legacyPages = pages.filter((page) => page.legacy)
+
+/** Canonical path of a page. Legacy entries share an id, so the first one wins. */
+export function pagePath(id: string): string {
+  const page = pages.find((candidate) => candidate.id === id)
+  if (!page) throw new Error(`Unknown page: ${id}`)
+  return page.path
+}
+
+/** Label in PageTree / PageHeader */
+export function labelKey(id: string): string {
+  return `sitemap.${id}`
+}
+
+/** Heading in search results */
+export function titleKey(id: string): string {
+  return `search.titles.${id}`
+}
+
+export function keywordsKey(id: string): string {
+  return `search.keywords.${id}`
+}
 
 export function isEnPath(pathname: string): boolean {
   return pathname === '/en' || pathname === '/en/' || pathname.startsWith('/en/')

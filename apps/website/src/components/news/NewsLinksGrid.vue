@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { NewsItem } from '@/config/newsLinks'
+import type { NewsItem } from '@/data/newsLinks'
 import InstagramEmbed from '@/components/news/InstagramEmbed.vue'
 import NewsLinkCard from '@/components/news/NewsLinkCard.vue'
 import { processInstagramEmbedsNear } from '@/lib/instagramEmbed'

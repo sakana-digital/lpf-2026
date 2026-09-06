@@ -1,6 +1,6 @@
 import { watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
-import { localizedPath, SITE_ORIGIN } from '@/config/pages'
+import { localizedPath, SITE_ORIGIN } from '@/data/pages'
 
 // Production always points at SITE_ORIGIN, matching what the middleware injected,
 // so a deploy never self-references its own <hash>.happo-sai.pages.dev.

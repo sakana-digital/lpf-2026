@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import IconExplore from '@/components/icons/IconExplore.vue'
 import { useScrolledPast } from '@/composables/useScrolledPast'
-import { localePath } from '@/config/pages'
+import { localePath } from '@/data/pages'
 
 const { t, locale } = useI18n()
 

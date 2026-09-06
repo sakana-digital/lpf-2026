@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vite-plus/test'
-import { floorPlans } from '@/config/isoMap'
+import { floorPlans } from '@/data/isoMap'
 import { floorSegments } from './geometry'
 
 describe('floorSegments', () => {

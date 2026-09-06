@@ -6,7 +6,7 @@ import IconHome from '@/components/icons/IconHome.vue'
 import IconCopy from '@/components/icons/IconCopy.vue'
 import IconCheck from '@/components/icons/IconCheck.vue'
 import { useCopyLink } from '@/composables/useCopyLink'
-import { instagramUrl, schoolUrl } from '@/config/social'
+import { instagramUrl, schoolUrl } from '@/data/social'
 
 const { t } = useI18n()
 const route = useRoute()

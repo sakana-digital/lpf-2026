@@ -1,5 +1,5 @@
-import { grades } from '@/config/organizations'
-import type { Organization } from '@/config/organizations'
+import { grades } from '@/data/organizations'
+import type { Organization } from '@/data/organizations'
 
 export interface Vec3 {
   x: number

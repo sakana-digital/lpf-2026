@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { resolveFestivalDay } from '@/config/festival'
+import { resolveFestivalDay } from '@/lib/festival'
 
 const { t } = useI18n()
 

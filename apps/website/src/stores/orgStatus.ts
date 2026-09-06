@@ -1,6 +1,6 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import type { OrgStatus } from '@shared/status'
-import { isFestivalDay } from '@/config/festival'
+import { isFestivalDay } from '@/lib/festival'
 
 const POLL_INTERVAL_MS = 45_000
 
