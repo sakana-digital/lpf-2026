@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef } from 'vue'
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { classNumbers, organizations } from '@/data/organizations'
 import type { Organization } from '@/data/organizations'
 import {
   buildEventRows,
   columnTracks,
+  EXPANDED_CONTENT,
   findCellPosition,
   GAP,
   GUTTER,
@@ -34,11 +35,14 @@ const scrollStyle = {
   '--gutter': `${GUTTER}px`,
   '--gap': `${GAP}px`,
   '--inline-padding': `${INLINE_PADDING}px`,
+  '--expanded-content': EXPANDED_CONTENT,
 }
+
+const expandedHeight = ref<number>()
 
 const gridStyle = computed(() => ({
   gridTemplateColumns: `${GUTTER}px ${columnTracks(classNumbers.length, selectedPos.value?.col ?? null)}`,
-  gridTemplateRows: `${GUTTER}px ${rowTracks(rows.value, selectedPos.value?.row ?? null)}`,
+  gridTemplateRows: `${GUTTER}px ${rowTracks(rows.value, selectedPos.value?.row ?? null, expandedHeight.value)}`,
 }))
 
 const scrolled = ref(false)
@@ -65,7 +69,51 @@ function scrollSelectedIntoView() {
     ?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
 }
 
-onMounted(scrollSelectedIntoView)
+/**
+ * The detail is laid out at a fixed width, so its height is already final while
+ * the column is still animating. Everything around it comes from the cell's own
+ * box, so the row never has to guess.
+ */
+function measureExpanded() {
+  const cell = gridRef.value?.querySelector('.cell.expanded')
+  const head = cell?.querySelector('.head-row')
+  const detail = cell?.querySelector('.detail')
+  if (
+    !(cell instanceof HTMLElement && head instanceof HTMLElement && detail instanceof HTMLElement)
+  )
+    return
+  const style = getComputedStyle(cell)
+  const chrome = (
+    ['paddingTop', 'paddingBottom', 'borderTopWidth', 'borderBottomWidth', 'rowGap'] as const
+  ).reduce((total, part) => total + parseFloat(style[part]), 0)
+  expandedHeight.value = Math.ceil(chrome + head.offsetHeight + detail.offsetHeight)
+}
+
+// Keeps the row right when the content itself changes: an image loads, the
+// viewport narrows, or the locale swaps the text
+const detailResize =
+  typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(measureExpanded)
+
+function trackExpanded() {
+  detailResize?.disconnect()
+  const detail = gridRef.value?.querySelector('.cell.expanded .detail')
+  if (!detail) return
+  measureExpanded()
+  detailResize?.observe(detail)
+}
+
+watch(() => props.selectedId, trackExpanded, { flush: 'post' })
+
+// Measuring flushes styles, so without this a deep-linked cell would animate open
+const animated = ref(false)
+
+onMounted(() => {
+  trackExpanded()
+  scrollSelectedIntoView()
+  requestAnimationFrame(() => (animated.value = true))
+})
+
+onUnmounted(() => detailResize?.disconnect())
 </script>
 
 <template>
@@ -73,6 +121,7 @@ onMounted(scrollSelectedIntoView)
     <div
       ref="gridRef"
       class="events-grid"
+      :class="{ animated }"
       :style="gridStyle"
       role="group"
       :aria-label="t('explore.events.gridLabel')"
@@ -137,9 +186,12 @@ onMounted(scrollSelectedIntoView)
   /* Widen the box to the tracks so the sticky row head can travel the whole scroll */
   width: max-content;
   gap: var(--gap);
-  transition:
-    grid-template-columns 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-    grid-template-rows 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  /* Both tracks are lengths, so width and height run off the same transition */
+  &.animated {
+    transition:
+      grid-template-columns 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+      grid-template-rows 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
 
   .gutter {
     display: flex;

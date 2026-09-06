@@ -1,5 +1,6 @@
 import { classNumbers, grades } from '@/data/organizations'
 import type { Organization } from '@/data/organizations'
+import { clubSections } from '@/lib/organization'
 
 export const EVENT_COLUMNS = classNumbers.length
 
@@ -43,13 +44,14 @@ export function buildEventRows(orgs: Organization[]): EventRow[] {
     ),
   }))
 
+  for (const section of clubSections(orgs)) {
+    rows.push(
+      { id: `spacer-${section.id}`, spacer: true, cells: [] },
+      ...chunkRows(section.members, section.id, section.labelKey),
+    )
+  }
+
   rows.push(
-    { id: 'spacer-clubs', spacer: true, cells: [] },
-    ...chunkRows(
-      orgs.filter((org) => org.kind === 'club'),
-      'clubs',
-      'explore.events.clubHeader',
-    ),
     { id: 'spacer-committees', spacer: true, cells: [] },
     ...chunkRows(
       orgs.filter((org) => org.kind === 'committee'),
@@ -64,8 +66,14 @@ export function buildEventRows(orgs: Organization[]): EventRow[] {
 // Narrow enough to clear the sticky row head
 const EXPANDED_COLUMN = `min(560px, 100vw - ${INLINE_PADDING * 2 + GUTTER + GAP}px)`
 
-// Height of the 4:3 image without the 18px cell padding, plus head, status and meta
-const EXPANDED_ROW = `calc((${EXPANDED_COLUMN} - 18px) * 3 / 4 + 110px)`
+// Cell padding on both sides plus its border
+const CELL_INSET = 18
+
+/**
+ * Width the detail is laid out at, whatever the column is doing. Keeping it off
+ * the animating column stops the 4:3 image from easing the height a second time.
+ */
+export const EXPANDED_CONTENT = `calc(${EXPANDED_COLUMN} - ${CELL_INSET}px)`
 
 // Room for the head and the status badges side by side
 const MIN_COLUMN = 128
@@ -83,9 +91,20 @@ export function columnTracks(count: number, selected: number | null): string {
   ).join(' ')
 }
 
-export function rowTracks(rows: EventRow[], selected: number | null): string {
+/**
+ * The open row is a measured pixel height rather than `auto`, so the track
+ * interpolates: opening, closing and moving between two cells of different
+ * heights are all one transition, on the same element as the column width.
+ */
+export function rowTracks(
+  rows: EventRow[],
+  selected: number | null,
+  expandedHeight = BASE_ROW,
+): string {
   return rows
-    .map((row, i) => (i === selected ? EXPANDED_ROW : row.spacer ? `${GUTTER}px` : `${BASE_ROW}px`))
+    .map((row, i) =>
+      i === selected ? `${expandedHeight}px` : row.spacer ? `${GUTTER}px` : `${BASE_ROW}px`,
+    )
     .join(' ')
 }
 

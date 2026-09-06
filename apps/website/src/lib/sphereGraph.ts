@@ -1,5 +1,7 @@
+import { ORG_CATEGORIES } from '@shared/organizations'
 import { grades } from '@/data/organizations'
 import type { Organization } from '@/data/organizations'
+import { clubSections } from '@/lib/organization'
 
 export interface Vec3 {
   x: number
@@ -17,8 +19,9 @@ export interface Quat {
 export interface SphereNode {
   id: string
   kind: 'group' | 'leaf'
+  /** Set on leaves, whose label is resolved from the group itself. */
   orgId?: string
-  labelKey: string
+  labelKey?: string
   labelParams?: Record<string, unknown>
   position: Vec3
 }
@@ -26,6 +29,8 @@ export interface SphereNode {
 export interface SphereEdge {
   from: string
   to: string
+  /** Category links cross the sphere, so the graph draws them apart from the spokes. */
+  kind: 'member' | 'category'
 }
 
 export interface ProjectedNode {
@@ -104,11 +109,7 @@ export function buildOrganizationSphere(orgs: Organization[]): {
       labelParams: { grade },
       members: orgs.filter((org) => org.kind === 'class' && org.grade === grade),
     })),
-    {
-      id: 'clubs',
-      labelKey: 'explore.events.clubHeader',
-      members: orgs.filter((org) => org.kind === 'club'),
-    },
+    ...clubSections(orgs),
     {
       id: 'committees',
       labelKey: 'explore.events.committeeHeader',
@@ -132,13 +133,21 @@ export function buildOrganizationSphere(orgs: Organization[]): {
         id: org.id,
         kind: 'leaf',
         orgId: org.id,
-        labelKey: org.kind === 'class' ? 'explore.events.classLabel' : 'explore.events.tbd',
-        labelParams: org.kind === 'class' ? { grade: org.grade, classNo: org.classNo } : undefined,
         position: spherePoint(lat, lon),
       })
-      edges.push({ from: ring.id, to: org.id })
+      edges.push({ from: ring.id, to: org.id, kind: 'member' })
     })
   })
+
+  // One loop per category, so a class serving food is tied to every other group
+  // doing the same without drawing a link between every pair of them
+  for (const category of ORG_CATEGORIES) {
+    const members = orgs.filter((org) => org.category === category)
+    members.forEach((org, i) => {
+      const next = members[i + 1] ?? (members.length > 2 ? members[0] : undefined)
+      if (next) edges.push({ from: org.id, to: next.id, kind: 'category' })
+    })
+  }
 
   return { nodes, edges }
 }

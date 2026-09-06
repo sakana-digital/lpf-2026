@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vite-plus/test'
-import { organizationNames } from '@shared/organizations'
+import { organizationProfiles } from '@shared/organizations'
 import { slotDisplayName } from '@shared/schedule'
 import type { FestivalDay, ScheduleSlot } from '@shared/schedule'
 import { clockOffset, footerMessages } from '../src/lib/signageSchedule'
@@ -79,26 +79,26 @@ describe('footerMessages', () => {
 })
 
 describe('slotDisplayName', () => {
-  const orgId = 'c3-9'
+  const orgId = 'club-1'
   const opening = { ...fixture[0]!, organizationId: orgId }
 
   afterEach(() => {
-    delete organizationNames[orgId]
+    delete organizationProfiles[orgId]
   })
 
   it('joins the title with the organization name', () => {
-    organizationNames[orgId] = { ja: '軽音楽部', en: 'Light Music Club' }
+    organizationProfiles[orgId] = { name: { ja: '軽音楽部', en: 'Light Music Club' } }
     expect(slotDisplayName(opening, 'ja')).toBe('開会式 / 軽音楽部')
   })
 
   it('drops whichever half is undecided', () => {
     expect(slotDisplayName(opening, 'ja')).toBe('開会式')
-    organizationNames[orgId] = { ja: '軽音楽部' }
+    organizationProfiles[orgId] = { name: { ja: '軽音楽部' } }
     expect(slotDisplayName({ ...opening, title: undefined }, 'ja')).toBe('軽音楽部')
   })
 
   it('falls back to Japanese for a name with no translation', () => {
-    organizationNames[orgId] = { ja: '軽音楽部' }
+    organizationProfiles[orgId] = { name: { ja: '軽音楽部' } }
     expect(slotDisplayName(opening, 'en-US')).toBe('開会式 / 軽音楽部')
   })
 })

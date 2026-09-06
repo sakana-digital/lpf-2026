@@ -6,10 +6,15 @@ import {
   committeeNumbers,
   committeeOrgId,
   grades,
-  organizationNames,
+  organizationProfile,
 } from '@shared/organizations'
-import type { ClassNumber, Grade } from '@shared/organizations'
-import type { LocalizedText } from '@shared/locale'
+import type {
+  ClassNumber,
+  ClubNumber,
+  CommitteeNumber,
+  Grade,
+  OrganizationProfile,
+} from '@shared/organizations'
 
 export { classNumbers, grades }
 export type { ClassNumber, Grade }
@@ -21,12 +26,9 @@ export interface VenueLocation {
   room: string
 }
 
-interface OrganizationBase {
+interface OrganizationBase extends OrganizationProfile {
   id: string
-  /** Left unset for groups whose name is not decided yet. */
-  name?: LocalizedText
   location?: VenueLocation
-  image?: string
 }
 
 export interface ClassOrganization extends OrganizationBase {
@@ -37,7 +39,6 @@ export interface ClassOrganization extends OrganizationBase {
 
 export interface ClubOrganization extends OrganizationBase {
   kind: 'club'
-  group: string
 }
 
 export interface CommitteeOrganization extends OrganizationBase {
@@ -46,44 +47,28 @@ export interface CommitteeOrganization extends OrganizationBase {
 
 export type Organization = ClassOrganization | ClubOrganization | CommitteeOrganization
 
-interface OrganizationProfile {
-  group?: string
-  image?: string
-}
-
-// Ids and names live in shared/; only what the site alone renders belongs here.
-const profiles: Record<string, OrganizationProfile> = {}
-
-function profileOf(id: string) {
-  return { name: organizationNames[id], ...profiles[id] }
-}
-
 function cls(grade: Grade, classNo: ClassNumber): ClassOrganization {
   // Grade 1 is on the top floor (4F), and higher grades sit lower
   const floor = (5 - grade) as Floor
   const id = classOrgId(grade, classNo)
-  const { name, image } = profileOf(id)
   return {
     kind: 'class',
     id,
     grade,
     classNo,
-    name,
-    image,
+    ...organizationProfile(id),
     location: { floor, room: `r${floor}0${classNo}` },
   }
 }
 
-function club(no: number): ClubOrganization {
+function club(no: ClubNumber): ClubOrganization {
   const id = clubOrgId(no)
-  const { name, group = '', image } = profileOf(id)
-  return { kind: 'club', id, group, name, image }
+  return { kind: 'club', id, ...organizationProfile(id) }
 }
 
-function committee(no: number): CommitteeOrganization {
+function committee(no: CommitteeNumber): CommitteeOrganization {
   const id = committeeOrgId(no)
-  const { name, image } = profileOf(id)
-  return { kind: 'committee', id, name, image }
+  return { kind: 'committee', id, ...organizationProfile(id) }
 }
 
 export const organizations: Organization[] = [

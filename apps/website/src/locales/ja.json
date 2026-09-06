@@ -101,7 +101,6 @@
       "clubHeader": "部活",
       "committeeHeader": "委員会",
       "classLabel": "{grade}-{classNo}",
-      "tbd": "⚠️ TBD",
       "noImage": "No Image",
       "location": "{floor}F",
       "viewSwitch": "表示切り替え",
@@ -120,6 +119,13 @@
       "daySwitch": "日程切り替え",
       "dayLabel": "Day {day} · {date}",
       "empty": "スケジュールはまだありません"
+    },
+    "menu": {
+      "title": "メニュー",
+      "price": "¥{price}",
+      "allergensList": "アレルゲン: {list}",
+      "allergensFree": "アレルゲン: 特定原材料等 28 品目を含みません",
+      "allergensUnknown": "アレルゲン情報は準備中です"
     }
   },
   "news": {
@@ -219,8 +225,12 @@
   },
   "search": {
     "label": "サイト内検索",
-    "placeholder": "ページを検索…",
-    "empty": "該当するページがありません",
+    "placeholder": "ページや団体を検索…",
+    "empty": "該当する項目がありません",
+    "sections": {
+      "pages": "ページ",
+      "orgs": "団体"
+    },
     "titles": {
       "home": "ホーム",
       "explore": "探索",
@@ -245,5 +255,41 @@
       "medium": "やや混雑",
       "high": "混雑"
     }
+  },
+  "orgCategories": {
+    "food": "食品",
+    "exhibit": "展示",
+    "performance": "公演",
+    "game": "遊び"
+  },
+  "allergens": {
+    "shrimp": "えび",
+    "crab": "かに",
+    "walnut": "くるみ",
+    "wheat": "小麦",
+    "buckwheat": "そば",
+    "egg": "卵",
+    "milk": "乳",
+    "peanut": "落花生",
+    "almond": "アーモンド",
+    "abalone": "あわび",
+    "squid": "いか",
+    "salmonRoe": "いくら",
+    "orange": "オレンジ",
+    "cashew": "カシューナッツ",
+    "kiwi": "キウイフルーツ",
+    "beef": "牛肉",
+    "sesame": "ごま",
+    "salmon": "さけ",
+    "mackerel": "さば",
+    "soybean": "大豆",
+    "chicken": "鶏肉",
+    "banana": "バナナ",
+    "pork": "豚肉",
+    "matsutake": "まつたけ",
+    "peach": "もも",
+    "yam": "やまいも",
+    "apple": "りんご",
+    "gelatin": "ゼラチン"
   }
 }

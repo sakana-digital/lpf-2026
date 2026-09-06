@@ -1,6 +1,6 @@
 import { localized } from './locale'
 import type { LocalizedText } from './locale'
-import { organizationNames } from './organizations'
+import { organizationProfile } from './organizations'
 
 export const festivalDates = ['2026-09-26', '2026-09-27'] as const
 
@@ -39,7 +39,7 @@ export const scheduleSlots: ScheduleSlot[] = [
     venue: 'avRoom',
     start: '11:30',
     end: '12:30',
-    title: { ja: '⚠️ TBD: 上映企画', en: '⚠️ TBD: Screening' },
+    title: { ja: '上映企画', en: 'Screening' },
     organizationId: 'com-1',
   },
   {
@@ -48,7 +48,7 @@ export const scheduleSlots: ScheduleSlot[] = [
     venue: 'courtyard',
     start: '13:00',
     end: '14:00',
-    title: { ja: '⚠️ TBD: ステージ企画', en: '⚠️ TBD: Stage Act' },
+    title: { ja: 'ステージ企画', en: 'Stage Act' },
     organizationId: 'club-1',
   },
   {
@@ -57,7 +57,7 @@ export const scheduleSlots: ScheduleSlot[] = [
     venue: 'courtyard',
     start: '11:00',
     end: '12:00',
-    title: { ja: '⚠️ TBD: ステージ企画', en: '⚠️ TBD: Stage Act' },
+    title: { ja: 'ステージ企画', en: 'Stage Act' },
     organizationId: 'club-2',
   },
   {
@@ -107,6 +107,6 @@ export function daySlots(day: FestivalDay): ScheduleSlot[] {
  * With both it reads "project / group".
  */
 export function slotDisplayName(slot: ScheduleSlot, locale: string): string {
-  const org = slot.organizationId ? organizationNames[slot.organizationId] : undefined
+  const org = slot.organizationId ? organizationProfile(slot.organizationId)?.name : undefined
   return [localized(slot.title, locale), localized(org, locale)].filter(Boolean).join(' / ')
 }

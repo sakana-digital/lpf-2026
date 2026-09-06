@@ -101,7 +101,6 @@
       "clubHeader": "Clubs",
       "committeeHeader": "Committees",
       "classLabel": "{grade}-{classNo}",
-      "tbd": "⚠️ TBD",
       "noImage": "No Image",
       "location": "{floor}F",
       "viewSwitch": "Switch view",
@@ -120,6 +119,13 @@
       "daySwitch": "Switch day",
       "dayLabel": "Day {day} · {date}",
       "empty": "No schedule has been announced yet."
+    },
+    "menu": {
+      "title": "Menu",
+      "price": "¥{price}",
+      "allergensList": "Allergens: {list}",
+      "allergensFree": "Allergens: none of the 28 listed",
+      "allergensUnknown": "Allergen information is not available yet"
     }
   },
   "news": {
@@ -222,8 +228,12 @@
   },
   "search": {
     "label": "Site search",
-    "placeholder": "Search pages…",
-    "empty": "No matching pages",
+    "placeholder": "Search pages and groups…",
+    "empty": "No matching results",
+    "sections": {
+      "pages": "Pages",
+      "orgs": "Groups"
+    },
     "titles": {
       "home": "Home",
       "explore": "Explore",
@@ -248,5 +258,41 @@
       "medium": "Somewhat busy",
       "high": "Busy"
     }
+  },
+  "orgCategories": {
+    "food": "Food",
+    "exhibit": "Exhibition",
+    "performance": "Performance",
+    "game": "Games"
+  },
+  "allergens": {
+    "shrimp": "Shrimp",
+    "crab": "Crab",
+    "walnut": "Walnut",
+    "wheat": "Wheat",
+    "buckwheat": "Buckwheat",
+    "egg": "Egg",
+    "milk": "Milk",
+    "peanut": "Peanut",
+    "almond": "Almond",
+    "abalone": "Abalone",
+    "squid": "Squid",
+    "salmonRoe": "Salmon roe",
+    "orange": "Orange",
+    "cashew": "Cashew",
+    "kiwi": "Kiwi",
+    "beef": "Beef",
+    "sesame": "Sesame",
+    "salmon": "Salmon",
+    "mackerel": "Mackerel",
+    "soybean": "Soy",
+    "chicken": "Chicken",
+    "banana": "Banana",
+    "pork": "Pork",
+    "matsutake": "Matsutake",
+    "peach": "Peach",
+    "yam": "Yam",
+    "apple": "Apple",
+    "gelatin": "Gelatin"
   }
 }

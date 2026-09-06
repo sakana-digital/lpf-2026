@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useBookmarks } from '@/stores/bookmarks'
 import { getOrganization } from '@/data/organizations'
-import { organizationName } from '@/lib/organizationLabel'
+import { organizationGroupName, organizationProjectName } from '@/lib/organization'
 import IconBookmark from '@/components/icons/IconBookmark.vue'
 import { localePath } from '@/data/pages'
 
@@ -16,13 +16,8 @@ const items = computed(() =>
     .filter((org) => org != null)
     .map((org) => ({
       id: org.id,
-      label:
-        org.kind === 'class'
-          ? t('explore.events.classLabel', { grade: org.grade, classNo: org.classNo })
-          : org.kind === 'club'
-            ? t('explore.events.clubHeader')
-            : t('explore.events.committeeHeader'),
-      name: organizationName(org, locale.value),
+      label: organizationGroupName(org, locale.value, t),
+      name: organizationProjectName(org, locale.value),
       to: {
         path: localePath('/explore/events/', locale.value),
         query: { org: org.id },

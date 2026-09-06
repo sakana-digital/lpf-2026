@@ -12,7 +12,7 @@ import {
 import type { FestivalDay, ScheduleSlot } from '@shared/schedule'
 import { resolveFestivalDay } from '@/lib/festival'
 import { getOrganization } from '@/data/organizations'
-import { organizationName } from '@/lib/organizationLabel'
+import { organizationGroupName, organizationProjectName } from '@/lib/organization'
 import { buildTimeAxis, slotRows } from '@/lib/scheduleGrid'
 import { useOrgStatus } from '@/stores/orgStatus'
 import { useSelectedOrg } from '@/composables/useSelectedOrg'
@@ -41,9 +41,14 @@ function slotOrg(slot: ScheduleSlot) {
   return slot.organizationId ? getOrganization(slot.organizationId) : undefined
 }
 
-function slotOrgName(slot: ScheduleSlot): string {
+function slotGroupName(slot: ScheduleSlot): string {
   const org = slotOrg(slot)
-  return org ? organizationName(org, locale.value) : ''
+  return org ? organizationGroupName(org, locale.value, t) : ''
+}
+
+function slotProjectName(slot: ScheduleSlot): string {
+  const org = slotOrg(slot)
+  return org ? organizationProjectName(org, locale.value) : ''
 }
 
 const gridRef = useTemplateRef<HTMLElement>('gridRef')
@@ -135,8 +140,9 @@ function slotStyle(slot: ScheduleSlot) {
           >
             <div v-if="isExpanded(slot) && slotOrg(slot)" class="slot-expand">
               <div class="slot-expand-inner">
-                <span class="slot-org" :class="{ tbd: !slotOrgName(slot) }">
-                  {{ slotOrgName(slot) || t('explore.events.tbd') }}
+                <span class="slot-org">{{ slotGroupName(slot) }}</span>
+                <span v-if="slotProjectName(slot)" class="slot-project">
+                  {{ slotProjectName(slot) }}
                 </span>
                 <OrgDetail :org="slotOrg(slot)!" :status="statuses?.get(slot.organizationId)">
                   <template #actions>
@@ -272,10 +278,12 @@ function slotStyle(slot: ScheduleSlot) {
           color: var(--color-text);
           font-family: var(--font-text);
           font-size: 12px;
+        }
 
-          &.tbd {
-            color: var(--color-text-mute);
-          }
+        .slot-project {
+          color: var(--color-text-mute);
+          font-family: var(--font-text);
+          font-size: 11px;
         }
 
         &.detail-enter-active {
