@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vite-plus/test'
-import { localePath, pages } from '@/config/pages'
+import { localePath, pages } from '@/data/pages'
 import router from './index'
 
 const allPaths = pages.flatMap((page) => [page.path, localePath(page.path, 'en')])
 
 describe('router', () => {
-  it('has a route for every path in config/pages', () => {
+  it('has a route for every path in data/pages', () => {
     for (const path of allPaths) {
       const resolved = router.resolve(path)
       expect(resolved.matched.length, path).toBeGreaterThan(0)

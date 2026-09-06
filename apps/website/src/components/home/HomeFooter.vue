@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import IconLogo from '@/components/icons/IconLogo.vue'
-import { localePath } from '@/config/pages'
+import { localePath } from '@/data/pages'
 
 const { t, locale } = useI18n()
 

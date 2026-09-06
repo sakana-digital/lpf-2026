@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import NewsInstagramLink from '@/components/news/NewsInstagramLink.vue'
 import NewsLinksGrid from '@/components/news/NewsLinksGrid.vue'
-import { newsLinks } from '@/config/newsLinks'
+import { newsLinks } from '@/data/newsLinks'
 </script>
 
 <template>

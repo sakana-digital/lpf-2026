@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { classNumbers, organizations } from '@/config/organizations'
-import type { Organization } from '@/config/organizations'
+import { classNumbers, organizations } from '@/data/organizations'
+import type { Organization } from '@/data/organizations'
 import {
   buildEventRows,
   columnTracks,

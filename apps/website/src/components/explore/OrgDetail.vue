@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { organizationName } from '@/config/organizations'
-import type { Organization } from '@/config/organizations'
+import { organizationName } from '@/lib/organizationLabel'
+import type { Organization } from '@/data/organizations'
 import type { OrgStatus } from '@shared/status'
 import OrgImage from './OrgImage.vue'
 import OrgStatusBadges from './OrgStatusBadges.vue'

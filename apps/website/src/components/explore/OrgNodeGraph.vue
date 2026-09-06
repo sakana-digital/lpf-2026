@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getOrganization, organizationName, organizations } from '@/config/organizations'
+import { getOrganization, organizations } from '@/data/organizations'
+import { organizationName } from '@/lib/organizationLabel'
 import { buildOrganizationSphere } from '@/lib/sphereGraph'
 import { useSphereGraph } from '@/composables/useSphereGraph'
 import type { OrgStatus } from '@shared/status'

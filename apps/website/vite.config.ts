@@ -4,9 +4,9 @@ import { defineConfig, lazyPlugins } from 'vite-plus'
 import type { Plugin } from 'vite-plus'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
-import { localePath, pages } from './src/config/pages'
+import { localePath, pages } from './src/data/pages'
 
-/** Builds the Cloudflare Pages _redirects from src/config/pages.ts. */
+/** Builds the Cloudflare Pages _redirects from src/data/pages.ts. */
 export function redirectRules(): string {
   const trailingSlash = pages
     .flatMap((page) => [page.path, localePath(page.path, 'en')])

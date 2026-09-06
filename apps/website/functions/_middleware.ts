@@ -1,5 +1,5 @@
-import { findPage, localePath, localizedPath, SITE_ORIGIN, sitemapPaths } from '../src/config/pages'
-import type { Language, PageDefinition } from '../src/config/pages'
+import { findPage, localePath, localizedPath, SITE_ORIGIN, sitemapPaths } from '../src/data/pages'
+import type { Language, PageDefinition } from '../src/data/pages'
 import ja from '../src/locales/ja.json'
 import en from '../src/locales/en.json'
 
@@ -64,13 +64,13 @@ function siteName(language: Language): string {
   return MESSAGES[language].pageTitle.suffix
 }
 
-function pageMessages(language: Language, metaKey: string): PageMessages | undefined {
+function pageMessages(language: Language, id: string): PageMessages | undefined {
   const messages: Record<string, PageMessages> = MESSAGES[language].meta.pages
-  return messages[metaKey]
+  return messages[id]
 }
 
 function pageTitle(page: PageDefinition, language: Language): string {
-  const title = pageMessages(language, page.metaKey)?.title
+  const title = pageMessages(language, page.id)?.title
   return title ? `${title} | ${siteName(language)}` : siteName(language)
 }
 
@@ -81,7 +81,7 @@ function pageMeta(pathname: string, indexable: boolean): PageMeta | null {
 
   return {
     title: pageTitle(page, language),
-    description: pageMessages(language, page.metaKey)?.description ?? '',
+    description: pageMessages(language, page.id)?.description ?? '',
     imageAlt: MESSAGES[language].meta.imageAlt,
     locale: language === 'en' ? 'en_US' : 'ja_JP',
     robots:
@@ -128,7 +128,7 @@ function breadcrumbList(origin: string, jaPath: string, language: Language): unk
     itemListElement: trail.map((page, index) => ({
       '@type': 'ListItem',
       position: index + 1,
-      name: pageMessages(language, page.metaKey)?.title ?? siteName(language),
+      name: pageMessages(language, page.id)?.title ?? siteName(language),
       item: `${origin}${localePath(page.path, language)}`,
     })),
   }

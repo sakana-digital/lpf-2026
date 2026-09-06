@@ -10,10 +10,10 @@ import DayBadge from './DayBadge.vue'
 import MenuDropdown from './MenuDropdown.vue'
 import ProgressiveBlur from '@/components/ui/ProgressiveBlur.vue'
 import { useSearch } from '@/stores/search'
-import { isDirectRootEntrance } from '@/lib/rootEntrance'
+import { isDirectRootEntrance } from '@/stores/rootEntrance'
 
 import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue'
-import { isRootPath, localePath } from '@/config/pages'
+import { isRootPath, localePath } from '@/data/pages'
 
 const route = useRoute()
 const { t, locale } = useI18n()

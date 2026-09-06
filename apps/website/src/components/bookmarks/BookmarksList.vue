@@ -2,9 +2,10 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useBookmarks } from '@/stores/bookmarks'
-import { getOrganization, organizationName } from '@/config/organizations'
+import { getOrganization } from '@/data/organizations'
+import { organizationName } from '@/lib/organizationLabel'
 import IconBookmark from '@/components/icons/IconBookmark.vue'
-import { localePath } from '@/config/pages'
+import { localePath } from '@/data/pages'
 
 const { t, locale } = useI18n()
 const { bookmarkIds } = useBookmarks()

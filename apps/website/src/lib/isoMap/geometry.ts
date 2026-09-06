@@ -1,4 +1,4 @@
-import type { FloorPlan, IsoMapArea, IsoMapLabel, IsoMapLabelKey } from '@/config/isoMap'
+import type { FloorPlan, IsoMapArea, IsoMapLabel, IsoMapLabelKey } from '@/data/isoMap'
 
 export type IsoMapLabels = Record<IsoMapLabelKey, string>
 

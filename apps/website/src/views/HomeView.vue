@@ -5,11 +5,11 @@ import HomeSidebar from '@/components/home/HomeSidebar.vue'
 import HomeDock from '@/components/home/HomeDock.vue'
 import HomeFooter from '@/components/home/HomeFooter.vue'
 import NewsLinksGrid from '@/components/news/NewsLinksGrid.vue'
-import { consumeDirectRootEntrance } from '@/lib/rootEntrance'
-import { formatFestivalPeriod } from '@/config/festival'
-import { newsLinks } from '@/config/newsLinks'
-import { mapUrl, schoolUrl } from '@/config/social'
-import { localePath } from '@/config/pages'
+import { consumeDirectRootEntrance } from '@/stores/rootEntrance'
+import { formatFestivalPeriod } from '@/lib/festival'
+import { newsLinks } from '@/data/newsLinks'
+import { mapUrl, schoolUrl } from '@/data/social'
+import { localePath } from '@/data/pages'
 
 const { t, tm, rt, locale } = useI18n()
 const overviewItems = ['date', 'venue', 'admission'] as const
