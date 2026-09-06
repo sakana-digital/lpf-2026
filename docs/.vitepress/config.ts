@@ -50,7 +50,17 @@ export default defineConfig({
       description: 'How to use the Happo-sai 2026 status app',
       themeConfig: {
         siteTitle: 'Docs',
-        sidebar: [{ text: 'Happo-sai Docs', items: [{ text: 'Overview', link: '/en/' }] }],
+        sidebar: [
+          {
+            items: [
+              { text: 'Overview', link: '/en/' },
+              { text: 'For stalls', link: '/en/status-org' },
+              { text: 'For admins', link: '/en/status-admin' },
+              { text: 'For the committee', link: '/en/status-signage' },
+            ],
+          },
+        ],
+        outline: { level: [2, 3] },
         editLink: {
           pattern: `${repository}/edit/main/docs/:path`,
           text: 'Edit this page',
