@@ -26,7 +26,7 @@ function resolvePath(tree: unknown, path: string): unknown {
     )
 }
 
-// 全ロケールのキーワードと表示名を集めて、どちらの言語でもマッチさせる
+// Collect keywords and names from every locale, so either language matches
 const entries = computed(() =>
   navigablePages.map((page) => {
     const keywords: string[] = []

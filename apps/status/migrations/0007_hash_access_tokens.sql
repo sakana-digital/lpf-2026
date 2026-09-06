@@ -3,8 +3,8 @@ CREATE TABLE org_tokens_hashed (
   org_id TEXT NOT NULL UNIQUE
 );
 
--- 団体一覧は保持するが、既存の平文トークンは移行せず失効させる。
--- 推測・利用できないランダムなハッシュを仮置きし、新しいハッシュで更新する。
+-- The group list is kept, but the existing plaintext tokens are revoked instead of migrated.
+-- A random hash that cannot be guessed or used is parked here until a new hash replaces it.
 INSERT INTO org_tokens_hashed (token_hash, org_id)
   SELECT lower(hex(randomblob(32))), org_id FROM org_tokens;
 

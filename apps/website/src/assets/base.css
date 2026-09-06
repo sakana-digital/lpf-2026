@@ -32,14 +32,13 @@
 }
 
 html {
-  /* Safari を含め、縦スクロールの有無でレイアウト幅を変えない */
+  /* Keep the layout width independent of the vertical scrollbar, Safari included */
   overflow-y: scroll;
-  /* レイアウト幅の変化による iOS Safari の文字自動拡大を防ぐ */
+  /* Stop iOS Safari from auto-inflating text when the layout width changes */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 
-/* semantic color variables for this project */
 html[data-theme='light'] {
   --color-background: var(--vt-c-white);
   --color-background-soft: var(--vt-c-white-soft);
@@ -125,7 +124,7 @@ body {
   font-size: 16px;
   text-rendering: optimizeLegibility;
 
-  /* 和欧混植の間隔はマークアップ側で空けず、ブラウザの自動調整に任せる */
+  /* Leave the spacing between Japanese and Latin text to the browser, not to the markup */
   text-autospace: normal;
   scrollbar-color: var(--color-border-hover) transparent;
   scrollbar-width: thin;

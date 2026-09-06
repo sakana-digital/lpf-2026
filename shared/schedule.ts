@@ -102,8 +102,9 @@ export function daySlots(day: FestivalDay): ScheduleSlot[] {
 }
 
 /**
- * コマの表示名。公開サイトとサイネージが同じ文字列を出すよう、企画名と団体名を
- * 決まっている方から並べる。両方あれば「企画名 / 団体名」になる。
+ * Display name of a slot. The public site and the signage print the same string,
+ * so whichever of the project and group name is decided is used, in that order.
+ * With both it reads "project / group".
  */
 export function slotDisplayName(slot: ScheduleSlot, locale: string): string {
   const org = slot.organizationId ? organizationNames[slot.organizationId] : undefined

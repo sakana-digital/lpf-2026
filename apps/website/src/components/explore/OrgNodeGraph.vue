@@ -56,9 +56,9 @@ function onNodeClick(id: string) {
   emit('select', id === props.selectedId ? null : id)
 }
 
-// ドラッグ中は projected が毎フレーム差し替わるため、ラベルはロケール単位で
-// 一度だけ引いておく。テンプレートから引くと 1 フレームごとに全ノード分の
-// 線形探索と翻訳が走る。
+// While dragging, projected is replaced every frame, so labels are resolved once
+// per locale. Resolving them from the template would run a linear search and a
+// translation for every node on every frame.
 const nodeLabels = computed(() => {
   const labels = new Map<string, string>()
   for (const meta of nodes) {

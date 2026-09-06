@@ -8,7 +8,7 @@ const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
 
-// ラベルはパスセグメントをそのまま出す（意匠として翻訳しない）
+// Labels print the path segment as is; they are design, not translated text
 const crumbs = computed(() => {
   const segments = route.path.split('/').filter((s) => s !== 'en' && Boolean(s))
   return segments

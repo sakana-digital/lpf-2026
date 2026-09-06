@@ -5,7 +5,7 @@ import router from './index'
 const allPaths = pages.flatMap((page) => [page.path, localePath(page.path, 'en')])
 
 describe('router', () => {
-  it('config/pages の全パスにルートが存在する', () => {
+  it('has a route for every path in config/pages', () => {
     for (const path of allPaths) {
       const resolved = router.resolve(path)
       expect(resolved.matched.length, path).toBeGreaterThan(0)
@@ -16,7 +16,7 @@ describe('router', () => {
     }
   })
 
-  it('テーブルに無いパスは not-found に落ちる', () => {
+  it('falls through to not-found for paths outside the table', () => {
     for (const path of ['/unknown/', '/en/unknown/', '/explore/unknown/']) {
       expect(
         router.resolve(path).matched.some((r) => r.path.includes(':pathMatch')),

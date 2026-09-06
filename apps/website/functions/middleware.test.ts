@@ -6,7 +6,7 @@ const { pageMeta, notFoundMeta, sitemap, structuredData } = __test
 const ORIGIN = 'https://lpf.jp'
 
 describe('pageMeta', () => {
-  it('テーブルの全パスで ja/en ともメタを返す', () => {
+  it('returns meta in both ja and en for every path in the table', () => {
     for (const page of pages) {
       for (const path of [page.path, localePath(page.path, 'en')]) {
         const meta = pageMeta(path, true)
@@ -17,36 +17,36 @@ describe('pageMeta', () => {
     }
   })
 
-  it('indexable なページだけ index, follow になる', () => {
+  it('sets index, follow only on indexable pages', () => {
     for (const page of pages) {
       const meta = pageMeta(page.path, true)!
       expect(meta.robots.startsWith('index'), page.path).toBe(page.indexable)
     }
   })
 
-  it('プレビュー環境では indexable なページも noindex にする', () => {
+  it('marks even indexable pages noindex on preview deployments', () => {
     for (const page of pages) {
       expect(pageMeta(page.path, false)!.robots, page.path).toBe('noindex, follow')
     }
   })
 
-  it('末尾スラッシュの有無に関わらず同じページを引く', () => {
+  it('resolves the same page with or without the trailing slash', () => {
     expect(pageMeta('/news', true)).toEqual(pageMeta('/news/', true))
     expect(pageMeta('/en/news', true)).toEqual(pageMeta('/en/news/', true))
   })
 
-  it('ja と en でタイトルが異なる', () => {
+  it('gives ja and en different titles', () => {
     expect(pageMeta('/news/', true)!.title).not.toBe(pageMeta('/en/news/', true)!.title)
   })
 
-  it('テーブルに無いパスは null', () => {
+  it('returns null for paths outside the table', () => {
     expect(pageMeta('/unknown/', true)).toBeNull()
     expect(pageMeta('/en/unknown/', true)).toBeNull()
   })
 })
 
 describe('notFoundMeta', () => {
-  it('常に noindex, nofollow', () => {
+  it('is always noindex, nofollow', () => {
     expect(notFoundMeta('ja').robots).toBe('noindex, nofollow')
     expect(notFoundMeta('en').robots).toBe('noindex, nofollow')
   })
@@ -55,7 +55,7 @@ describe('notFoundMeta', () => {
 describe('sitemap', () => {
   const xml = sitemap(ORIGIN)
 
-  it('indexable な全パスを ja/en 揃えて含む', () => {
+  it('lists every indexable path in both ja and en', () => {
     for (const path of sitemapPaths) {
       expect(xml, path).toContain(`<loc>${ORIGIN}${path}</loc>`)
       expect(xml, path).toContain(`<loc>${ORIGIN}${localePath(path, 'en')}</loc>`)
@@ -63,19 +63,19 @@ describe('sitemap', () => {
     expect(xml.match(/<loc>/g)?.length).toBe(sitemapPaths.length * 2)
   })
 
-  it('indexable でないパスは含まない', () => {
+  it('leaves out paths that are not indexable', () => {
     for (const page of pages.filter((p) => !p.indexable)) {
       expect(xml, page.path).not.toContain(`<loc>${ORIGIN}${page.path}</loc>`)
     }
   })
 
-  it('全 URL に 3 種の hreflang を持つ', () => {
+  it('carries all three hreflang variants on every URL', () => {
     expect(xml.match(/hreflang="x-default"/g)?.length).toBe(sitemapPaths.length * 2)
   })
 })
 
 describe('structuredData', () => {
-  it('script タグを閉じうる `<` を含まない', () => {
+  it('contains no `<` that could close the script tag', () => {
     for (const page of pages) {
       expect(structuredData(ORIGIN, page.path), page.path).not.toContain('</script><')
       const body = structuredData(ORIGIN, page.path).replace(
@@ -86,7 +86,7 @@ describe('structuredData', () => {
     }
   })
 
-  it('Event を必ず含み、下層ページでは BreadcrumbList も含む', () => {
+  it('always includes Event, and BreadcrumbList on nested pages', () => {
     const parse = (path: string) =>
       JSON.parse(
         structuredData(ORIGIN, path).replace(
@@ -103,7 +103,7 @@ describe('structuredData', () => {
     expect(types('/en/explore/map/')).toEqual(['Event', 'BreadcrumbList'])
   })
 
-  it('BreadcrumbList のリンクがロケールに追従する', () => {
+  it('keeps the BreadcrumbList links on the current locale', () => {
     const body = structuredData(ORIGIN, '/en/explore/map/')
     expect(body).toContain(`${ORIGIN}/en/`)
     expect(body).toContain(`${ORIGIN}/en/explore/map/`)

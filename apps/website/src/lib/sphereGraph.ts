@@ -89,7 +89,7 @@ interface SphereRing {
   members: Organization[]
 }
 
-// カテゴリごとに緯度帯のリングを作り、その少し上にグループノードを置く
+// One latitude ring per category, with its group node placed just above it
 export function buildOrganizationSphere(orgs: Organization[]): {
   nodes: SphereNode[]
   edges: SphereEdge[]

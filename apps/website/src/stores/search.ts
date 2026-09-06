@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 
-// アプリ全体で共有する単一の状態
+// A single state shared across the whole app
 const isOpen = ref(false)
 let initialized = false
 
@@ -18,7 +18,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || target.isContentEditable
 }
 
-// アプリ起動時に一度だけ呼ぶ（コンポーネントのマウントに依存させない）
+// Call once on startup, so it does not depend on a component mounting
 export function initSearch() {
   if (initialized) return
   initialized = true

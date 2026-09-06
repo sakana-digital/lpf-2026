@@ -18,7 +18,7 @@ async function requestStatuses() {
     const list = (await res.json()) as OrgStatus[]
     statuses.value = new Map(list.map((status) => [status.orgId, status]))
   } catch {
-    // 取得に失敗した場合は前回値を保持する
+    // Keep the previous values when the fetch fails
   }
 }
 

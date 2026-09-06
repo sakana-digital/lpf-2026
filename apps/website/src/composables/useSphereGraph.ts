@@ -19,7 +19,7 @@ export function useSphereGraph(nodes: SphereNode[], containerRef: Ref<HTMLElemen
   const projected = ref<ProjectedNode[]>([])
   const isDragging = ref(false)
 
-  // 初期姿勢: リングが真横にならないよう軽く傾ける
+  // Initial pose: tilted slightly so the rings are not edge-on
   let quat: Quat = multiplyQuat(
     quatFromAxisAngle({ x: 1, y: 0, z: 0 }, -0.35),
     multiplyQuat(quatFromAxisAngle({ x: 0, y: 1, z: 0 }, 0.5), IDENTITY_QUAT),
@@ -40,7 +40,7 @@ export function useSphereGraph(nodes: SphereNode[], containerRef: Ref<HTMLElemen
   function rotateBy(dx: number, dy: number) {
     const angle = Math.hypot(dx, dy) * ROTATE_PER_PX
     if (angle === 0) return
-    // 画面空間でのトラックボール回転: 横ドラッグは y 軸、縦ドラッグは x 軸
+    // Trackball rotation in screen space: horizontal drag turns the y axis, vertical the x axis
     const axis = normalizeVec({ x: dy, y: dx, z: 0 })
     quat = multiplyQuat(quatFromAxisAngle(axis, angle), quat)
     inertiaAxis = axis
@@ -73,7 +73,7 @@ export function useSphereGraph(nodes: SphereNode[], containerRef: Ref<HTMLElemen
     const dx = event.clientX - last.x
     const dy = event.clientY - last.y
     moved += Math.hypot(dx, dy)
-    // しきい値を超えるまでは capture しない（ノードの click を殺さないため）
+    // Capture only past the threshold, so node clicks still fire
     if (!isDragging.value) {
       if (moved <= DRAG_THRESHOLD) return
       isDragging.value = true

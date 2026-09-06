@@ -64,14 +64,14 @@ export function buildEventRows(orgs: Organization[]): EventRow[] {
 // Narrow enough to clear the sticky row head
 const EXPANDED_COLUMN = `min(560px, 100vw - ${INLINE_PADDING * 2 + GUTTER + GAP}px)`
 
-// セル内余白 18px を除いた 4:3 画像の高さ + 見出し・ステータス・メタ分
+// Height of the 4:3 image without the 18px cell padding, plus head, status and meta
 const EXPANDED_ROW = `calc((${EXPANDED_COLUMN} - 18px) * 3 / 4 + 110px)`
 
 // Room for the head and the status badges side by side
 const MIN_COLUMN = 128
 const BASE_ROW = 64
 
-// 非選択時の 1fr 相当幅を px 系で表し，grid-template のトラック補間を効かせる
+// The unselected 1fr width in px units, so grid-template can interpolate the tracks
 function baseColumn(count: number): string {
   const fixed = INLINE_PADDING * 2 + GUTTER + GAP * count
   return `max(${MIN_COLUMN}px, calc((100vw - ${fixed}px) / ${count}))`

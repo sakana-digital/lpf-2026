@@ -71,8 +71,8 @@ function mergeIntervals(
 }
 
 /**
- * 区画ごとの輪郭を、同一直線上では一度だけ描ける線分へまとめる。
- * 廊下と部屋のように長さの違う辺が重なる場合も一本になる。
+ * Merges the area outlines into segments that are drawn once per straight line.
+ * Overlapping edges of different lengths, like a corridor and a room, become one.
  */
 export function floorSegments(plan: FloorPlan): MapSegment[] {
   const horizontal = new Map<string, { z: number; intervals: Array<readonly [number, number]> }>()

@@ -1,4 +1,4 @@
-// Cloudflare Pages Functions は Workers ランタイムで動くため、app とは別に型チェックする。
+// Cloudflare Pages Functions run on the Workers runtime, so they are type-checked apart from the app.
 {
   "include": ["functions/**/*"],
   "compilerOptions": {

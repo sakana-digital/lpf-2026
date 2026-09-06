@@ -9,7 +9,7 @@ const { t } = useI18n()
 
 const visible = ref(false)
 
-// 一度閉じたら再訪時も出さない。保存値の読み出しは描画後に行い、初期表示をブロックしない
+// Once dismissed it stays hidden on later visits. The stored value is read after render, so the first paint is not blocked
 onMounted(() => {
   visible.value = readStored(STORAGE_KEY) !== 'true'
 })

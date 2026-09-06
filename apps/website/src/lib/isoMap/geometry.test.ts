@@ -52,7 +52,7 @@ describe('floor icons', () => {
     for (const floor of [2, 3, 4]) {
       const plan = floorPlans.find((candidate) => candidate.floor === floor)
       expect(plan).toBeDefined()
-      // 同じ z では x が大きい区画ほど、現在の投影上で画面左に表示される
+      // At the same z, the larger x shows further left on screen in the current projection
       const [screenLeft, screenRight] = plan!.areas
         .filter(({ kind }) => kind === 'toilet')
         .sort((left, right) => right.x - left.x)

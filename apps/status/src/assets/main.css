@@ -50,7 +50,7 @@ button {
   }
 }
 
-/* チェックボックスとラジオはラベル側で囲うので、ブラウザ既定に任せる。 */
+/* Checkboxes and radios are wrapped by their label, so the browser default is left alone. */
 :is(button, select, textarea, input:not([type='checkbox'], [type='radio'])):focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;

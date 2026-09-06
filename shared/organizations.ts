@@ -21,8 +21,8 @@ export function committeeOrgId(no: number): string {
 }
 
 /**
- * 企画名。公開サイトの一覧・詳細とサイネージのフッターが同じ値を出すので、
- * 決まった団体からここに足す。未記入の団体は名前なしとして扱う。
+ * Project names. The public site and the signage footer print the same value,
+ * so add a group here once its name is decided. Groups left out are unnamed.
  */
 export const organizationNames: Record<string, LocalizedText> = {}
 

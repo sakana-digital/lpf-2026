@@ -47,7 +47,7 @@ function slotOrgName(slot: ScheduleSlot): string {
 
 const gridRef = useTemplateRef<HTMLElement>('gridRef')
 
-// 閉じるアニメーション中も .active の高さ指定を維持するための ID
+// Keeps the .active height applied while the closing animation runs
 const closingId = ref<string>()
 
 async function onSlotClick(slot: ScheduleSlot) {

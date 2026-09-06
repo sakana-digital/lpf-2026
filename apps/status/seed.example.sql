@@ -1,5 +1,5 @@
--- 実運用では平文トークンを保存せず、SHA-256 ハッシュだけをこの形式で投入する。
--- 新しい値は `bun run token:generate` で生成する（seed.sql は gitignore 済み）。
+-- Production stores no plaintext tokens; only SHA-256 hashes go in, in this shape.
+-- Generate new values with `bun run token:generate` (seed.sql is gitignored).
 --   bunx wrangler d1 execute happo-sai-status --local --file seed.sql
 --   bunx wrangler d1 execute happo-sai-status --remote --file seed.sql
 INSERT INTO org_tokens (token_hash, org_id) VALUES
@@ -11,7 +11,7 @@ INSERT INTO admin_tokens (token_hash) VALUES
   ('f37837a0953cdad0b2908f982c310813daec9cf4f1950c7b82a22e8d277b0aad')
 ON CONFLICT (token_hash) DO NOTHING;
 
--- ローカルで公開サイトの表示を確認するためのサンプル
+-- Sample rows for checking the public site locally
 INSERT INTO org_status (org_id, sales, congestion, updated_at) VALUES
   ('c1-1', 'available', 'low', unixepoch()),
   ('c1-2', 'low', 'high', unixepoch())
