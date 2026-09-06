@@ -2,7 +2,7 @@
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getOrganization, organizations } from '@/data/organizations'
-import { organizationName } from '@/lib/organizationLabel'
+import { organizationGroupName, organizationProjectName } from '@/lib/organization'
 import { buildOrganizationSphere } from '@/lib/sphereGraph'
 import { useSphereGraph } from '@/composables/useSphereGraph'
 import type { OrgStatus } from '@shared/status'
@@ -33,12 +33,13 @@ const edgeLines = computed(() =>
     if (!from || !to) return []
     return [
       {
-        id: `${edge.from}-${edge.to}`,
+        id: `${edge.kind}-${edge.from}-${edge.to}`,
+        kind: edge.kind,
         x1: from.x,
         y1: from.y,
         x2: to.x,
         y2: to.y,
-        opacity: Math.min(from.opacity, to.opacity) * 0.75,
+        opacity: Math.min(from.opacity, to.opacity) * (edge.kind === 'category' ? 0.45 : 0.75),
       },
     ]
   }),
@@ -47,8 +48,8 @@ const edgeLines = computed(() =>
 const selectedOrg = computed(() =>
   props.selectedId ? getOrganization(props.selectedId) : undefined,
 )
-const selectedName = computed(() =>
-  selectedOrg.value ? organizationName(selectedOrg.value, locale.value) : '',
+const selectedProject = computed(() =>
+  selectedOrg.value ? organizationProjectName(selectedOrg.value, locale.value) : '',
 )
 
 function onNodeClick(id: string) {
@@ -66,9 +67,9 @@ const nodeLabels = computed(() => {
     const org = meta.orgId ? getOrganization(meta.orgId) : undefined
     labels.set(
       meta.id,
-      org && org.kind !== 'class'
-        ? organizationName(org, locale.value) || t('explore.events.tbd')
-        : t(meta.labelKey, meta.labelParams ?? {}),
+      org
+        ? organizationGroupName(org, locale.value, t)
+        : t(meta.labelKey ?? '', meta.labelParams ?? {}),
     )
   }
   return labels
@@ -96,6 +97,7 @@ function nodeStyle(p: (typeof projected.value)[number]) {
         <line
           v-for="line in edgeLines"
           :key="line.id"
+          :class="line.kind"
           :x1="line.x1"
           :y1="line.y1"
           :x2="line.x2"
@@ -124,9 +126,7 @@ function nodeStyle(p: (typeof projected.value)[number]) {
       <div class="head">
         <div class="info">
           <span class="label">{{ nodeLabels.get(selectedOrg.id) }}</span>
-          <span v-if="selectedOrg.kind === 'class'" class="name" :class="{ tbd: !selectedName }">
-            {{ selectedName || t('explore.events.tbd') }}
-          </span>
+          <span v-if="selectedProject" class="name">{{ selectedProject }}</span>
         </div>
         <button
           type="button"
@@ -172,6 +172,10 @@ function nodeStyle(p: (typeof projected.value)[number]) {
       line {
         stroke: var(--color-text-mute);
         stroke-width: 1;
+
+        &.category {
+          stroke-dasharray: 2 4;
+        }
       }
     }
 
@@ -247,10 +251,6 @@ function nodeStyle(p: (typeof projected.value)[number]) {
           font-size: 13px;
           text-overflow: ellipsis;
           white-space: nowrap;
-
-          &.tbd {
-            color: var(--color-text-mute);
-          }
         }
       }
 

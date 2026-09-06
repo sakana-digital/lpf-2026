@@ -9,7 +9,7 @@ const { t } = useI18n()
 <template>
   <div class="org-image">
     <Transition name="slide-diagonal" appear>
-      <img v-if="src" :src="src" :alt="alt" loading="lazy" />
+      <img v-if="src" :src="src" :alt="alt" loading="lazy" decoding="async" />
       <div v-else class="placeholder">
         <span>{{ t('explore.events.noImage') }}</span>
       </div>

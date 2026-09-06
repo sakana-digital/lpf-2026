@@ -1,4 +1,4 @@
-import { orgIds } from '../../../shared/organizations'
+import { isOrgId, orgIds } from '../../../shared/organizations'
 
 /** Only what this script uses: the repo installs no Bun type package. */
 declare const Bun: {
@@ -49,7 +49,7 @@ const args = Bun.argv.slice(2)
 const remote = args.includes('--remote')
 const requested = args.filter((arg) => !arg.startsWith('--'))
 
-const unknown = requested.filter((id) => !orgIds.includes(id))
+const unknown = requested.filter((id) => !isOrgId(id))
 if (unknown.length > 0) {
   console.error(`Unknown organization: ${unknown.join(', ')}`)
   process.exit(1)

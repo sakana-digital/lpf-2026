@@ -2,9 +2,18 @@
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { keywordsKey, labelKey, localePath, navigablePages, titleKey } from '@/data/pages'
+import { localized } from '@shared/locale'
+import { keywordsKey, labelKey, localePath, navigablePages, pagePath, titleKey } from '@/data/pages'
+import { organizations } from '@/data/organizations'
+import type { Organization } from '@/data/organizations'
 import { useSearch } from '@/stores/search'
-import { filterEntries } from '@/lib/search'
+import { filterEntries, groupEntries } from '@/lib/search'
+import type { SearchEntry } from '@/lib/search'
+import {
+  categoryLabelKey,
+  organizationGroupName,
+  organizationProjectName,
+} from '@/lib/organization'
 import { useFocusTrap } from '@/composables/useFocusTrap'
 
 const { t, te, locale, messages, availableLocales } = useI18n()
@@ -27,7 +36,7 @@ function resolvePath(tree: unknown, path: string): unknown {
 }
 
 // Collect keywords and names from every locale, so either language matches
-const entries = computed(() =>
+const pageEntries = computed<SearchEntry[]>(() =>
   navigablePages.map((page) => {
     const heading = te(titleKey(page.id)) ? titleKey(page.id) : labelKey(page.id)
     const keywords: string[] = []
@@ -40,14 +49,58 @@ const entries = computed(() =>
     }
     return {
       to: localePath(page.path, locale.value),
+      section: 'pages',
       label: t(heading),
       keywords,
     }
   }),
 )
 
+function orgKeywords(org: Organization): string[] {
+  const keywords = [org.id]
+  if (org.location) keywords.push(org.location.room.slice(1))
+  for (const loc of availableLocales) {
+    // Same lookup as the display name, but pinned to the other locale
+    const translate = (key: string, params?: Record<string, unknown>) =>
+      t(key, params ?? {}, { locale: loc })
+    keywords.push(
+      organizationGroupName(org, loc, translate),
+      localized(org.project, loc),
+      localized(org.description, loc),
+      org.category ? translate(categoryLabelKey(org.category)) : '',
+    )
+    for (const item of org.menus ?? []) {
+      keywords.push(localized(item.name, loc))
+      keywords.push(...(item.allergens ?? []).map((allergen) => translate(`allergens.${allergen}`)))
+    }
+  }
+  return keywords.filter(Boolean)
+}
+
+const orgEntries = computed<SearchEntry[]>(() =>
+  organizations.map((org) => ({
+    to: `${localePath(pagePath('events'), locale.value)}?org=${org.id}`,
+    section: 'orgs',
+    label: organizationGroupName(org, locale.value, t),
+    sub: organizationProjectName(org, locale.value),
+    keywords: orgKeywords(org),
+  })),
+)
+
 const hasQuery = computed(() => query.value.trim() !== '')
-const results = computed(() => filterEntries(query.value, entries.value))
+
+// Sections carry the flat index so arrow keys and the refs stay in render order
+const sections = computed(() => {
+  let index = 0
+  return groupEntries(filterEntries(query.value, [...pageEntries.value, ...orgEntries.value])).map(
+    (group) => ({
+      section: group.section,
+      items: group.entries.map((entry) => ({ entry, index: index++ })),
+    }),
+  )
+})
+
+const results = computed(() => sections.value.flatMap((group) => group.items.map((i) => i.entry)))
 
 const activeIndex = ref(0)
 
@@ -111,22 +164,29 @@ watch(isOpen, (open) => {
           <div class="body" :class="{ open: hasQuery }">
             <div class="body-inner">
               <template v-if="hasQuery">
-                <ul v-if="results.length" class="results">
-                  <li v-for="(entry, index) in results" :key="entry.to">
-                    <RouterLink
-                      ref="resultRefs"
-                      :to="entry.to"
-                      class="result"
-                      :class="{ active: index === activeIndex }"
-                      @click="close"
-                      @mouseenter="activeIndex = index"
-                      @focus="activeIndex = index"
-                      @keydown.down.prevent="moveFocus(1)"
-                      @keydown.up.prevent="moveFocus(-1)"
-                      >{{ entry.label }}</RouterLink
-                    >
-                  </li>
-                </ul>
+                <template v-if="results.length">
+                  <div v-for="group in sections" :key="group.section" class="section">
+                    <span class="section-title">{{ t(`search.sections.${group.section}`) }}</span>
+                    <ul class="results">
+                      <li v-for="item in group.items" :key="item.entry.to">
+                        <RouterLink
+                          ref="resultRefs"
+                          :to="item.entry.to"
+                          class="result"
+                          :class="{ active: item.index === activeIndex }"
+                          @click="close"
+                          @mouseenter="activeIndex = item.index"
+                          @focus="activeIndex = item.index"
+                          @keydown.down.prevent="moveFocus(1)"
+                          @keydown.up.prevent="moveFocus(-1)"
+                        >
+                          <span class="result-label">{{ item.entry.label }}</span>
+                          <span v-if="item.entry.sub" class="result-sub">{{ item.entry.sub }}</span>
+                        </RouterLink>
+                      </li>
+                    </ul>
+                  </div>
+                </template>
                 <p v-else class="empty">{{ t('search.empty') }}</p>
               </template>
             </div>
@@ -193,6 +253,19 @@ watch(isOpen, (open) => {
     }
   }
 
+  .section {
+    margin-top: 8px;
+
+    .section-title {
+      display: block;
+      padding: 0 12px;
+      color: var(--color-text-mute);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+  }
+
   .results {
     display: flex;
     flex-direction: column;
@@ -202,7 +275,9 @@ watch(isOpen, (open) => {
     padding: 0;
 
     .result {
-      display: block;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
       padding: 8px 12px;
       border-radius: 20px;
       color: var(--color-text);
@@ -210,6 +285,12 @@ watch(isOpen, (open) => {
 
       &.active {
         background: var(--color-background-mute);
+      }
+
+      .result-sub {
+        color: var(--color-text-mute);
+        font-family: var(--font-text);
+        font-size: 12px;
       }
     }
   }

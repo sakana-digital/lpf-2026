@@ -3,7 +3,7 @@ import { computed, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ISO_MAP_FLOORS } from '@/data/isoMap'
 import { getOrganizationByRoom } from '@/data/organizations'
-import { organizationLabel, organizationName } from '@/lib/organizationLabel'
+import { organizationGroupName, organizationProjectName } from '@/lib/organization'
 import { useIsoMap } from '@/composables/useIsoMap'
 import { useOrgStatus } from '@/stores/orgStatus'
 import { useSelectedOrg } from '@/composables/useSelectedOrg'
@@ -16,11 +16,11 @@ const { t, locale } = useI18n()
 const { statuses } = useOrgStatus()
 
 const { selectedOrg, select, toggle } = useSelectedOrg()
-const selectedName = computed(() =>
-  selectedOrg.value ? organizationName(selectedOrg.value, locale.value) : '',
+const selectedProject = computed(() =>
+  selectedOrg.value ? organizationProjectName(selectedOrg.value, locale.value) : '',
 )
-const selectedLabel = computed(() =>
-  selectedOrg.value ? organizationLabel(selectedOrg.value, locale.value, t) : '',
+const selectedGroup = computed(() =>
+  selectedOrg.value ? organizationGroupName(selectedOrg.value, locale.value, t) : '',
 )
 
 const canvasRef = useTemplateRef<HTMLCanvasElement>('canvasRef')
@@ -137,14 +137,8 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
       <div v-if="selectedOrg" class="org-panel">
         <div class="org-panel-head">
           <div class="org-panel-info">
-            <span class="org-panel-label">{{ selectedLabel }}</span>
-            <span
-              v-if="selectedOrg.kind === 'class'"
-              class="org-panel-name"
-              :class="{ tbd: !selectedName }"
-            >
-              {{ selectedName || t('explore.events.tbd') }}
-            </span>
+            <span class="org-panel-label">{{ selectedGroup }}</span>
+            <span v-if="selectedProject" class="org-panel-name">{{ selectedProject }}</span>
           </div>
           <button
             type="button"
@@ -155,11 +149,7 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
             ×
           </button>
         </div>
-        <OrgDetail
-          :org="selectedOrg"
-          :status="statuses.get(selectedOrg.id)"
-          :image-alt="selectedName || selectedLabel"
-        >
+        <OrgDetail :org="selectedOrg" :status="statuses.get(selectedOrg.id)">
           <template #actions>
             <BookmarkToggle :org-id="selectedOrg.id" />
           </template>
@@ -385,10 +375,6 @@ const floorButtons = [...ISO_MAP_FLOORS].reverse()
         font-size: 13px;
         text-overflow: ellipsis;
         white-space: nowrap;
-
-        &.tbd {
-          color: var(--color-text-mute);
-        }
       }
 
       .org-panel-close {

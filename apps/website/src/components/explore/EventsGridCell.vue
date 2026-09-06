@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { organizationLabel, organizationName } from '@/lib/organizationLabel'
+import { organizationGroupName, organizationProjectName } from '@/lib/organization'
 import type { Organization } from '@/data/organizations'
 import type { OrgStatus } from '@shared/status'
 import OrgDetail from './OrgDetail.vue'
@@ -13,28 +13,32 @@ defineEmits<{ select: [] }>()
 
 const { t, locale } = useI18n()
 
-const displayName = computed(() => (props.org ? organizationName(props.org, locale.value) : ''))
+const groupName = computed(() =>
+  props.org ? organizationGroupName(props.org, locale.value, t) : '',
+)
 
-const cellLabel = computed(() => (props.org ? organizationLabel(props.org, locale.value, t) : ''))
+const projectName = computed(() =>
+  props.org ? organizationProjectName(props.org, locale.value) : '',
+)
 </script>
 
 <template>
   <div v-if="org" class="cell" :class="{ expanded }">
     <div class="head-row">
       <button type="button" class="cell-head" :aria-expanded="expanded" @click="$emit('select')">
-        <span class="label">{{ cellLabel }}</span>
-        <span class="name" :class="{ tbd: !displayName }">
-          {{ displayName || t('explore.events.tbd') }}
-        </span>
+        <span class="label">{{ groupName }}</span>
+        <span v-if="projectName" class="name">{{ projectName }}</span>
       </button>
       <OrgStatusBadges v-if="!expanded && status" :status="status" class="cell-status" />
     </div>
-    <Transition name="detail">
-      <OrgDetail v-if="expanded" :org="org" :status="status" :image-alt="displayName || cellLabel">
-        <template #actions>
-          <slot name="actions"></slot>
-        </template>
-      </OrgDetail>
+    <Transition name="detail-fade">
+      <div v-if="expanded" class="detail">
+        <OrgDetail :org="org" :status="status">
+          <template #actions>
+            <slot name="actions"></slot>
+          </template>
+        </OrgDetail>
+      </div>
     </Transition>
   </div>
   <div v-else class="cell blank" aria-hidden="true"></div>
@@ -134,11 +138,24 @@ const cellLabel = computed(() => (props.org ? organizationLabel(props.org, local
   position: relative;
 }
 
-.detail-enter-active {
-  transition: opacity 0.25s ease-out 0.1s;
+/*
+ * Kept at its natural size and revealed by the row track, which the grid eases.
+ * The fixed width keeps that size off the animating column, so the row can be
+ * measured while it moves.
+ */
+.detail {
+  flex: none;
+  width: var(--expanded-content);
 }
 
-.detail-enter-from {
+/* Same duration as the row, so the content outlives the collapse */
+.detail-fade-enter-active,
+.detail-fade-leave-active {
+  transition: opacity 0.3s ease-out;
+}
+
+.detail-fade-enter-from,
+.detail-fade-leave-to {
   opacity: 0;
 }
 </style>
