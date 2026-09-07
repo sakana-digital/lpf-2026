@@ -20,7 +20,7 @@ export interface PageDefinition {
   path: string
   /** Listed in sitemap.xml and served with robots index, follow */
   indexable: boolean
-  /** Shown in PageTree / SearchModal */
+  /** Shown in SearchModal */
   navigable: boolean
   /** Older path the app redirects. Listed so its meta matches the target */
   legacy?: boolean
@@ -40,7 +40,7 @@ const byPath = new Map(pages.map((page) => [page.path, page]))
 
 export const sitemapPaths = pages.filter((page) => page.indexable).map((page) => page.path)
 
-/** Pages shown in PageTree / SearchModal. The root comes first. */
+/** Pages shown in SearchModal. The root comes first. */
 export const navigablePages = pages.filter((page) => page.navigable)
 
 export const legacyPages = pages.filter((page) => page.legacy)
@@ -52,7 +52,7 @@ export function pagePath(id: string): string {
   return page.path
 }
 
-/** Label in PageTree / PageHeader */
+/** Label in SearchModal / PageHeader */
 export function labelKey(id: string): string {
   return `sitemap.${id}`
 }

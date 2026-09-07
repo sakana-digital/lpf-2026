@@ -4,10 +4,9 @@ import { useRoute } from 'vue-router'
 import IconLogo from '@/components/icons/IconLogo.vue'
 import IconSearch from '@/components/icons/IconSearch.vue'
 import IconExplore from '@/components/icons/IconExplore.vue'
-import Breadcrumb from './Breadcrumb.vue'
 import PageHeader from './PageHeader.vue'
 import DayBadge from './DayBadge.vue'
-import MenuDropdown from './MenuDropdown.vue'
+import BookmarksDropdown from './BookmarksDropdown.vue'
 import ProgressiveBlur from '@/components/ui/ProgressiveBlur.vue'
 import { useSearch } from '@/stores/search'
 import { isDirectRootEntrance } from '@/stores/rootEntrance'
@@ -60,9 +59,8 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
     <ProgressiveBlur class="header-blur" :blur="3" />
     <PageHeader v-if="pageTitleKey" :title-key="pageTitleKey" />
     <nav class="global-nav">
-      <div class="header-breadcrumb">
+      <div class="header-brand">
         <RouterLink :to="homePath" class="logo"><IconLogo /></RouterLink>
-        <Breadcrumb />
       </div>
       <div class="header-actions">
         <DayBadge />
@@ -72,7 +70,7 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
         <RouterLink class="icon-button" :to="explorePath" :aria-label="t('nav.explore')">
           <IconExplore />
         </RouterLink>
-        <MenuDropdown />
+        <BookmarksDropdown />
       </div>
     </nav>
   </header>
@@ -177,11 +175,10 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
   }
 }
 
-.header-breadcrumb {
+.header-brand {
   display: flex;
   align-items: center;
   min-width: 0;
-  gap: 2px;
 
   .logo {
     flex-shrink: 0;
@@ -212,17 +209,11 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
   }
 }
 
-.header-breadcrumb .logo :deep(svg) {
+.header-brand .logo :deep(svg) {
   transition: transform 0.25s;
 }
 
-html[data-orientation^='landscape'] .header-breadcrumb :deep(.breadcrumb) {
-  @media (max-height: 500px) {
-    display: none;
-  }
-}
-
-html[data-orientation^='landscape'] .header-breadcrumb .logo :deep(svg) {
+html[data-orientation^='landscape'] .header-brand .logo :deep(svg) {
   @media (max-height: 500px) {
     /* Wider than the rail before the rotation, but it fits after it. Shrinking
        changes the plate's aspect ratio and shrinks the mark inside with it */
@@ -230,13 +221,13 @@ html[data-orientation^='landscape'] .header-breadcrumb .logo :deep(svg) {
   }
 }
 
-html[data-orientation='landscape-left'] .header-breadcrumb .logo :deep(svg) {
+html[data-orientation='landscape-left'] .header-brand .logo :deep(svg) {
   @media (max-height: 500px) {
     transform: rotate(-90deg);
   }
 }
 
-html[data-orientation='landscape-right'] .header-breadcrumb .logo :deep(svg) {
+html[data-orientation='landscape-right'] .header-brand .logo :deep(svg) {
   @media (max-height: 500px) {
     transform: rotate(90deg);
   }

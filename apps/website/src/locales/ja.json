@@ -39,21 +39,12 @@
     "day2": "Day 2",
     "ended": "Ended"
   },
-  "themeToggle": {
-    "system": "システム",
-    "light": "ライト",
-    "dark": "ダーク"
-  },
   "nav": {
     "search": "検索",
-    "explore": "探索",
-    "breadcrumb": "パンくずリスト",
-    "menu": "メニュー",
-    "instagram": "Instagram"
+    "explore": "探索"
   },
-  "copyLink": {
-    "copy": "リンクをコピー",
-    "copied": "コピーしました"
+  "languageToggle": {
+    "label": "言語を切り替える"
   },
   "paymentNotice": {
     "title": "お支払いについて",
@@ -61,7 +52,6 @@
     "close": "閉じる"
   },
   "sitemap": {
-    "caption": "Pages",
     "home": "/",
     "news": "News",
     "explore": "Explore"
@@ -140,20 +130,9 @@
     "keyVisual": {
       "label": "キービジュアル"
     },
-    "toc": {
-      "top": "トップ",
-      "overview": "概要",
-      "access": "アクセス",
-      "news": "ニュース",
-      "notes": "注意事項",
-      "contact": "お問い合わせ",
-      "toggle": "目次を開閉"
-    },
     "about": {
       "title": "八宝祭\nLiSA Papillon Festival 2026",
-      "subtitle": "神奈川県立神奈川総合産業高等学校 全日制 の文化祭"
-    },
-    "dock": {
+      "subtitle": "神奈川県立神奈川総合産業高等学校 全日制 の文化祭",
       "explore": "イベントを探す"
     },
     "overview": {
@@ -213,7 +192,7 @@
   },
   "bookmarks": {
     "title": "ブックマーク",
-    "empty": "ブックマークはまだありません",
+    "count": "ブックマーク: {count}",
     "add": "ブックマークに追加",
     "remove": "ブックマークを解除"
   },

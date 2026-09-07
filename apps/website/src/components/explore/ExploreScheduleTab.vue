@@ -16,8 +16,8 @@ import { organizationGroupName, organizationProjectName } from '@/lib/organizati
 import { buildTimeAxis, slotRows } from '@/lib/scheduleGrid'
 import { useOrgStatus } from '@/stores/orgStatus'
 import { useSelectedOrg } from '@/composables/useSelectedOrg'
-import BookmarkToggle from '@/components/bookmarks/BookmarkToggle.vue'
-import SegmentedSwitch from '@/components/ui/SegmentedSwitch.vue'
+import BookmarkToggle from '@/components/layout/BookmarkToggle.vue'
+import SegmentedSwitch from './SegmentedSwitch.vue'
 import OrgDetail from './OrgDetail.vue'
 
 const { t, locale } = useI18n()

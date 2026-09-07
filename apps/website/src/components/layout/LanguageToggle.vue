@@ -5,40 +5,45 @@ import { useI18n } from 'vue-i18n'
 import { localizedPath } from '@/data/pages'
 
 const route = useRoute()
-const { locale } = useI18n()
+const { t, locale } = useI18n()
 
 const paths = computed(() => localizedPath(route.path))
-const jaPath = computed(() => paths.value.jaPath)
-const enPath = computed(() => paths.value.enPath)
+const otherPath = computed(() => (locale.value === 'ja' ? paths.value.enPath : paths.value.jaPath))
 </script>
 
 <template>
-  <div class="language-toggle">
-    <RouterLink :to="jaPath" class="lang" :class="{ active: locale === 'ja' }">ja</RouterLink>
-    <RouterLink :to="enPath" class="lang" :class="{ active: locale === 'en' }">en</RouterLink>
-  </div>
+  <RouterLink :to="otherPath" class="language-toggle" :aria-label="t('languageToggle.label')">
+    <span class="lang" :class="{ active: locale === 'ja' }">JA</span>
+    <span class="separator" aria-hidden="true">/</span>
+    <span class="lang" :class="{ active: locale === 'en' }">EN</span>
+  </RouterLink>
 </template>
 
 <style scoped>
 .language-toggle {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  gap: 4px;
+  padding: 8px;
+  margin: -8px;
+  color: var(--color-text-mute);
   font-size: 12px;
-  text-transform: uppercase;
+  text-decoration: none;
+
+  .separator {
+    opacity: 0.5;
+  }
 
   .lang {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    color: var(--color-text-mute);
-    text-decoration: none;
+    transition: color 0.15s;
 
     &.active {
       color: var(--color-heading);
     }
+  }
+
+  &:hover .lang:not(.active) {
+    color: var(--color-text);
   }
 }
 </style>

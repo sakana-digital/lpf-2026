@@ -8,7 +8,7 @@ import { useIsoMap } from '@/composables/useIsoMap'
 import { useOrgStatus } from '@/stores/orgStatus'
 import { useSelectedOrg } from '@/composables/useSelectedOrg'
 import type { IsoMapLabels } from '@/lib/isoMap/scene'
-import BookmarkToggle from '@/components/bookmarks/BookmarkToggle.vue'
+import BookmarkToggle from '@/components/layout/BookmarkToggle.vue'
 import IsoMapSymbols from './IsoMapSymbols.vue'
 import OrgDetail from './OrgDetail.vue'
 

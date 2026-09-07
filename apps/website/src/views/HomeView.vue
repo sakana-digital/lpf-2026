@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import HomeSidebar from '@/components/home/HomeSidebar.vue'
-import HomeDock from '@/components/home/HomeDock.vue'
-import HomeFooter from '@/components/home/HomeFooter.vue'
+import LanguageToggle from '@/components/layout/LanguageToggle.vue'
+import IconExplore from '@/components/icons/IconExplore.vue'
+import IconLogo from '@/components/icons/IconLogo.vue'
 import NewsLinksGrid from '@/components/news/NewsLinksGrid.vue'
 import { consumeDirectRootEntrance } from '@/stores/rootEntrance'
 import { formatFestivalPeriod } from '@/lib/festival'
@@ -19,6 +19,8 @@ const newsPreview = newsLinks.slice(0, 3)
 const festivalPeriod = computed(() => formatFestivalPeriod(locale.value))
 const notes = computed(() => (tm('home.notes.items') as string[]).map((note) => rt(note)))
 const newsPath = computed(() => localePath('/news/', locale.value))
+const explorePath = computed(() => localePath('/explore/', locale.value))
+const homePath = computed(() => localePath('/', locale.value))
 
 const entrance = ref(false)
 
@@ -57,6 +59,10 @@ onMounted(() => {
       <h2 class="title">{{ t('home.about.title') }}</h2>
       <p class="subtitle">{{ t('home.about.subtitle') }}</p>
       <p class="period">{{ festivalPeriod }}</p>
+      <RouterLink class="explore-link" :to="explorePath">
+        <IconExplore />
+        {{ t('home.about.explore') }}
+      </RouterLink>
     </section>
 
     <section id="overview" class="overview split">
@@ -129,10 +135,13 @@ onMounted(() => {
       </div>
     </section>
 
-    <HomeFooter />
-
-    <HomeSidebar :entrance="entrance" />
-    <HomeDock />
+    <footer class="footer">
+      <RouterLink :to="homePath" class="brand" :aria-label="t('home.footer.home')">
+        <IconLogo />
+      </RouterLink>
+      <p class="copyright">{{ t('home.footer.copyright') }}</p>
+      <LanguageToggle />
+    </footer>
   </main>
 </template>
 
@@ -141,7 +150,7 @@ onMounted(() => {
   row-gap: 128px;
   padding-top: 0;
 
-  & > *:not(.key-visual):not(.toc) {
+  & > *:not(.key-visual) {
     padding-inline: 16px;
   }
 
@@ -239,17 +248,72 @@ onMounted(() => {
     letter-spacing: 0.04em;
     color: var(--color-text-mute);
   }
+
+  .explore-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 28px;
+    color: var(--color-text);
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    transition: color 0.15s;
+
+    &:hover {
+      color: var(--color-heading);
+    }
+  }
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 160px 0;
+
+  @media (max-width: 600px) {
+    justify-content: center;
+    gap: 16px;
+    padding: 96px 0 64px;
+  }
+
+  .brand {
+    display: inline-flex;
+    color: var(--color-heading);
+  }
+
+  .copyright {
+    color: var(--color-text-mute);
+    font-size: 13px;
+
+    @media (max-width: 600px) {
+      order: 1;
+      flex-basis: 100%;
+      text-align: center;
+    }
+  }
 }
 
 .split {
   display: grid;
-  grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
-  column-gap: 48px;
+  grid-template-columns: minmax(0, clamp(112px, 19.5vw, 200px)) minmax(0, 1fr);
+  column-gap: clamp(24px, 4.5vw, 48px);
   align-items: center;
 
-  @media (max-width: 600px) {
+  .title {
+    font-size: clamp(1.125rem, 3.1vw, 2rem);
+  }
+
+  @media (max-width: 880px) {
     grid-template-columns: 1fr;
     row-gap: 16px;
+
+    .title {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+    }
   }
 }
 

@@ -1,35 +1,50 @@
 <script setup lang="ts">
-import { useTemplateRef } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import IconMenu from '@/components/icons/IconMenu.vue'
-import ThemeToggle from './ThemeToggle.vue'
-import LanguageToggle from './LanguageToggle.vue'
-import PageTree from './PageTree.vue'
-import SiteLinks from './SiteLinks.vue'
-import BookmarksMenu from '@/components/bookmarks/BookmarksMenu.vue'
+import IconBookmark from '@/components/icons/IconBookmark.vue'
 import ProgressiveBlur from '@/components/ui/ProgressiveBlur.vue'
 import { useDisclosure } from '@/composables/useDisclosure'
+import { useBookmarks } from '@/stores/bookmarks'
+import { getOrganization } from '@/data/organizations'
+import { organizationGroupName, organizationProjectName } from '@/lib/organization'
+import { localePath } from '@/data/pages'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const rootRef = useTemplateRef<HTMLElement>('rootRef')
 const { isOpen, toggle } = useDisclosure(rootRef)
+const { bookmarkIds } = useBookmarks()
+
+const items = computed(() =>
+  bookmarkIds.value
+    .map((id) => getOrganization(id))
+    .filter((org) => org != null)
+    .map((org) => ({
+      id: org.id,
+      label: organizationGroupName(org, locale.value, t),
+      name: organizationProjectName(org, locale.value),
+      to: {
+        path: localePath('/explore/events/', locale.value),
+        query: { org: org.id },
+      },
+    })),
+)
 </script>
 
 <template>
-  <div ref="rootRef" class="menu-dropdown">
+  <div ref="rootRef" class="bookmarks-dropdown">
     <button
       type="button"
       class="icon-button"
       :class="{ 'is-open': isOpen }"
-      :aria-label="t('nav.menu')"
+      :aria-label="t('bookmarks.title')"
       :aria-expanded="isOpen"
-      aria-controls="header-menu"
+      aria-controls="header-bookmarks"
       @click="toggle"
     >
-      <IconMenu :open="isOpen" />
+      <IconBookmark :filled="isOpen" />
     </button>
     <Transition name="dropdown" :duration="250">
-      <div v-if="isOpen" id="header-menu" class="dropdown">
+      <div v-if="isOpen" id="header-bookmarks" class="dropdown">
         <ProgressiveBlur
           class="dropdown-blur"
           tail="32px"
@@ -37,11 +52,16 @@ const { isOpen, toggle } = useDisclosure(rootRef)
           side-mask="linear-gradient(to right, transparent, black 32px, black calc(100% - 32px), transparent), linear-gradient(to bottom, transparent 20px, black 52px)"
         />
         <div class="dropdown-items">
-          <ThemeToggle />
-          <LanguageToggle />
-          <SiteLinks />
-          <BookmarksMenu />
-          <PageTree />
+          <span class="caption">{{ t('bookmarks.count', { count: bookmarkIds.length }) }}</span>
+          <ul class="list">
+            <li v-for="item in items" :key="item.id">
+              <RouterLink class="bookmark-link" :to="item.to">
+                <IconBookmark filled />
+                <span class="label">{{ item.label }}</span>
+                <span v-if="item.name" class="name">{{ item.name }}</span>
+              </RouterLink>
+            </li>
+          </ul>
         </div>
       </div>
     </Transition>
@@ -49,9 +69,12 @@ const { isOpen, toggle } = useDisclosure(rootRef)
 </template>
 
 <style scoped>
-.menu-dropdown {
+.bookmarks-dropdown {
   position: relative;
   display: flex;
+  /* Own stacking context, so the dropdown's negative-z blur stays above the
+     page header instead of behind its teleported content */
+  z-index: 1;
 
   .icon-button {
     display: flex;
@@ -77,11 +100,14 @@ const { isOpen, toggle } = useDisclosure(rootRef)
     position: absolute;
     top: calc(100% + 4px);
     right: 0;
+    width: max-content;
+    max-width: calc(100vw - 32px);
 
     .dropdown-items {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
+      padding: 8px 16px 4px 0;
       clip-path: inset(0 0 0% 0);
     }
 
@@ -90,6 +116,49 @@ const { isOpen, toggle } = useDisclosure(rootRef)
 
       inset: -52px 0 -32px 0;
       z-index: -1;
+    }
+  }
+
+  .caption {
+    color: var(--color-text-mute);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    list-style: none;
+    padding: 4px 0 0;
+    margin: 0;
+  }
+
+  .bookmark-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-text-mute);
+    font-size: 13px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.15s;
+
+    &:hover {
+      color: var(--color-heading);
+    }
+
+    .label {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .name {
+      overflow: hidden;
+      max-width: 120px;
+      font-family: var(--font-text);
+      text-overflow: ellipsis;
     }
   }
 
@@ -114,12 +183,6 @@ const { isOpen, toggle } = useDisclosure(rootRef)
         inset: 0 -52px 0 -32px;
       }
     }
-  }
-}
-
-html[data-orientation^='landscape'] .menu-dropdown :deep(.page-tree) {
-  @media (max-height: 500px) {
-    display: none;
   }
 }
 
