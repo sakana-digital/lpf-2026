@@ -39,6 +39,11 @@ html {
   text-size-adjust: 100%;
 }
 
+html.scroll-locked {
+  overflow-y: hidden;
+  scrollbar-gutter: stable;
+}
+
 html[data-theme='light'] {
   --color-background: var(--vt-c-white);
   --color-background-soft: var(--vt-c-white-soft);
@@ -53,6 +58,10 @@ html[data-theme='light'] {
   --color-text-mute: var(--vt-c-text-light-2);
   --color-accent: var(--vt-c-accent);
   --color-accent-text: var(--vt-c-black);
+
+  --shadow-overlay:
+    0 2px 6px oklch(0% 0 0 / 0.08), 0 12px 24px oklch(0% 0 0 / 0.16),
+    0 32px 64px oklch(0% 0 0 / 0.24);
 
   --progressive-blur-brightness: 1;
   --progressive-blur-veil-strong: rgb(255 255 255 / 0.13);
@@ -72,6 +81,10 @@ html[data-theme='dark'] {
   --color-text-mute: var(--vt-c-text-dark-2);
   --color-accent: var(--vt-c-accent);
   --color-accent-text: var(--vt-c-black);
+
+  --shadow-overlay:
+    0 0 0 1px oklch(100% 0 0 / 0.1), 0 12px 24px oklch(0% 0 0 / 0.5),
+    0 32px 64px oklch(0% 0 0 / 0.7);
 
   --progressive-blur-brightness: 0.92;
   --progressive-blur-veil-strong: rgb(0 0 0 / 0.13);

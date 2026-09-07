@@ -15,6 +15,7 @@ import {
   organizationProjectName,
 } from '@/lib/organization'
 import { useFocusTrap } from '@/composables/useFocusTrap'
+import { useScrollLock } from '@/composables/useScrollLock'
 
 const { t, te, locale, messages, availableLocales } = useI18n()
 const { isOpen, close } = useSearch()
@@ -140,6 +141,7 @@ function selectActive() {
 }
 
 useFocusTrap(panelRef, isOpen)
+useScrollLock(isOpen)
 
 watch(isOpen, (open) => {
   if (!open) return
@@ -232,7 +234,7 @@ watch(isOpen, (open) => {
     border: 1px solid var(--color-border);
     border-radius: 28px;
     background: var(--color-background);
-    box-shadow: 0 12px 64px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-overlay);
   }
 
   .field {
