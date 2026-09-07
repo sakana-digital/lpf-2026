@@ -22,9 +22,9 @@ description: Verify changes to this Vue SPA by driving the dev server with Playw
 - Schedule: click a `.slot.linked .slot-trigger` to expand; the detail sits outside the trigger.
 - Map tab: floor buttons `1F`〜`4F` / `全体` (2D canvas); leave the tab and return to exercise dispose/remount.
 - Graph view (`/explore/events?view=graph`): drag inside `.nodes .viewport` with mouse down/move/up to rotate; click a leaf `.node` for the detail panel.
-- Bookmarks: `.bookmark-toggle` in an expanded cell writes localStorage `bookmarks`. The only place the list renders is the header menu: `.menu-dropdown .icon-button` (`メニュー`) → `.bookmarks-menu .icon-button` (`ブックマークを開閉`) → `#bookmarks-list`. Empty shows a `.empty` row and the `.count` badge is absent. There is no bookmarks sidebar.
-- Home TOC: `.toc` (scroll-spy) is fixed to the right of the content column and is `display: none` below 1440px, `flex` at ≥1440px; the highlight is `.toc-link.is-active` and clicking one smooth-scrolls and rewrites the hash.
-- Dark theme: `page.addInitScript(() => localStorage.setItem('theme', 'dark'))` before goto.
+- Bookmarks: `.bookmark-toggle` in an expanded cell writes localStorage `bookmarks`. The only place the list renders is the header dropdown: `.bookmarks-dropdown .icon-button` (`ブックマーク`) → `#header-bookmarks`, whose `.caption` always reads `ブックマーク: {count}`. There is no bookmarks sidebar and no menu dropdown.
+- Language: the only switch is `.language-toggle` in the home footer (`.footer` in HomeView); it links to the other locale.
+- Theme always follows the system: drive it with `browser.newContext({ colorScheme: 'dark' })` or `page.emulateMedia({ colorScheme: 'dark' })`; there is no toggle and nothing is stored.
 
 ## Gotchas
 

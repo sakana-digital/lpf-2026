@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import TabBar from '@/components/ui/TabBar.vue'
+import TabBar from '@/components/layout/TabBar.vue'
 import { EXPLORE_TABS } from '@/lib/exploreTab'
 import { localePath, pagePath } from '@/data/pages'
 
