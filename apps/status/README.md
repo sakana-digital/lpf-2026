@@ -76,7 +76,7 @@ wrangler 未ログインなら先に `bunx wrangler login`。以下すべてリ�
    bun run status:migrate -- --remote
    ```
 
-4. 全団体と管理者のトークンを発行する。出力された平文は配布用としてパスワードマネージャー等へ保存し、**ファイルや Git へ保存しない**（[トークン運用](../../README.md#トークン運用)）
+4. 全団体と管理者のトークンを発行する。配布用の URL 一覧が gitignore 済みの `tokens.remote.csv` に出るので、配布後は消すかパスワードマネージャー等へ移す（[トークン運用](../../README.md#トークン運用)）
 
    ```sh
    bun run status:token -- --remote
@@ -119,7 +119,7 @@ bun run status:deploy
 - `https://<本体ドメイン>/api/status` が JSON を返す
   - index.html が返る → Pages Functions が未検出
   - 500 → Service Binding 未設定
-- `https://happo-sai-status.<account>.workers.dev/?t=<実トークン>` で送信 → 本体 `/explore/events/` のセル展開でバッジに反映（キャッシュ 15 秒 + ポーリング 45 秒で最大 60 秒）
+- `https://happo-sai-status.qkzfvwr5gc.workers.dev/?t=<実トークン>` で送信 → 本体 `/explore/events/` のセル展開でバッジに反映（キャッシュ 15 秒 + ポーリング 45 秒で最大 60 秒）
 - 本体ドメインへの `POST /api/status` が 405
 
 ## トークン運用

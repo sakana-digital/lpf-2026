@@ -27,7 +27,7 @@
 
 ### 発行と投入
 
-リポジトリルートで実行する。生成・ハッシュ化・D1 への投入までを 1 コマンドで行い、平文はどこにも書き込まない。
+リポジトリルートで実行する。生成・ハッシュ化・D1 への投入と、配布用 URL 一覧の書き出しまでを 1 コマンドで行う。
 
 ```sh
 bun run status:token                        # ローカル D1 に全団体（31 件）
@@ -36,8 +36,10 @@ bun run status:token -- --remote <org_id> # 指定した団体だけ差し替え
 bun run status:token -- --remote --admin    # 管理者トークン
 ```
 
-- 標準出力は `<org_id>` と `<token>` のタブ区切り。配布用にパスワードマネージャーや表計算へ貼る（wrangler の出力は標準エラーへ流すので、そのままパイプできる）
+- 標準出力は `<org_id>` と `<token>` のタブ区切り（wrangler の出力は標準エラーへ流すので、そのままパイプできる）
+- 同時に `apps/status/tokens.local.csv` / `tokens.remote.csv`（`id,name,url`）を書き出す。gitignore 済みで、そのまま表計算に読み込んで配布できる。指定した団体だけ発行しても、触っていない行は残る
+- 平文トークンは URL に含まれるので、この CSV は配布が終わったら消すか、パスワードマネージャー等へ移す
 - 全団体に発行しておき、ステータスを出さない団体は管理画面の「表示する団体」で外す
-- 配布 URL は団体・管理者とも `https://<Worker ドメイン>/?t=<token>`。初回アクセスで localStorage へ移り、URL からは消える
+- 配布 URL は団体・管理者とも `https://happo-sai-status.qkzfvwr5gc.workers.dev/?t=<token>`（ローカルは `http://localhost:8787`）。初回アクセスで localStorage へ移り、URL からは消える
 - 差し替えた瞬間に旧トークンは使えなくなる。`bun run status:deploy` は不要
 - `--admin` は `admin_tokens` に自然キーが無いため、既存の管理者トークンをすべて失効させてから 1 件だけ入れる

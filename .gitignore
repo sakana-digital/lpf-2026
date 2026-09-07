@@ -47,3 +47,6 @@ apps/status/worker-configuration.d.ts
 # VitePress
 docs/.vitepress/dist
 docs/.vitepress/cache
+
+# Issued status tokens (distribution list)
+apps/status/tokens.*.csv
