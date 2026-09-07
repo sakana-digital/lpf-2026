@@ -275,7 +275,6 @@ onMounted(() => {
   padding: 160px 0;
 
   @media (max-width: 600px) {
-    justify-content: center;
     gap: 16px;
     padding: 96px 0 64px;
   }
