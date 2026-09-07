@@ -23,7 +23,6 @@ const router = useRouter()
 const query = ref('')
 const inputRef = useTemplateRef<HTMLInputElement>('inputRef')
 const panelRef = useTemplateRef<HTMLElement>('panelRef')
-const resultRefs = ref<{ $el: HTMLElement }[]>([])
 
 function resolvePath(tree: unknown, path: string): unknown {
   return path
@@ -89,7 +88,7 @@ const orgEntries = computed<SearchEntry[]>(() =>
 
 const hasQuery = computed(() => query.value.trim() !== '')
 
-// Sections carry the flat index so arrow keys and the refs stay in render order
+// Sections carry the flat index so arrow keys stay in render order
 const sections = computed(() => {
   let index = 0
   return groupEntries(filterEntries(query.value, [...pageEntries.value, ...orgEntries.value])).map(
@@ -108,9 +107,21 @@ watch(results, () => {
   activeIndex.value = 0
 })
 
+// Refs collected inside v-for come back unordered, so read the rendered order
+function focusResult(index: number) {
+  panelRef.value?.querySelectorAll<HTMLElement>('.result')[index]?.focus()
+}
+
 function moveFocus(delta: number) {
   const count = results.value.length
   if (count === 0) return
+
+  // Leaving the input lands on the highlighted entry instead of stepping past it
+  if (document.activeElement === inputRef.value) {
+    activeIndex.value = delta > 0 ? activeIndex.value : count - 1
+    focusResult(activeIndex.value)
+    return
+  }
 
   if (delta < 0 && activeIndex.value === 0) {
     inputRef.value?.focus()
@@ -118,7 +129,7 @@ function moveFocus(delta: number) {
   }
 
   activeIndex.value = (((activeIndex.value + delta) % count) + count) % count
-  resultRefs.value[activeIndex.value]?.$el?.focus()
+  focusResult(activeIndex.value)
 }
 
 function selectActive() {
@@ -170,7 +181,6 @@ watch(isOpen, (open) => {
                     <ul class="results">
                       <li v-for="item in group.items" :key="item.entry.to">
                         <RouterLink
-                          ref="resultRefs"
                           :to="item.entry.to"
                           class="result"
                           :class="{ active: item.index === activeIndex }"
@@ -236,6 +246,10 @@ watch(isOpen, (open) => {
 
     &::placeholder {
       color: var(--color-text-mute);
+    }
+
+    &:focus-visible {
+      outline: none;
     }
   }
 
