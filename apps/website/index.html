@@ -47,15 +47,9 @@
     />
     <script>
       ;(function () {
-        // Blocked site data makes localStorage throw, and every colour token
-        // hangs off data-theme, so the attribute has to be set regardless.
-        var saved = null
-        try {
-          saved = localStorage.getItem('theme')
-        } catch (e) {}
-        var isDark =
-          saved === 'dark' ||
-          (saved !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        // Every colour token hangs off data-theme, so it has to be set before the
+        // first paint rather than waiting for the app to boot.
+        var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
         document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
       })()
     </script>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, useTemplateRef } from 'vue'
+import { computed, useTemplateRef, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import IconBookmark from '@/components/icons/IconBookmark.vue'
 import ProgressiveBlur from '@/components/ui/ProgressiveBlur.vue'
@@ -10,9 +11,15 @@ import { organizationGroupName, organizationProjectName } from '@/lib/organizati
 import { localePath } from '@/data/pages'
 
 const { t, locale } = useI18n()
+const route = useRoute()
 const rootRef = useTemplateRef<HTMLElement>('rootRef')
-const { isOpen, toggle } = useDisclosure(rootRef)
+const { isOpen, close, toggle } = useDisclosure(rootRef)
 const { bookmarkIds } = useBookmarks()
+
+watch(
+  () => route.fullPath,
+  () => close(),
+)
 
 const items = computed(() =>
   bookmarkIds.value
