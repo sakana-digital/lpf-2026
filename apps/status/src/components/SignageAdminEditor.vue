@@ -1,26 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
-import type {
-  OrgStatus,
-  SignageConfig,
-  SignageUploadedPart,
-  SignageUploadStartResponse,
-  SignageVideo,
-} from '@shared/status'
-import {
-  abortSignageUpload,
-  completeSignageUpload,
-  deleteSignageVideo,
-  getSignageAdmin,
-  getSignageVideos,
-  issueSignageViewerToken,
-  startSignageUpload,
-  updateSignageConfig,
-  uploadSignagePart,
-} from '@/lib/api'
+import type { OrgStatus, SignageConfig } from '@shared/status'
+import { getSignageAdmin, issueSignageViewerToken, updateSignageConfig } from '@/lib/api'
 import { classOrgLabel } from '@/lib/orgLabel'
 import { fromLocalInput, toLocalInput } from '@/lib/localDateTime'
 import SignageCanvas from '@/components/SignageCanvas.vue'
+import SignageMediaEditor from '@/components/SignageMediaEditor.vue'
 
 const props = defineProps<{
   token: string
@@ -32,14 +17,16 @@ const emptyConfig: SignageConfig = {
   orgIds: [],
   activeVideoKey: null,
   videoStartAt: null,
+  activeAudioKey: null,
+  audioStartAt: null,
   footerText: '',
   alertEnabled: false,
   alertText: '',
   updatedAt: 0,
 }
 const config = reactive<SignageConfig>({ ...emptyConfig })
-const videos = ref<SignageVideo[]>([])
 const videoStart = ref('')
+const audioStart = ref('')
 const loading = ref(true)
 const saving = ref(false)
 const saved = ref(false)
@@ -50,10 +37,6 @@ const viewerUrl = ref(localStorage.getItem(VIEWER_URL_KEY) ?? '')
 const issuingUrl = ref(false)
 const copied = ref(false)
 let copyTimer: ReturnType<typeof setTimeout> | undefined
-const uploadProgress = ref<number | null>(null)
-const uploadError = ref('')
-const activeUpload = ref<SignageUploadStartResponse | null>(null)
-let uploadController: AbortController | null = null
 
 const previewVideoUrl = computed(() =>
   config.activeVideoKey ? `/api/signage/video/${encodeURIComponent(config.activeVideoKey)}` : null,
@@ -85,13 +68,10 @@ async function load() {
   loading.value = true
   failed.value = false
   try {
-    const [payload, videoList] = await Promise.all([
-      getSignageAdmin(props.token),
-      getSignageVideos(props.token),
-    ])
+    const payload = await getSignageAdmin(props.token)
     Object.assign(config, payload.config)
     videoStart.value = toLocalInput(payload.config.videoStartAt)
-    videos.value = videoList
+    audioStart.value = toLocalInput(payload.config.audioStartAt)
   } catch {
     failed.value = true
   } finally {
@@ -111,12 +91,15 @@ async function save() {
         orgIds: [...config.orgIds],
         activeVideoKey: config.activeVideoKey,
         videoStartAt: fromLocalInput(videoStart.value),
+        activeAudioKey: config.activeAudioKey,
+        audioStartAt: fromLocalInput(audioStart.value),
         footerText: config.footerText,
         alertEnabled: config.alertEnabled,
         alertText: config.alertText,
       }),
     )
     videoStart.value = toLocalInput(config.videoStartAt)
+    audioStart.value = toLocalInput(config.audioStartAt)
     saved.value = true
   } catch {
     failed.value = true
@@ -149,91 +132,8 @@ async function copyUrl() {
   }, 2000)
 }
 
-async function retryPart(
-  upload: SignageUploadStartResponse,
-  partNumber: number,
-  chunk: Blob,
-): Promise<SignageUploadedPart> {
-  let lastError: unknown
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    try {
-      return await uploadSignagePart(
-        props.token,
-        upload,
-        partNumber,
-        chunk,
-        uploadController?.signal,
-      )
-    } catch (error) {
-      lastError = error
-      if (uploadController?.signal.aborted) throw error
-    }
-  }
-  throw lastError
-}
-
-async function uploadFile(event: Event) {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  input.value = ''
-  if (!file || activeUpload.value) return
-  uploadError.value = ''
-  uploadProgress.value = 0
-  uploadController = new AbortController()
-  try {
-    const upload = await startSignageUpload(props.token, file)
-    activeUpload.value = upload
-    const partCount = Math.ceil(file.size / upload.partSize)
-    const parts: SignageUploadedPart[] = []
-    for (let index = 0; index < partCount; index += 1) {
-      const start = index * upload.partSize
-      const chunk = file.slice(start, Math.min(start + upload.partSize, file.size), 'video/mp4')
-      parts.push(await retryPart(upload, index + 1, chunk))
-      uploadProgress.value = Math.round(((index + 1) / partCount) * 100)
-    }
-    await completeSignageUpload(props.token, upload, parts)
-    videos.value = await getSignageVideos(props.token)
-  } catch {
-    if (activeUpload.value) {
-      try {
-        await abortSignageUpload(props.token, activeUpload.value)
-      } catch {
-        // R2 also expires incomplete multipart uploads automatically.
-      }
-    }
-    uploadError.value = uploadController.signal.aborted
-      ? 'アップロードを中止しました'
-      : '動画のアップロードに失敗しました'
-  } finally {
-    activeUpload.value = null
-    uploadController = null
-    uploadProgress.value = null
-  }
-}
-
-function cancelUpload() {
-  uploadController?.abort()
-}
-
-async function removeVideo(video: SignageVideo) {
-  if (video.key === config.activeVideoKey) return
-  try {
-    await deleteSignageVideo(props.token, video.key)
-    videos.value = videos.value.filter((item) => item.key !== video.key)
-  } catch {
-    failed.value = true
-  }
-}
-
-function formatSize(bytes: number) {
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`
-}
-
 onMounted(load)
-onUnmounted(() => {
-  cancelUpload()
-  clearTimeout(copyTimer)
-})
+onUnmounted(() => clearTimeout(copyTimer))
 </script>
 
 <template>
@@ -291,53 +191,19 @@ onUnmounted(() => {
             </label>
           </section>
 
-          <section class="block">
-            <h2 class="block-heading">動画</h2>
-            <label class="upload-button" :class="{ disabled: activeUpload }">
-              MP4 をアップロード（最大 1 GiB）
-              <input
-                type="file"
-                accept="video/mp4,.mp4"
-                :disabled="Boolean(activeUpload)"
-                @change="uploadFile"
-              />
-            </label>
-            <div v-if="uploadProgress !== null" class="upload-progress">
-              <div :style="{ width: `${uploadProgress}%` }" />
-              <span>{{ uploadProgress }}%</span>
-              <button type="button" @click="cancelUpload">中止</button>
-            </div>
-            <p v-if="uploadError" class="result error">{{ uploadError }}</p>
-            <div class="video-start">
-              <label class="field hint">
-                <span>再生を始める時刻</span>
-                <input v-model="videoStart" type="datetime-local" />
-              </label>
-              <button type="button" :disabled="!videoStart" @click="videoStart = ''">
-                すぐ再生
-              </button>
-            </div>
-            <div class="video-list">
-              <label class="video-item none">
-                <input v-model="config.activeVideoKey" type="radio" :value="null" />
-                <span>動画を表示しない</span>
-              </label>
-              <label v-for="video in videos" :key="video.key" class="video-item">
-                <input v-model="config.activeVideoKey" type="radio" :value="video.key" />
-                <span
-                  ><strong>{{ video.name }}</strong
-                  ><small>{{ formatSize(video.size) }}</small></span
-                >
-                <button
-                  type="button"
-                  :disabled="video.key === config.activeVideoKey"
-                  @click.prevent="removeVideo(video)"
-                >
-                  削除
-                </button>
-              </label>
-            </div>
-          </section>
+          <SignageMediaEditor
+            v-model:active-key="config.activeVideoKey"
+            v-model:start-at="videoStart"
+            :token
+            kind="video"
+          />
+
+          <SignageMediaEditor
+            v-model:active-key="config.activeAudioKey"
+            v-model:start-at="audioStart"
+            :token
+            kind="audio"
+          />
 
           <section class="block">
             <h2 class="block-heading">閲覧 URL</h2>
@@ -419,39 +285,6 @@ onUnmounted(() => {
   }
 }
 
-.video-start {
-  display: flex;
-  align-items: end;
-  gap: 8px;
-  margin-top: 12px;
-
-  .field {
-    flex: 1;
-  }
-
-  input {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--color-border);
-    background: var(--color-surface);
-    color: inherit;
-    font: inherit;
-  }
-
-  button {
-    padding: 9px 12px;
-    border: 1px solid var(--color-border);
-    background: var(--color-surface-soft);
-    font-size: 12px;
-    cursor: pointer;
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
-  }
-}
-
 .org-picker {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -530,7 +363,6 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
-.upload-button,
 .issue {
   display: block;
   padding: 11px 14px;
@@ -542,84 +374,9 @@ onUnmounted(() => {
   text-align: center;
   cursor: pointer;
 
-  input {
-    display: none;
-  }
-
-  &.disabled,
   &:disabled {
     opacity: 0.4;
     cursor: not-allowed;
-  }
-}
-
-.upload-progress {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  min-height: 40px;
-  margin-top: 8px;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-
-  > div {
-    position: absolute;
-    inset: 0 auto 0 0;
-    background: rgb(255 255 255 / 18%);
-  }
-
-  span,
-  button {
-    position: relative;
-    z-index: 1;
-    padding: 8px 12px;
-    font-size: 12px;
-  }
-
-  button {
-    border-left: 1px solid var(--color-border);
-  }
-}
-
-.video-list {
-  display: grid;
-  gap: 5px;
-  margin-top: 10px;
-}
-
-.video-item {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 9px;
-  padding: 8px 10px;
-  border: 1px solid var(--color-border);
-  font-size: 12px;
-  cursor: pointer;
-
-  > span {
-    display: grid;
-    min-width: 0;
-
-    strong {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    small {
-      color: var(--color-text-mute);
-    }
-  }
-
-  button {
-    padding: 5px 8px;
-    border: 1px solid var(--color-border);
-
-    &:disabled {
-      opacity: 0.25;
-    }
   }
 }
 

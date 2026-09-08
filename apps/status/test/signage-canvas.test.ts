@@ -11,6 +11,8 @@ function makeConfig(count: number, alertEnabled = false): SignageConfig {
     orgIds: orgIds.slice(0, count),
     activeVideoKey: null,
     videoStartAt: null,
+    activeAudioKey: null,
+    audioStartAt: null,
     footerText: '固定案内テスト',
     alertEnabled,
     alertText: '速報テスト',
@@ -73,6 +75,29 @@ describe('SignageCanvas', () => {
     expect(html).toContain('muted')
     expect(html).toContain('音声を有効にする')
     expect(html).not.toContain('映像準備中')
+  })
+
+  it('waits for the scheduled start before playing the audio', async () => {
+    const audio = { activeAudioKey: 'signage/audios/a.mp3', audioStartAt: nowSec + 3600 }
+    const props = { audioUrl: '/api/signage/audio/a.mp3', preview: false }
+    const pending = await render({ ...makeConfig(9), ...audio }, props)
+
+    expect(pending).not.toContain('<audio')
+    // The tap has to happen before the audio is due, so the offer comes early.
+    expect(pending).toContain('音声を有効にする')
+
+    const playing = await render({ ...makeConfig(9), ...audio, audioStartAt: nowSec - 1 }, props)
+    expect(playing).toContain('<audio')
+  })
+
+  it('stays silent without a start time', async () => {
+    const html = await render(
+      { ...makeConfig(9), activeAudioKey: 'signage/audios/a.mp3', audioStartAt: null },
+      { audioUrl: '/api/signage/audio/a.mp3', preview: false },
+    )
+
+    expect(html).not.toContain('<audio')
+    expect(html).not.toContain('音声を有効にする')
   })
 
   it('ignores the schedule in the admin preview', async () => {

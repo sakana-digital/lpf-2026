@@ -31,7 +31,7 @@ bun run status:dev
    bunx wrangler d1 create happo-sai-status
    ```
 
-2. サイネージ動画用 R2 bucket を作成します（`wrangler.jsonc` の `bucket_name` と一致させます）。
+2. サイネージ動画・音声用 R2 bucket を作成します（`wrangler.jsonc` の `bucket_name` と一致させます）。
 
    ```sh
    bunx wrangler r2 bucket create happo-sai-signage
@@ -109,7 +109,7 @@ bun run status:token -- --remote --admin  # 管理者トークン
 
 - 団体をセレクトから選んで、任意の団体のステータスを代理更新できます。
 - ステータスを表示する団体、表示しない団体を選べます。
-- サイネージの表示団体・並び順、固定案内・速報、R2 動画、閲覧 URL を管理できます。
+- サイネージの表示団体・並び順、固定案内・速報、R2 の動画・音声、閲覧 URL を管理できます。
 - ステータスの送信可能時間を設定します。
   - 両日とも未設定なら常に送信できます。設定済みの日は、そのいずれかの時間内なら送信できます。
   - 時間外は団体トークンの `POST /api/status` が 403 になり、公開の `GET /api/status` は空配列を返します（本体サイトにステータスが表示されません）。
@@ -119,9 +119,10 @@ bun run status:token -- --remote --admin  # 管理者トークン
 - 16:9 レイアウトです。
 - フッターは [shared/schedule.ts](../../shared/schedule.ts) のタイムテーブルから `<まもなく|開催中|次は> <時刻> <企画名 / 団体名> @ <会場>` を表示します。時刻はどの枠も `10:00-10:30` の形で出し、開始前の枠は開始 10 分前から出します。開催中の枠と次の枠を表示します。速報はどちらも上書きします。
 - 開催日以外でフッターの見た目を確認するときは `/signage?at=2026-09-26T10:22`（端末のタイムゾーンで解釈）を付けます。
-- 動画は MP4・最大 1 GiB です。ブラウザから 16 MiB 単位の Multipart Upload で R2 に保存します。配信は `private, max-age=86400, immutable` です。
+- 動画は MP4・最大 1 GiB、音声は MP3 / M4A・最大 64 MiB です。ブラウザから 16 MiB 単位の Multipart Upload で R2 に保存します。配信は `private, max-age=86400, immutable` です。
 - `signage_config.video_start_at` を過ぎるまで動画を出さず `映像準備中` で待ちます。判定は 1 秒ごとです。null なら常に再生し、管理画面のプレビューは時刻を無視します。
-- 動画の音声はミュートされているため、ミュートを解除しておく必要があります。
+- 音声は `signage_config.audio_start_at` を過ぎたときに 1 回だけ再生します。文化祭終了時刻を入れて使います。null なら再生せず、プレビューでも鳴りません。
+- 自動再生は消音でしか始まらないため、端末で「音声を有効にする」を一度押しておく必要があります。動画と音声の両方に効きます。
 - 設定とステータスは 60 秒間隔で更新され、取得失敗時は最後に成功した表示を維持します。
 
 ## アーキテクチャ
@@ -169,7 +170,7 @@ flowchart LR
 | `PUT /api/orgs`    | Admin Bearer             | ステータスを表示しない団体の一覧を保存     |
 | `PUT /api/window`  | Admin Bearer             | Day 1 / Day 2 の送信可能時間を保存         |
 
-管理者用の `/api/signage/*` では設定保存、閲覧 URL 発行、R2 Multipart Upload、動画選択・削除を行います。
+管理者用の `/api/signage/*` では設定保存、閲覧 URL 発行、R2 Multipart Upload、動画・音声の選択と削除を行います。
 
 #### 各団体が持つ状態
 

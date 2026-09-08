@@ -3,10 +3,11 @@ import type {
   OrgStatus,
   SalesStatus,
   SignageConfig,
+  SignageMedia,
+  SignageMediaKind,
   SignagePayload,
   SignageUploadedPart,
   SignageUploadStartResponse,
-  SignageVideo,
   SubmitWindows,
 } from '@shared/status'
 
@@ -92,13 +93,17 @@ export function issueSignageViewerToken(token: string): Promise<{ url: string }>
   return request('/api/signage/viewer-token', token, { method: 'POST' })
 }
 
-export function getSignageVideos(token: string): Promise<SignageVideo[]> {
-  return request('/api/signage/videos', token)
+export function getSignageMedia(token: string, kind: SignageMediaKind): Promise<SignageMedia[]> {
+  return request(`/api/signage/${kind}s`, token)
 }
 
-export async function deleteSignageVideo(token: string, key: string): Promise<void> {
+export async function deleteSignageMedia(
+  token: string,
+  kind: SignageMediaKind,
+  key: string,
+): Promise<void> {
   const headers = new Headers({ Authorization: `Bearer ${token}` })
-  const response = await fetch(`/api/signage/videos/${encodeURIComponent(key)}`, {
+  const response = await fetch(`/api/signage/${kind}s/${encodeURIComponent(key)}`, {
     method: 'DELETE',
     headers,
   })
