@@ -15,6 +15,17 @@ export interface OrgStatus {
   updatedAt: number
 }
 
+export type StatusSource = 'org' | 'admin'
+
+export interface StatusHistoryEntry {
+  orgId: string
+  sales: SalesStatus
+  congestion: CongestionLevel | null
+  /** The group itself, or an admin updating on its behalf. */
+  source: StatusSource
+  createdAt: number
+}
+
 export interface SubmitWindow {
   from: number | null
   until: number | null

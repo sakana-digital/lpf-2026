@@ -8,6 +8,7 @@ import type {
   SignagePayload,
   SignageUploadedPart,
   SignageUploadStartResponse,
+  StatusHistoryEntry,
   SubmitWindows,
 } from '@shared/status'
 
@@ -56,6 +57,10 @@ export function updateStatus(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(orgId ? { sales, congestion, orgId } : { sales, congestion }),
   })
+}
+
+export function getStatusHistory(token: string, orgId: string): Promise<StatusHistoryEntry[]> {
+  return request(`/api/history?orgId=${encodeURIComponent(orgId)}`, token)
 }
 
 export function updateWindows(token: string, windows: SubmitWindows): Promise<SubmitWindows> {

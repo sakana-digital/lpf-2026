@@ -9,7 +9,7 @@
     "dev:worker": "wrangler dev --no-types",
     "cf-typegen": "wrangler types --include-runtime=false",
     "migrate": "wrangler d1 migrations apply happo-sai-status",
-    "seed": "wrangler d1 execute happo-sai-status --local --command 'DELETE FROM org_tokens; DELETE FROM admin_tokens; DELETE FROM org_status' && wrangler d1 execute happo-sai-status --local --file seed.example.sql",
+    "seed": "wrangler d1 execute happo-sai-status --local --command 'DELETE FROM org_tokens; DELETE FROM admin_tokens; DELETE FROM org_status; DELETE FROM org_status_log' && wrangler d1 execute happo-sai-status --local --file seed.example.sql",
     "test": "vitest run",
     "token:issue": "bun scripts/issue-token.ts",
     "type-check": "vue-tsc -p tsconfig.json --noEmit && tsc -p tsconfig.worker.json --noEmit",

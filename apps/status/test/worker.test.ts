@@ -24,6 +24,7 @@ beforeEach(async () => {
   const [orgHash, adminHash] = await Promise.all([tokenHash('test-org'), tokenHash('test-admin')])
   await env.DB.batch([
     env.DB.prepare('DELETE FROM org_status'),
+    env.DB.prepare('DELETE FROM org_status_log'),
     env.DB.prepare('DELETE FROM org_tokens'),
     env.DB.prepare('DELETE FROM admin_tokens'),
     env.DB.prepare('DELETE FROM signage_viewer_auth'),
@@ -320,6 +321,62 @@ describe('public organizations', () => {
       body: JSON.stringify({ hidden: [] }),
     })
     expect(forbidden.status).toBe(403)
+  })
+})
+
+describe('status history', () => {
+  it('keeps every update while org_status holds only the latest', async () => {
+    const post = (sales: string, congestion: string | null, token: string, orgId?: string) =>
+      SELF.fetch(`${origin}/api/status`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(orgId ? { sales, congestion, orgId } : { sales, congestion }),
+      })
+
+    expect((await post('available', 'low', 'test-org')).status).toBe(200)
+    expect((await post('low', 'high', 'test-org')).status).toBe(200)
+    expect((await post('soldout', null, 'test-admin', 'c1-1')).status).toBe(200)
+
+    const history = (await (
+      await SELF.fetch(`${origin}/api/history?orgId=c1-1`, { headers: adminHeaders })
+    ).json()) as Array<{ orgId: string; sales: string; congestion: string | null; source: string }>
+
+    expect(history.map((entry) => [entry.sales, entry.congestion, entry.source])).toEqual([
+      ['soldout', null, 'admin'],
+      ['low', 'high', 'org'],
+      ['available', 'low', 'org'],
+    ])
+    expect(history.every((entry) => entry.orgId === 'c1-1')).toBe(true)
+
+    const current = (await (
+      await SELF.fetch(`${origin}/api/me`, { headers: adminHeaders })
+    ).json()) as { statuses: Array<{ sales: string }> }
+    expect(current.statuses).toEqual([
+      expect.objectContaining({ orgId: 'c1-1', sales: 'soldout', congestion: null }),
+    ])
+  })
+
+  it('records nothing for a rejected update', async () => {
+    const rejected = await SELF.fetch(`${origin}/api/status`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer test-org', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sales: 'available', congestion: 'nope' }),
+    })
+    expect(rejected.status).toBe(400)
+
+    const history = await SELF.fetch(`${origin}/api/history`, { headers: adminHeaders })
+    expect(await history.json()).toEqual([])
+  })
+
+  it('is admin only', async () => {
+    expect((await SELF.fetch(`${origin}/api/history`)).status).toBe(401)
+    expect(
+      (
+        await SELF.fetch(`${origin}/api/history`, {
+          headers: { Authorization: 'Bearer test-org' },
+        })
+      ).status,
+    ).toBe(403)
   })
 })
 
