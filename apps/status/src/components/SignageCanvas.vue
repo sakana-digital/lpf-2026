@@ -21,12 +21,14 @@ const props = withDefaults(
 const MIN_ROWS = 8
 const MAX_ROWS = 12
 const ROTATE_MS = 10_000
+const CLOCK_MS = 1_000
 const tick = ref(0)
 const now = ref(new Date(Date.now() + props.clockOffset))
 const videoFailed = ref(false)
 const muted = ref(true)
 const video = useTemplateRef<HTMLVideoElement>('video')
-let timer: ReturnType<typeof setInterval> | undefined
+let rotateTimer: ReturnType<typeof setInterval> | undefined
+let clockTimer: ReturnType<typeof setInterval> | undefined
 
 const pageCount = computed(() => Math.max(1, Math.ceil(props.config.orgIds.length / MAX_ROWS)))
 const page = computed(() => tick.value % pageCount.value)
@@ -56,7 +58,6 @@ watch(
   },
 )
 
-// Scheduled to the second, but the clock only advances on the rotation tick.
 const videoReady = computed(() => {
   const startAt = props.config.videoStartAt
   return props.preview || startAt === null || now.value.getTime() >= startAt * 1000
@@ -82,13 +83,18 @@ async function enableSound() {
 }
 
 onMounted(() => {
-  timer = setInterval(() => {
+  rotateTimer = setInterval(() => {
     tick.value += 1
-    now.value = new Date(Date.now() + props.clockOffset)
   }, ROTATE_MS)
+  clockTimer = setInterval(() => {
+    now.value = new Date(Date.now() + props.clockOffset)
+  }, CLOCK_MS)
 })
 
-onUnmounted(() => clearInterval(timer))
+onUnmounted(() => {
+  clearInterval(rotateTimer)
+  clearInterval(clockTimer)
+})
 </script>
 
 <template>
