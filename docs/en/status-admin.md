@@ -15,7 +15,7 @@ There is no English UI. Japanese labels are quoted below exactly as they appear 
 
 - The admin URL is saved to the device the first time you open it, and `?t=…` disappears from the address bar. Bookmark it.
 - Changes on each tab **do not take effect until you press that tab's save button** (`更新する` on the Status tab).
-- A lost admin URL has to be reissued — ask the developer; the steps are in the [repository README](https://github.com/sakana-digital/lpf-2026#トークン運用).
+- A lost admin URL has to be reissued — ask the developer; the steps are in the [repository README](https://github.com/sakana-digital/lpf-2026/blob/main/apps/status/README.md#トークン運用).
 
 ## ステータス (Status)
 
