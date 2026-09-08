@@ -1,45 +1,28 @@
-# 八宝祭 (Happo-sai) - LiSA Papillon Festival 2026 公式サイト
+# Web Apps for LiSA Papillon Festival 2026
 
-## 主な機能
+## Apps
 
-### apps/website/: 公開サイト
-
-- 文化祭の模擬店の状況を表示
-
-### apps/status/: ステータス送信
-
-- 混雑状況，販売状況を表示
+- [apps/website/](apps/website/): 公開サイト (Cloudflare Pages)
+- [apps/status/](apps/status/): ステータス送信，サイネージ，管理画面 (Cloudflare Workers + D1)
 
 ## 利用者向けドキュメント
 
-団体・管理者・サイネージ端末の使い方は [docs/ja/](docs/ja/index.md) に置き、GitHub Pages（VitePress）で https://sakana-digital.github.io/lpf-2026/ に公開する。ローカルでは `bun run docs:dev`。
+[docs/](docs/) に書く VitePress を、`main` へ push して GitHub Pages へデプロイします。
 
-## デプロイ
-
-- 本体（Pages）: main に push すると Git 連携で自動ビルド・デプロイ
-- 模擬店ステータスアプリ（Workers）: `bun run status:deploy`。初回の手順は [apps/status/README.md](apps/status/README.md) を参照
-
-ステータスアプリはリポジトリルートから `bun run status:dev` で起動できる（入力 SPA をビルドして Worker を :8787 で立ち上げる）。
-
-## トークン運用
-
-平文は D1 に保存せず、SHA-256 ハッシュだけを `org_tokens.token_hash` と `admin_tokens.token_hash` に入れる。団体一覧は [shared/organizations.ts](shared/organizations.ts) が唯一の定義で、公開サイトの表示もトークン発行もここから作る。
-
-### 発行と投入
-
-リポジトリルートで実行する。生成・ハッシュ化・D1 への投入と、配布用 URL 一覧の書き出しまでを 1 コマンドで行う。
+## 開発
 
 ```sh
-bun run status:token                        # ローカル D1 に全団体（31 件）
-bun run status:token -- --remote            # 本番 D1 に全団体
-bun run status:token -- --remote <org_id> # 指定した団体だけ差し替え
-bun run status:token -- --remote --admin    # 管理者トークン
+cd path/to/lpf-2026/
+bun install
+
+# Website
+bun run dev
+
+# Status (初回はローカル D1 の初期化が必要です。)
+bun run status:dev
+
+# Documents
+bun run docs:dev
 ```
 
-- 標準出力は `<org_id>` と `<token>` のタブ区切り（wrangler の出力は標準エラーへ流すので、そのままパイプできる）
-- 同時に `apps/status/tokens.local.csv` / `tokens.remote.csv`（`id,name,url`）を書き出す。gitignore 済みで、そのまま表計算に読み込んで配布できる。指定した団体だけ発行しても、触っていない行は残る
-- 平文トークンは URL に含まれるので、この CSV は配布が終わったら消すか、パスワードマネージャー等へ移す
-- 全団体に発行しておき、ステータスを出さない団体は管理画面の「表示する団体」で外す
-- 配布 URL は団体・管理者とも `https://happo-sai-status.qkzfvwr5gc.workers.dev/?t=<token>`（ローカルは `http://localhost:8787`）。初回アクセスで localStorage へ移り、URL からは消える
-- 差し替えた瞬間に旧トークンは使えなくなる。`bun run status:deploy` は不要
-- `--admin` は `admin_tokens` に自然キーが無いため、既存の管理者トークンをすべて失効させてから 1 件だけ入れる
+[apps/status/](apps/status/) の詳細は [apps/status/README.md](apps/status/README.md) を参照してください。
