@@ -12,10 +12,12 @@ const failures = ref(0)
 const unauthorized = ref(false)
 let timer: ReturnType<typeof setInterval> | undefined
 
-const videoUrl = computed(() => {
-  const key = payload.value?.config.activeVideoKey
-  return key ? `/api/signage/video/${encodeURIComponent(key)}` : null
-})
+function mediaUrl(kind: 'video' | 'audio', key: string | null | undefined): string | null {
+  return key ? `/api/signage/${kind}/${encodeURIComponent(key)}` : null
+}
+
+const videoUrl = computed(() => mediaUrl('video', payload.value?.config.activeVideoKey))
+const audioUrl = computed(() => mediaUrl('audio', payload.value?.config.activeAudioKey))
 
 async function refresh() {
   try {
@@ -47,6 +49,7 @@ onUnmounted(() => clearInterval(timer))
     :config="payload.config"
     :statuses="payload.statuses"
     :video-url="videoUrl"
+    :audio-url="audioUrl"
     :connected="failures < 2"
     :clock-offset="offset"
   />

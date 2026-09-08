@@ -11,11 +11,12 @@ const props = withDefaults(
     config: SignageConfig
     statuses: OrgStatus[]
     videoUrl?: string | null
+    audioUrl?: string | null
     connected?: boolean
     preview?: boolean
     clockOffset?: number
   }>(),
-  { videoUrl: null, connected: true, preview: false, clockOffset: 0 },
+  { videoUrl: null, audioUrl: null, connected: true, preview: false, clockOffset: 0 },
 )
 
 const MIN_ROWS = 8
@@ -24,8 +25,9 @@ const ROTATE_MS = 10_000
 const tick = ref(0)
 const now = ref(new Date(Date.now() + props.clockOffset))
 const videoFailed = ref(false)
-const muted = ref(true)
+const soundEnabled = ref(false)
 const video = useTemplateRef<HTMLVideoElement>('video')
+const audio = useTemplateRef<HTMLAudioElement>('audio')
 let timer: ReturnType<typeof setInterval> | undefined
 
 const pageCount = computed(() => Math.max(1, Math.ceil(props.config.orgIds.length / MAX_ROWS)))
@@ -57,10 +59,23 @@ watch(
 )
 
 // Scheduled to the second, but the clock only advances on the rotation tick.
+function due(startAt: number | null): boolean {
+  return startAt !== null && now.value.getTime() >= startAt * 1000
+}
+
 const videoReady = computed(() => {
-  const startAt = props.config.videoStartAt
-  return props.preview || startAt === null || now.value.getTime() >= startAt * 1000
+  return props.preview || props.config.videoStartAt === null || due(props.config.videoStartAt)
 })
+const showsVideo = computed(() => props.videoUrl !== null && videoReady.value && !videoFailed.value)
+
+// Unlike the video, silence is the default: the audio needs a time to play at.
+const audioScheduled = computed(
+  () => !props.preview && props.audioUrl !== null && props.config.audioStartAt !== null,
+)
+const playsAudio = computed(() => audioScheduled.value && due(props.config.audioStartAt))
+const needsSound = computed(
+  () => !props.preview && !soundEnabled.value && (showsVideo.value || audioScheduled.value),
+)
 
 watch(
   () => props.videoUrl,
@@ -69,16 +84,21 @@ watch(
   },
 )
 
-/** Autoplay only survives while muted, so sound needs a tap on the device. */
-async function enableSound() {
-  const element = video.value
-  if (!element) return
-  muted.value = false
+async function play(element: HTMLMediaElement | null): Promise<boolean> {
+  if (!element) return true
   try {
     await element.play()
+    return true
   } catch {
-    muted.value = true
+    return false
   }
+}
+
+/** Autoplay only survives while muted, so sound needs a tap on the device. */
+async function enableSound() {
+  soundEnabled.value = true
+  const played = await Promise.all([play(video.value), play(audio.value)])
+  if (played.includes(false)) soundEnabled.value = false
 }
 
 onMounted(() => {
@@ -128,10 +148,10 @@ onUnmounted(() => clearInterval(timer))
 
       <section class="video-panel">
         <video
-          v-if="videoUrl && videoReady && !videoFailed"
+          v-if="showsVideo"
           ref="video"
-          :src="videoUrl"
-          :muted
+          :src="videoUrl!"
+          :muted="!soundEnabled"
           autoplay
           loop
           playsinline
@@ -141,12 +161,8 @@ onUnmounted(() => clearInterval(timer))
           <span>映像準備中</span>
           <small>VIDEO STANDBY</small>
         </div>
-        <button
-          v-if="videoUrl && videoReady && !videoFailed && !preview && muted"
-          type="button"
-          class="sound"
-          @click="enableSound"
-        >
+        <audio v-if="playsAudio" ref="audio" :src="audioUrl!" autoplay />
+        <button v-if="needsSound" type="button" class="sound" @click="enableSound">
           音声を有効にする
         </button>
         <span v-if="!connected" class="offline">通信を確認しています</span>
@@ -348,6 +364,10 @@ onUnmounted(() => clearInterval(timer))
     width: 100%;
     height: 100%;
     object-fit: contain;
+  }
+
+  audio {
+    display: none;
   }
 }
 

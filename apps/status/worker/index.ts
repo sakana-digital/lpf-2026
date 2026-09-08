@@ -4,26 +4,51 @@ import {
   isCongestionLevel,
   isSalesStatus,
   isSubmitOpen,
+  SIGNAGE_MEDIA_KINDS,
 } from '../../../shared/status'
 import type {
   CongestionLevel,
   OrgStatus,
   SalesStatus,
   SignageConfig,
+  SignageMedia,
+  SignageMediaKind,
   SignagePayload,
   SignageUploadedPart,
-  SignageVideo,
   SubmitWindow,
   SubmitWindows,
 } from '../../../shared/status'
 
 const SIGNAGE_COOKIE = 'signage-session'
 const SIGNAGE_COOKIE_MAX_AGE = 60 * 60 * 24 * 30
-const VIDEO_PREFIX = 'signage/videos/'
-const VIDEO_MAX_SIZE = 1024 ** 3
-const VIDEO_PART_SIZE = 16 * 1024 ** 2
+const MEDIA_PART_SIZE = 16 * 1024 ** 2
 // Every upload gets its own key, so a viewer never has to revalidate.
-const VIDEO_CACHE_CONTROL = 'private, max-age=86400, immutable'
+const MEDIA_CACHE_CONTROL = 'private, max-age=86400, immutable'
+
+interface MediaKindSpec {
+  prefix: string
+  maxSize: number
+  /** Extension the file has to carry, mapped to the type R2 serves it back with. */
+  extensions: Record<string, string>
+  /** Browsers disagree on what they report for the same extension. */
+  accepts: readonly string[]
+}
+
+const MEDIA_KINDS: Record<SignageMediaKind, MediaKindSpec> = {
+  video: {
+    prefix: 'signage/videos/',
+    maxSize: 1024 ** 3,
+    extensions: { '.mp4': 'video/mp4' },
+    accepts: ['video/mp4'],
+  },
+  audio: {
+    prefix: 'signage/audios/',
+    maxSize: 64 * 1024 ** 2,
+    extensions: { '.mp3': 'audio/mpeg', '.m4a': 'audio/mp4' },
+    accepts: ['audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/x-m4a', 'audio/aac'],
+  },
+}
+
 const FOOTER_MAX_LENGTH = 120
 const ALERT_MAX_LENGTH = 200
 const PUBLIC_STATUS_MAX_AGE = 15
@@ -40,10 +65,20 @@ interface SignageConfigRow {
   org_ids: string
   active_video_key: string | null
   video_start_at: number | null
+  active_audio_key: string | null
+  audio_start_at: number | null
   footer_text: string
   alert_enabled: number
   alert_text: string
   updated_at: number
+}
+
+function mediaKindOf(key: string): SignageMediaKind | null {
+  return SIGNAGE_MEDIA_KINDS.find((kind) => key.startsWith(MEDIA_KINDS[kind].prefix)) ?? null
+}
+
+function activeMediaKey(config: SignageConfig, kind: SignageMediaKind): string | null {
+  return kind === 'video' ? config.activeVideoKey : config.activeAudioKey
 }
 
 /** The public list is served through Pages only, so the Worker domain must not answer it. */
@@ -342,9 +377,24 @@ function parseOrgIds(value: string): string[] {
   }
 }
 
+function toSignageConfig(row: SignageConfigRow): SignageConfig {
+  return {
+    orgIds: parseOrgIds(row.org_ids),
+    activeVideoKey: row.active_video_key,
+    videoStartAt: row.video_start_at,
+    activeAudioKey: row.active_audio_key,
+    audioStartAt: row.audio_start_at,
+    footerText: row.footer_text,
+    alertEnabled: row.alert_enabled === 1,
+    alertText: row.alert_text,
+    updatedAt: row.updated_at,
+  }
+}
+
 async function fetchSignageConfig(env: Env): Promise<SignageConfig> {
   const row = await env.DB.prepare(
-    `SELECT org_ids, active_video_key, video_start_at, footer_text, alert_enabled, alert_text, updated_at
+    `SELECT org_ids, active_video_key, video_start_at, active_audio_key, audio_start_at,
+            footer_text, alert_enabled, alert_text, updated_at
      FROM signage_config WHERE id = 1`,
   ).first<SignageConfigRow>()
   if (!row) {
@@ -352,22 +402,16 @@ async function fetchSignageConfig(env: Env): Promise<SignageConfig> {
       orgIds: await fetchOrgIds(env),
       activeVideoKey: null,
       videoStartAt: null,
+      activeAudioKey: null,
+      audioStartAt: null,
       footerText: '',
       alertEnabled: false,
       alertText: '',
       updatedAt: 0,
     }
   }
-  const savedOrgIds = parseOrgIds(row.org_ids)
-  return {
-    orgIds: savedOrgIds.length > 0 ? savedOrgIds : await fetchOrgIds(env),
-    activeVideoKey: row.active_video_key,
-    videoStartAt: row.video_start_at,
-    footerText: row.footer_text,
-    alertEnabled: row.alert_enabled === 1,
-    alertText: row.alert_text,
-    updatedAt: row.updated_at,
-  }
+  const config = toSignageConfig(row)
+  return config.orgIds.length > 0 ? config : { ...config, orgIds: await fetchOrgIds(env) }
 }
 
 async function getSignage(request: Request, env: Env): Promise<Response> {
@@ -396,6 +440,8 @@ async function putSignageConfig(request: Request, env: Env): Promise<Response> {
   }
   const raw = (body ?? {}) as Record<string, unknown>
   const videoStartAt = raw.videoStartAt ?? null
+  const activeAudioKey = raw.activeAudioKey ?? null
+  const audioStartAt = raw.audioStartAt ?? null
   if (
     !Array.isArray(raw.orgIds) ||
     raw.orgIds.length === 0 ||
@@ -403,6 +449,8 @@ async function putSignageConfig(request: Request, env: Env): Promise<Response> {
     new Set(raw.orgIds).size !== raw.orgIds.length ||
     (raw.activeVideoKey !== null && typeof raw.activeVideoKey !== 'string') ||
     (videoStartAt !== null && !Number.isSafeInteger(videoStartAt)) ||
+    (activeAudioKey !== null && typeof activeAudioKey !== 'string') ||
+    (audioStartAt !== null && !Number.isSafeInteger(audioStartAt)) ||
     typeof raw.footerText !== 'string' ||
     raw.footerText.length > FOOTER_MAX_LENGTH ||
     typeof raw.alertEnabled !== 'boolean' ||
@@ -416,39 +464,39 @@ async function putSignageConfig(request: Request, env: Env): Promise<Response> {
   if (!raw.orgIds.every((id) => knownOrgIds.has(id as string))) {
     return json({ error: 'unknown_org' }, 400)
   }
-  if (raw.activeVideoKey !== null) {
-    if (!raw.activeVideoKey.startsWith(VIDEO_PREFIX)) return json({ error: 'invalid_video' }, 400)
-    if (!(await env.SIGNAGE_MEDIA.head(raw.activeVideoKey)))
-      return json({ error: 'invalid_video' }, 400)
+  const active: Record<SignageMediaKind, string | null> = {
+    video: raw.activeVideoKey,
+    audio: activeAudioKey,
+  }
+  for (const kind of SIGNAGE_MEDIA_KINDS) {
+    const key = active[kind]
+    if (key === null) continue
+    if (mediaKindOf(key) !== kind) return json({ error: 'invalid_media' }, 400)
+    if (!(await env.SIGNAGE_MEDIA.head(key))) return json({ error: 'invalid_media' }, 400)
   }
 
   const row = await env.DB.prepare(
     `UPDATE signage_config
-     SET org_ids = ?1, active_video_key = ?2, video_start_at = ?3, footer_text = ?4,
-         alert_enabled = ?5, alert_text = ?6, updated_at = unixepoch()
+     SET org_ids = ?1, active_video_key = ?2, video_start_at = ?3, active_audio_key = ?4,
+         audio_start_at = ?5, footer_text = ?6, alert_enabled = ?7, alert_text = ?8,
+         updated_at = unixepoch()
      WHERE id = 1
-     RETURNING org_ids, active_video_key, video_start_at, footer_text, alert_enabled,
-               alert_text, updated_at`,
+     RETURNING org_ids, active_video_key, video_start_at, active_audio_key, audio_start_at,
+               footer_text, alert_enabled, alert_text, updated_at`,
   )
     .bind(
       JSON.stringify(raw.orgIds),
       raw.activeVideoKey,
       videoStartAt,
+      activeAudioKey,
+      audioStartAt,
       raw.footerText,
       raw.alertEnabled ? 1 : 0,
       raw.alertText,
     )
     .first<SignageConfigRow>()
   if (!row) return json({ error: 'write_failed' }, 500)
-  return json({
-    orgIds: parseOrgIds(row.org_ids),
-    activeVideoKey: row.active_video_key,
-    videoStartAt: row.video_start_at,
-    footerText: row.footer_text,
-    alertEnabled: row.alert_enabled === 1,
-    alertText: row.alert_text,
-    updatedAt: row.updated_at,
-  } satisfies SignageConfig)
+  return json(toSignageConfig(row))
 }
 
 function randomToken(): string {
@@ -493,33 +541,53 @@ async function bootstrapSignage(request: Request, env: Env): Promise<Response | 
   })
 }
 
-async function listVideos(request: Request, env: Env): Promise<Response> {
+async function listMedia(request: Request, env: Env, kind: SignageMediaKind): Promise<Response> {
   const auth = await requireAdmin(request, env)
   if (auth instanceof Response) return auth
-  const listed = await env.SIGNAGE_MEDIA.list({
-    prefix: VIDEO_PREFIX,
-    limit: 1000,
-    include: ['customMetadata'],
-  })
-  const videos: SignageVideo[] = listed.objects.map((object) => ({
+  const { prefix } = MEDIA_KINDS[kind]
+  const listed = await env.SIGNAGE_MEDIA.list({ prefix, limit: 1000, include: ['customMetadata'] })
+  const media: SignageMedia[] = listed.objects.map((object) => ({
     key: object.key,
-    name: object.customMetadata?.originalName ?? object.key.slice(VIDEO_PREFIX.length),
+    name: object.customMetadata?.originalName ?? object.key.slice(prefix.length),
     size: object.size,
     uploadedAt: Math.floor(object.uploaded.getTime() / 1000),
   }))
-  videos.sort((a, b) => b.uploadedAt - a.uploadedAt)
-  return json(videos)
+  media.sort((a, b) => b.uploadedAt - a.uploadedAt)
+  return json(media)
 }
 
-async function deleteVideo(request: Request, env: Env, encodedKey: string): Promise<Response> {
+async function deleteMedia(
+  request: Request,
+  env: Env,
+  kind: SignageMediaKind,
+  encodedKey: string,
+): Promise<Response> {
   const auth = await requireAdmin(request, env)
   if (auth instanceof Response) return auth
   const key = decodeURIComponent(encodedKey)
-  if (!key.startsWith(VIDEO_PREFIX)) return json({ error: 'invalid_video' }, 400)
-  const config = await fetchSignageConfig(env)
-  if (config.activeVideoKey === key) return json({ error: 'video_in_use' }, 409)
+  if (mediaKindOf(key) !== kind) return json({ error: 'invalid_media' }, 400)
+  if (activeMediaKey(await fetchSignageConfig(env), kind) === key) {
+    return json({ error: 'media_in_use' }, 409)
+  }
   await env.SIGNAGE_MEDIA.delete(key)
   return new Response(null, { status: 204 })
+}
+
+/** Which kind an upload belongs to, decided by the extension the file carries. */
+function uploadTarget(
+  name: string,
+  type: string,
+): { kind: SignageMediaKind; key: string; contentType: string } | null {
+  const dot = name.lastIndexOf('.')
+  if (dot < 0) return null
+  const extension = name.slice(dot).toLowerCase()
+  for (const kind of SIGNAGE_MEDIA_KINDS) {
+    const { prefix, extensions, accepts } = MEDIA_KINDS[kind]
+    const contentType = extensions[extension]
+    if (!contentType || !accepts.includes(type)) continue
+    return { kind, key: `${prefix}${crypto.randomUUID()}${extension}`, contentType }
+  }
+  return null
 }
 
 async function startUpload(request: Request, env: Env): Promise<Response> {
@@ -536,21 +604,22 @@ async function startUpload(request: Request, env: Env): Promise<Response> {
     typeof name !== 'string' ||
     name.length === 0 ||
     name.length > 255 ||
-    !name.toLowerCase().endsWith('.mp4') ||
-    type !== 'video/mp4' ||
+    typeof type !== 'string' ||
     typeof size !== 'number' ||
     !Number.isSafeInteger(size) ||
-    size <= 0 ||
-    size > VIDEO_MAX_SIZE
+    size <= 0
   ) {
-    return json({ error: 'invalid_video' }, 400)
+    return json({ error: 'invalid_media' }, 400)
   }
-  const key = `${VIDEO_PREFIX}${crypto.randomUUID()}.mp4`
-  const upload = await env.SIGNAGE_MEDIA.createMultipartUpload(key, {
-    httpMetadata: { contentType: 'video/mp4', cacheControl: VIDEO_CACHE_CONTROL },
+  const target = uploadTarget(name, type)
+  if (!target || size > MEDIA_KINDS[target.kind].maxSize) {
+    return json({ error: 'invalid_media' }, 400)
+  }
+  const upload = await env.SIGNAGE_MEDIA.createMultipartUpload(target.key, {
+    httpMetadata: { contentType: target.contentType, cacheControl: MEDIA_CACHE_CONTROL },
     customMetadata: { originalName: name },
   })
-  return json({ key, uploadId: upload.uploadId, partSize: VIDEO_PART_SIZE }, 201)
+  return json({ key: target.key, uploadId: upload.uploadId, partSize: MEDIA_PART_SIZE }, 201)
 }
 
 function resumedUpload(
@@ -559,7 +628,7 @@ function resumedUpload(
   keyValue: string | null,
 ): R2MultipartUpload | Response {
   const key = keyValue ? decodeURIComponent(keyValue) : ''
-  if (!key.startsWith(VIDEO_PREFIX) || !uploadId) return json({ error: 'invalid_upload' }, 400)
+  if (!mediaKindOf(key) || !uploadId) return json({ error: 'invalid_upload' }, 400)
   return env.SIGNAGE_MEDIA.resumeMultipartUpload(key, decodeURIComponent(uploadId))
 }
 
@@ -578,7 +647,7 @@ async function uploadPart(
   if (!Number.isInteger(partNumber) || partNumber < 1 || partNumber > 64 || !request.body) {
     return json({ error: 'invalid_part' }, 400)
   }
-  if (contentLength > VIDEO_PART_SIZE) return json({ error: 'part_too_large' }, 413)
+  if (contentLength > MEDIA_PART_SIZE) return json({ error: 'part_too_large' }, 413)
   try {
     return json(await upload.uploadPart(partNumber, request.body))
   } catch (error) {
@@ -643,12 +712,17 @@ function normalizedRange(range: R2Range, size: number): { start: number; length:
   return { start: offset, length }
 }
 
-async function streamVideo(request: Request, env: Env, encodedKey: string): Promise<Response> {
+async function streamMedia(
+  request: Request,
+  env: Env,
+  kind: SignageMediaKind,
+  encodedKey: string,
+): Promise<Response> {
   const auth = await authorizeSignage(request, env)
   if (!auth) return json({ error: 'unauthorized' }, 401)
   const key = decodeURIComponent(encodedKey)
-  if (!key.startsWith(VIDEO_PREFIX)) return json({ error: 'not_found' }, 404)
-  if (auth.kind === 'viewer' && (await fetchSignageConfig(env)).activeVideoKey !== key) {
+  if (mediaKindOf(key) !== kind) return json({ error: 'not_found' }, 404)
+  if (auth.kind === 'viewer' && activeMediaKey(await fetchSignageConfig(env), kind) !== key) {
     return json({ error: 'not_found' }, 404)
   }
   const object = await env.SIGNAGE_MEDIA.get(key, {
@@ -661,7 +735,7 @@ async function streamVideo(request: Request, env: Env, encodedKey: string): Prom
   object.writeHttpMetadata(headers)
   headers.set('ETag', object.httpEtag)
   headers.set('Accept-Ranges', 'bytes')
-  headers.set('Cache-Control', VIDEO_CACHE_CONTROL)
+  headers.set('Cache-Control', MEDIA_CACHE_CONTROL)
   if (!('body' in object)) {
     const notModified =
       request.headers.has('If-None-Match') || request.headers.has('If-Modified-Since')
@@ -718,13 +792,15 @@ export default {
       if (request.method === 'POST') return issueViewerToken(request, env)
       return json({ error: 'method_not_allowed' }, 405)
     }
-    if (pathname === '/api/signage/videos') {
-      if (request.method === 'GET') return listVideos(request, env)
+    const listMatch = /^\/api\/signage\/(video|audio)s$/.exec(pathname)
+    if (listMatch) {
+      if (request.method === 'GET') return listMedia(request, env, listMatch[1] as SignageMediaKind)
       return json({ error: 'method_not_allowed' }, 405)
     }
-    if (pathname.startsWith('/api/signage/videos/')) {
+    const deleteMatch = /^\/api\/signage\/(video|audio)s\/(.+)$/.exec(pathname)
+    if (deleteMatch) {
       if (request.method === 'DELETE') {
-        return deleteVideo(request, env, pathname.slice('/api/signage/videos/'.length))
+        return deleteMedia(request, env, deleteMatch[1] as SignageMediaKind, deleteMatch[2]!)
       }
       return json({ error: 'method_not_allowed' }, 405)
     }
@@ -748,9 +824,10 @@ export default {
       if (request.method === 'DELETE') return abortUpload(request, env, uploadMatch[1]!)
       return json({ error: 'method_not_allowed' }, 405)
     }
-    if (pathname.startsWith('/api/signage/video/')) {
+    const streamMatch = /^\/api\/signage\/(video|audio)\/(.+)$/.exec(pathname)
+    if (streamMatch) {
       if (request.method === 'GET') {
-        return streamVideo(request, env, pathname.slice('/api/signage/video/'.length))
+        return streamMedia(request, env, streamMatch[1] as SignageMediaKind, streamMatch[2]!)
       }
       return json({ error: 'method_not_allowed' }, 405)
     }

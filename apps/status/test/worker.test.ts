@@ -31,7 +31,8 @@ beforeEach(async () => {
     env.DB.prepare('DELETE FROM submit_windows'),
     env.DB.prepare(
       `UPDATE signage_config
-       SET org_ids = '[]', active_video_key = NULL, footer_text = '',
+       SET org_ids = '[]', active_video_key = NULL, video_start_at = NULL,
+           active_audio_key = NULL, audio_start_at = NULL, footer_text = '',
            alert_enabled = 0, alert_text = '', updated_at = unixepoch()
        WHERE id = 1`,
     ),
@@ -134,7 +135,7 @@ describe('signage authentication and configuration', () => {
   })
 })
 
-describe('signage videos', () => {
+describe('signage media', () => {
   it('validates MP4 metadata and starts/aborts multipart uploads', async () => {
     const invalid = await SELF.fetch(`${origin}/api/signage/uploads`, {
       method: 'POST',
@@ -185,6 +186,73 @@ describe('signage videos', () => {
     expect(notModified.status).toBe(304)
 
     const deletion = await SELF.fetch(`${origin}/api/signage/videos/${encodeURIComponent(key)}`, {
+      method: 'DELETE',
+      headers: adminHeaders,
+    })
+    expect(deletion.status).toBe(409)
+  })
+
+  it('files an audio upload under its own prefix', async () => {
+    const started = await SELF.fetch(`${origin}/api/signage/uploads`, {
+      method: 'POST',
+      headers: { ...adminHeaders, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'closing.mp3', size: 3 * 1024 * 1024, type: 'audio/mpeg' }),
+    })
+    expect(started.status).toBe(201)
+    expect(((await started.json()) as { key: string }).key).toMatch(/^signage\/audios\/.+\.mp3$/)
+
+    const unsupported = await SELF.fetch(`${origin}/api/signage/uploads`, {
+      method: 'POST',
+      headers: { ...adminHeaders, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'closing.wav', size: 1024, type: 'audio/wav' }),
+    })
+    expect(unsupported.status).toBe(400)
+  })
+
+  it('keeps audio on its own endpoints and plays it at the saved time', async () => {
+    const key = 'signage/audios/test.mp3'
+    await env.SIGNAGE_MEDIA.put(key, new Uint8Array([0, 1, 2]), {
+      httpMetadata: { contentType: 'audio/mpeg' },
+      customMetadata: { originalName: 'closing.mp3' },
+    })
+    const saved = await SELF.fetch(`${origin}/api/signage`, {
+      method: 'PUT',
+      headers: { ...adminHeaders, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orgIds: ['c1-1'],
+        activeVideoKey: null,
+        videoStartAt: null,
+        activeAudioKey: key,
+        audioStartAt: 1790000000,
+        footerText: '',
+        alertEnabled: false,
+        alertText: '',
+      }),
+    })
+    expect(saved.status).toBe(200)
+    expect(await saved.json()).toEqual(
+      expect.objectContaining({ activeAudioKey: key, audioStartAt: 1790000000 }),
+    )
+
+    const listed = await SELF.fetch(`${origin}/api/signage/audios`, { headers: adminHeaders })
+    expect(await listed.json()).toEqual([expect.objectContaining({ key, name: 'closing.mp3' })])
+    const videos = (await (
+      await SELF.fetch(`${origin}/api/signage/videos`, { headers: adminHeaders })
+    ).json()) as Array<{ key: string }>
+    expect(videos.map((video) => video.key)).not.toContain(key)
+
+    const cookie = await issueViewerCookie()
+    const played = await SELF.fetch(`${origin}/api/signage/audio/${encodeURIComponent(key)}`, {
+      headers: { Cookie: cookie },
+    })
+    expect(played.ok).toBe(true)
+    expect([...new Uint8Array(await played.arrayBuffer())]).toEqual([0, 1, 2])
+    const mismatched = await SELF.fetch(`${origin}/api/signage/video/${encodeURIComponent(key)}`, {
+      headers: { Cookie: cookie },
+    })
+    expect(mismatched.status).toBe(404)
+
+    const deletion = await SELF.fetch(`${origin}/api/signage/audios/${encodeURIComponent(key)}`, {
       method: 'DELETE',
       headers: adminHeaders,
     })

@@ -30,13 +30,19 @@ export interface SignageConfig {
   activeVideoKey: string | null
   /** Unix seconds. Until then the signage shows the standby panel instead of the video. */
   videoStartAt: number | null
+  activeAudioKey: string | null
+  /** Unix seconds. The audio plays once from here; null keeps the signage silent. */
+  audioStartAt: number | null
   footerText: string
   alertEnabled: boolean
   alertText: string
   updatedAt: number
 }
 
-export interface SignageVideo {
+export const SIGNAGE_MEDIA_KINDS = ['video', 'audio'] as const
+export type SignageMediaKind = (typeof SIGNAGE_MEDIA_KINDS)[number]
+
+export interface SignageMedia {
   key: string
   name: string
   size: number
