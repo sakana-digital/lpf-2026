@@ -16,6 +16,7 @@ export default defineConfig({
     singleQuote: true,
   },
   run: {
-    cache: true,
+    // The tracker that fingerprints scripts aborts under long-running dev servers.
+    cache: { tasks: true, scripts: false },
   },
 })
