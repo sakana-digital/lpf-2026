@@ -11,12 +11,11 @@ const LOCALE: Locale = 'ja'
 
 function label(slot: ScheduleSlot, minutes: number): string {
   const where = `${slotDisplayName(slot, LOCALE)} @ ${localized(venueLabels[slot.venue], LOCALE)}`
+  const when = `${slot.start}-${slot.end}`
   const start = parseTime(slot.start)
-  if (start <= minutes) {
-    return `開催中 ${slot.start}-${slot.end} ${where}`
-  }
+  if (start <= minutes) return `開催中 ${when} ${where}`
   const prefix = start - minutes <= LEAD_MINUTES ? 'まもなく' : '次は'
-  return `${prefix} ${slot.start} ${where}`
+  return `${prefix} ${when} ${where}`
 }
 
 /**

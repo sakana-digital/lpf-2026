@@ -35,18 +35,18 @@ describe('footerMessages', () => {
 
   it('stays quiet until a slot is close', () => {
     expect(messages(at('10:19'))).toEqual([])
-    expect(messages(at('10:20'))).toEqual(['まもなく 10:30 開会式 @ 中庭ステージ'])
+    expect(messages(at('10:20'))).toEqual(['まもなく 10:30-11:00 開会式 @ 中庭ステージ'])
   })
 
   it('rotates the running slot with whatever is next', () => {
     expect(messages(at('10:40'))).toEqual([
       '開催中 10:30-11:00 開会式 @ 中庭ステージ',
-      '次は 11:30 上映 @ 視聴覚室',
+      '次は 11:30-12:30 上映 @ 視聴覚室',
     ])
   })
 
   it('calls the next slot imminent once it is within the lead time', () => {
-    expect(messages(at('11:21'))[0]).toBe('まもなく 11:30 上映 @ 視聴覚室')
+    expect(messages(at('11:21'))[0]).toBe('まもなく 11:30-12:30 上映 @ 視聴覚室')
   })
 
   it('drops a slot the moment it ends', () => {
@@ -62,14 +62,14 @@ describe('footerMessages', () => {
     expect(messages(at('11:45', '2026-09-27'))).toEqual([
       '開催中 11:00-12:00 演劇 @ 中庭ステージ',
       '開催中 11:30-12:30 講演 @ 視聴覚室',
-      '次は 14:00 閉会式 @ 視聴覚室',
+      '次は 14:00-14:45 閉会式 @ 視聴覚室',
     ])
   })
 
   it('reads the second day from its own date', () => {
     expect(messages(at('11:25', '2026-09-27'))).toEqual([
       '開催中 11:00-12:00 演劇 @ 中庭ステージ',
-      'まもなく 11:30 講演 @ 視聴覚室',
+      'まもなく 11:30-12:30 講演 @ 視聴覚室',
     ])
   })
 
