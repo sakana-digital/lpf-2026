@@ -84,7 +84,7 @@ bun run status:token -- --remote --admin
 - 本体ドメインへの `POST /api/status` が 405 か。
 - push したコミットのデプロイが GitHub 上で成功しているか。
 
-本体サイトは開催日（2026-09-26 / 27）以外は `/api/status` を呼ばないので、それ以外の日は表示を確認できません。
+本体サイトは開催日当日以外は `/api/status` を呼びません。
 
 ## 運用
 
