@@ -11,7 +11,7 @@
 
 - 管理者用URLも最初に開いた時点で端末に保存され、URLから`?t=…`が消えます。ブックマークなどして使ってください。
 - 各タブの変更は、**それぞれの保存ボタンを押すまで反映されません**（ステータスタブは`更新する`）。
-- 管理者URLを紛失した場合は再発行が必要です（開発担当へ。手順は[リポジトリのREADME](https://github.com/sakana-digital/lpf-2026#トークン運用)）。
+- 管理者URLを紛失した場合は再発行が必要です（開発担当へ。手順は[リポジトリのREADME](https://github.com/sakana-digital/lpf-2026/blob/main/apps/status/README.md#トークン運用)）。
 
 ## ステータス
 
