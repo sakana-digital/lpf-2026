@@ -162,10 +162,13 @@
     },
     "notes": {
       "title": "Notes",
+      "payment": {
+        "text": "Payments on campus accept transit IC e-money only. Cash is not accepted, so please charge your card in advance.",
+        "brands": "Accepted transit IC e-money: Suica, PASMO, Kitaca, TOICA, manaca, ICOCA, SUGOCA, nimoca, Hayakaken and others"
+      },
       "items": [
         "Our school is shoes-on, so you do not need slippers.",
         "Please come by public transportation or bicycle. Please refrain from coming by car.",
-        "Payments on campus accept transit IC e-money only. Cash is not accepted, so please charge your card in advance.",
         "Smoking and alcohol are prohibited within the school buildings.",
         "Please sort your trash and dispose of it in the designated area.",
         "Please refrain from posting photos or videos taken on campus to social media."

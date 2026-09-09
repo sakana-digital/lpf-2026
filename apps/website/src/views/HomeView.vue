@@ -109,6 +109,36 @@ onMounted(() => {
     <section id="notes" class="notes split">
       <h2 class="title">{{ t('home.notes.title') }}</h2>
       <ul class="notes-list">
+        <li>
+          {{ t('home.notes.payment.text') }}
+          <picture>
+            <source
+              type="image/avif"
+              srcset="
+                /notes/transit-ic-brands-480.avif 480w,
+                /notes/transit-ic-brands-960.avif 960w
+              "
+              sizes="(max-width: 532px) calc(100vw - 52px), 480px"
+            />
+            <source
+              type="image/webp"
+              srcset="
+                /notes/transit-ic-brands-480.webp 480w,
+                /notes/transit-ic-brands-960.webp 960w
+              "
+              sizes="(max-width: 532px) calc(100vw - 52px), 480px"
+            />
+            <img
+              class="brands"
+              src="/notes/transit-ic-brands.png"
+              width="960"
+              height="657"
+              loading="lazy"
+              decoding="async"
+              :alt="t('home.notes.payment.brands')"
+            />
+          </picture>
+        </li>
         <li v-for="(note, index) in notes" :key="index">{{ note }}</li>
         <li>
           <i18n-t keypath="home.notes.cancellation.text" tag="span">
@@ -483,6 +513,17 @@ onMounted(() => {
         height: 6px;
         border-radius: 50%;
         background: var(--color-text-mute);
+      }
+
+      picture {
+        display: contents;
+      }
+
+      .brands {
+        display: block;
+        width: min(100%, 480px);
+        height: auto;
+        margin-top: 12px;
       }
     }
   }
