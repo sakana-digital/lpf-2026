@@ -24,6 +24,14 @@ Pick a stall and send its sales and queue status. The options mean the same as i
 - Admins are **not restricted by the hours**. You can update on a stall's behalf outside them.
 - On a wide screen, pick the stall from the list on the left; on a narrow one, from the select at the top.
 
+### 更新履歴 (History)
+
+Below the form, the selected stall's updates are listed newest first (up to 200).
+
+- Each row is the time, the sales status, the queue status, and who sent it — 団体 (the stall) or 管理者 (an admin).
+- Recording starts from the updates made after this feature shipped; earlier values were never kept.
+- Nothing is ever removed from the history. It is admin-only: neither the public site nor the signage shows it.
+
 ## 受付時間 (Hours)
 
 The window in which stalls can send their status.

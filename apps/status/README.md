@@ -108,6 +108,7 @@ bun run status:token -- --remote --admin  # 管理者トークン
 管理者 URL でアクセスすると管理者モードになり、以下ができます。
 
 - 団体をセレクトから選んで、任意の団体のステータスを代理更新できます。
+- 選んだ団体の更新履歴（新しい順に最大 200 件）を見られます。
 - ステータスを表示する団体、表示しない団体を選べます。
 - サイネージの表示団体・並び順、固定案内・速報、R2 の動画・音声、閲覧 URL を管理できます。
 - ステータスの送信可能時間を設定します。
@@ -166,11 +167,20 @@ flowchart LR
 | `GET /api/status`  | なし（本体ドメインのみ） | 全団体のステータス一覧                     |
 | `GET /api/me`      | Bearer                   | トークンに対応する団体と現在値             |
 | `POST /api/status` | Bearer                   | 自団体の `{ sales, congestion }` を UPSERT |
+| `GET /api/history` | Admin Bearer             | 更新履歴（`?orgId=` で団体を絞る）         |
 | `GET /api/signage` | Cookie / Admin Bearer    | サイネージ設定と選択団体の最新値           |
 | `PUT /api/orgs`    | Admin Bearer             | ステータスを表示しない団体の一覧を保存     |
 | `PUT /api/window`  | Admin Bearer             | Day 1 / Day 2 の送信可能時間を保存         |
 
 管理者用の `/api/signage/*` では設定保存、閲覧 URL 発行、R2 Multipart Upload、動画・音声の選択と削除を行います。
+
+#### 更新履歴
+
+`POST /api/status` は `org_status` の UPSERT と `org_status_log` への INSERT を同じ `batch()` で書きます。`org_status` は団体ごとに 1 行しか持たないので、過去の値は `org_status_log` にだけ残ります。
+
+- `source` は `org`（団体自身）か `admin`（管理者の代理更新）です。
+- `0011_status_history.sql` は過去分を復元できないため、ログは空から始まります。
+- 削除や期限切れはしません。31 団体 × 2 日の規模を前提にしています。
 
 #### 各団体が持つ状態
 

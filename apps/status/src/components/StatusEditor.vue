@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue'
 import { CONGESTION_LEVELS, SALES_STATUSES, hidesCongestion, isSubmitOpen } from '@shared/status'
 import type { CongestionLevel, OrgStatus, SalesStatus, SubmitWindows } from '@shared/status'
 import { ApiError, updateStatus } from '@/lib/api'
@@ -7,6 +7,7 @@ import { classOrgLabel } from '@/lib/orgLabel'
 import { CONGESTION_LABELS, SALES_LABELS } from '@/lib/statusLabel'
 import { formatElapsed } from '@/lib/relativeTime'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import StatusHistory from '@/components/StatusHistory.vue'
 
 const props = defineProps<{
   token: string
@@ -33,6 +34,7 @@ const saveError = ref<string | null>(null)
 const justSaved = ref(false)
 const confirmingSoldout = ref(false)
 const now = ref(Date.now())
+const history = useTemplateRef<InstanceType<typeof StatusHistory>>('history')
 
 const savedTime = computed(() => {
   if (savedAt.value === null) return ''
@@ -113,6 +115,7 @@ async function submit() {
       ),
     )
     justSaved.value = true
+    void history.value?.reload()
     scheduleResultClear()
   } catch (error) {
     saveError.value =
@@ -209,6 +212,8 @@ onUnmounted(() => {
         </div>
       </div>
     </form>
+
+    <StatusHistory v-if="admin" ref="history" :token="token" :org-id="selectedOrg" />
 
     <ConfirmDialog
       :open="confirmingSoldout"

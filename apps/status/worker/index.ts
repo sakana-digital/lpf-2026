@@ -15,6 +15,8 @@ import type {
   SignageMediaKind,
   SignagePayload,
   SignageUploadedPart,
+  StatusHistoryEntry,
+  StatusSource,
   SubmitWindow,
   SubmitWindows,
 } from '../../../shared/status'
@@ -52,6 +54,7 @@ const MEDIA_KINDS: Record<SignageMediaKind, MediaKindSpec> = {
 const FOOTER_MAX_LENGTH = 120
 const ALERT_MAX_LENGTH = 200
 const PUBLIC_STATUS_MAX_AGE = 15
+const HISTORY_LIMIT = 200
 const WORKER_DOMAIN_SUFFIX = '.workers.dev'
 
 interface StatusRow {
@@ -59,6 +62,14 @@ interface StatusRow {
   sales: SalesStatus
   congestion: CongestionLevel | null
   updated_at: number
+}
+
+interface StatusLogRow {
+  org_id: string
+  sales: SalesStatus
+  congestion: CongestionLevel | null
+  source: StatusSource
+  created_at: number
 }
 
 interface SignageConfigRow {
@@ -92,6 +103,16 @@ function toOrgStatus(row: StatusRow): OrgStatus {
     sales: row.sales,
     congestion: row.congestion,
     updatedAt: row.updated_at,
+  }
+}
+
+function toHistoryEntry(row: StatusLogRow): StatusHistoryEntry {
+  return {
+    orgId: row.org_id,
+    sales: row.sales,
+    congestion: row.congestion,
+    source: row.source,
+    createdAt: row.created_at,
   }
 }
 
@@ -278,6 +299,7 @@ async function postStatus(request: Request, env: Env): Promise<Response> {
     congestionValue = congestion
   }
 
+  const now = Math.floor(Date.now() / 1000)
   let orgId: string
   if (auth.kind === 'admin') {
     if (typeof bodyOrgId !== 'string' || bodyOrgId === '') {
@@ -289,23 +311,43 @@ async function postStatus(request: Request, env: Env): Promise<Response> {
     if (!org) return json({ error: 'unknown_org' }, 400)
     orgId = bodyOrgId
   } else {
-    if (!isSubmitOpen(await getWindows(env), Math.floor(Date.now() / 1000))) {
+    if (!isSubmitOpen(await getWindows(env), now)) {
       return json({ error: 'closed' }, 403)
     }
     orgId = auth.orgId
   }
 
-  const row = await env.DB.prepare(
-    `INSERT INTO org_status (org_id, sales, congestion, updated_at)
-     VALUES (?1, ?2, ?3, unixepoch())
-     ON CONFLICT (org_id) DO UPDATE
-     SET sales = excluded.sales, congestion = excluded.congestion, updated_at = excluded.updated_at
-     RETURNING org_id, sales, congestion, updated_at`,
-  )
-    .bind(orgId, sales, congestionValue)
-    .first<StatusRow>()
+  const [updated] = await env.DB.batch<StatusRow>([
+    env.DB.prepare(
+      `INSERT INTO org_status (org_id, sales, congestion, updated_at)
+       VALUES (?1, ?2, ?3, ?4)
+       ON CONFLICT (org_id) DO UPDATE
+       SET sales = excluded.sales, congestion = excluded.congestion, updated_at = excluded.updated_at
+       RETURNING org_id, sales, congestion, updated_at`,
+    ).bind(orgId, sales, congestionValue, now),
+    env.DB.prepare(
+      `INSERT INTO org_status_log (org_id, sales, congestion, source, created_at)
+       VALUES (?1, ?2, ?3, ?4, ?5)`,
+    ).bind(orgId, sales, congestionValue, auth.kind, now),
+  ])
+  const row = updated?.results[0]
   if (!row) return json({ error: 'write_failed' }, 500)
   return json(toOrgStatus(row))
+}
+
+async function getHistory(request: Request, env: Env): Promise<Response> {
+  const auth = await requireAdmin(request, env)
+  if (auth instanceof Response) return auth
+
+  const orgId = new URL(request.url).searchParams.get('orgId')
+  const columns = 'SELECT org_id, sales, congestion, source, created_at FROM org_status_log'
+  const query = orgId
+    ? env.DB.prepare(
+        `${columns} WHERE org_id = ?1 ORDER BY created_at DESC, id DESC LIMIT ?2`,
+      ).bind(orgId, HISTORY_LIMIT)
+    : env.DB.prepare(`${columns} ORDER BY created_at DESC, id DESC LIMIT ?1`).bind(HISTORY_LIMIT)
+  const { results } = await query.all<StatusLogRow>()
+  return json(results.map(toHistoryEntry))
 }
 
 async function putHiddenOrgs(request: Request, env: Env): Promise<Response> {
@@ -773,6 +815,10 @@ export default {
     }
     if (pathname === '/api/me') {
       if (request.method === 'GET') return getMe(request, env)
+      return json({ error: 'method_not_allowed' }, 405)
+    }
+    if (pathname === '/api/history') {
+      if (request.method === 'GET') return getHistory(request, env)
       return json({ error: 'method_not_allowed' }, 405)
     }
     if (pathname === '/api/orgs') {
