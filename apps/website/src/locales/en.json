@@ -46,11 +46,6 @@
   "languageToggle": {
     "label": "Switch language"
   },
-  "paymentNotice": {
-    "title": "Payments",
-    "message": "Only transit IC e-money can be used on campus.",
-    "close": "Close"
-  },
   "sitemap": {
     "home": "/",
     "news": "News",

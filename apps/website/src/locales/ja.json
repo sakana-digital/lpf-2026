@@ -46,11 +46,6 @@
   "languageToggle": {
     "label": "言語を切り替える"
   },
-  "paymentNotice": {
-    "title": "お支払いについて",
-    "message": "校内では交通系電子マネーのみ使用できます。",
-    "close": "閉じる"
-  },
   "sitemap": {
     "home": "/",
     "news": "News",
