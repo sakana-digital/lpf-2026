@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { classNumbers, organizations } from '@/data/organizations'
 import type { Organization } from '@/data/organizations'
@@ -8,15 +8,19 @@ import {
   columnTracks,
   EXPANDED_CONTENT,
   findCellPosition,
+  FLASH_DURATION,
+  flashDelay,
   GAP,
   GUTTER,
   INLINE_PADDING,
   rowTracks,
 } from '@/lib/eventsGrid'
+import type { CellPreview, EventsGrouping } from '@/lib/eventsGrid'
 import type { OrgStatus } from '@shared/status'
 import EventsGridCell from './EventsGridCell.vue'
 
 const props = defineProps<{
+  grouping: EventsGrouping
   selectedId?: string
   statuses?: ReadonlyMap<string, OrgStatus>
 }>()
@@ -25,7 +29,7 @@ const emit = defineEmits<{ select: [id: string | null] }>()
 
 const { t } = useI18n()
 
-const rows = computed(() => buildEventRows(organizations))
+const rows = computed(() => buildEventRows(organizations, props.grouping))
 
 const selectedPos = computed(() =>
   props.selectedId ? findCellPosition(rows.value, props.selectedId) : null,
@@ -36,6 +40,7 @@ const scrollStyle = {
   '--gap': `${GAP}px`,
   '--inline-padding': `${INLINE_PADDING}px`,
   '--expanded-content': EXPANDED_CONTENT,
+  '--flash-duration': `${FLASH_DURATION}ms`,
 }
 
 const expandedHeight = ref<number>()
@@ -58,6 +63,15 @@ function onSelect(org: Organization | null) {
 
 function isExpanded(rowIndex: number, colIndex: number): boolean {
   return selectedPos.value?.row === rowIndex && selectedPos.value?.col === colIndex
+}
+
+// The open row and column stretch every cell on them, and that room shows their image
+function previewOf(rowIndex: number, colIndex: number): CellPreview | undefined {
+  const pos = selectedPos.value
+  if (!pos) return undefined
+  if (rowIndex === pos.row && colIndex !== pos.col) return 'tall'
+  if (colIndex === pos.col && rowIndex !== pos.row) return 'wide'
+  return undefined
 }
 
 const gridRef = useTemplateRef<HTMLElement>('gridRef')
@@ -104,16 +118,61 @@ function trackExpanded() {
 
 watch(() => props.selectedId, trackExpanded, { flush: 'post' })
 
+// Regrouping remounts the open cell, so it is measured and brought back into
+// view, and the tiles sweep in again like on the first load
+watch(
+  () => props.grouping,
+  () => {
+    trackExpanded()
+    scrollSelectedIntoView()
+    void runFlash()
+  },
+  { flush: 'post' },
+)
+
 // Measuring flushes styles, so without this a deep-linked cell would animate open
 const animated = ref(false)
+
+// The thumbnails are fetched behind hidden tiles first. Only the tiles leading
+// the sweep are waited for: the rest have its travel time to arrive
+type FlashPhase = 'off' | 'load' | 'run'
+const FLASH_LOAD_TIMEOUT = 600
+const flashPhase = ref<FlashPhase>('off')
+let flashTimer: ReturnType<typeof setTimeout> | undefined
+// A sweep started over while one is loading makes the older one stand down
+let flashRun = 0
+
+function flashDelayOf(rowIndex: number, colIndex: number): number | undefined {
+  return flashPhase.value === 'off' ? undefined : flashDelay(rowIndex, colIndex)
+}
+
+async function runFlash() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const run = ++flashRun
+  clearTimeout(flashTimer)
+  flashPhase.value = 'load'
+  await nextTick()
+  const leading = gridRef.value?.querySelectorAll<HTMLImageElement>('img.flash.lead') ?? []
+  const loaded = Promise.allSettled(Array.from(leading, (img) => img.decode()))
+  await Promise.race([loaded, new Promise((resolve) => setTimeout(resolve, FLASH_LOAD_TIMEOUT))])
+  if (run !== flashRun || flashPhase.value !== 'load') return
+  flashPhase.value = 'run'
+  const end = flashDelay(rows.value.length - 1, 0) + FLASH_DURATION
+  flashTimer = setTimeout(() => (flashPhase.value = 'off'), end)
+}
 
 onMounted(() => {
   trackExpanded()
   scrollSelectedIntoView()
   requestAnimationFrame(() => (animated.value = true))
+  void runFlash()
 })
 
-onUnmounted(() => detailResize?.disconnect())
+onUnmounted(() => {
+  detailResize?.disconnect()
+  clearTimeout(flashTimer)
+  flashPhase.value = 'off'
+})
 </script>
 
 <template>
@@ -129,7 +188,9 @@ onUnmounted(() => detailResize?.disconnect())
     >
       <div class="gutter corner" aria-hidden="true"></div>
       <div v-for="classNo in classNumbers" :key="classNo" class="gutter col-head">
-        {{ t('explore.events.classHeader', { classNo }) }}
+        <template v-if="grouping === 'group'">
+          {{ t('explore.events.classHeader', { classNo }) }}
+        </template>
       </div>
 
       <template v-for="(row, rowIndex) in rows" :key="row.id">
@@ -151,7 +212,10 @@ onUnmounted(() => detailResize?.disconnect())
             :key="cell?.id ?? `${row.id}-${colIndex}`"
             :org="cell"
             :expanded="isExpanded(rowIndex, colIndex)"
+            :preview="previewOf(rowIndex, colIndex)"
             :status="cell ? statuses?.get(cell.id) : undefined"
+            :flash-delay="flashDelayOf(rowIndex, colIndex)"
+            :flashing="flashPhase === 'run'"
             @select="onSelect(cell)"
           >
             <template #actions>

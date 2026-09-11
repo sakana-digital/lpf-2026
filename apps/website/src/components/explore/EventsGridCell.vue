@@ -1,13 +1,28 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { organizationGroupName, organizationProjectName } from '@/lib/organization'
+import {
+  organizationGroupName,
+  organizationImageSrc,
+  organizationProjectName,
+} from '@/lib/organization'
 import type { Organization } from '@/data/organizations'
+import { FLASH_LEAD } from '@/lib/eventsGrid'
+import type { CellPreview } from '@/lib/eventsGrid'
 import type { OrgStatus } from '@shared/status'
 import OrgDetail from './OrgDetail.vue'
+import OrgMeta from './OrgMeta.vue'
 import OrgStatusBadges from './OrgStatusBadges.vue'
 
-const props = defineProps<{ org: Organization | null; expanded: boolean; status?: OrgStatus }>()
+const props = defineProps<{
+  org: Organization | null
+  expanded: boolean
+  preview?: CellPreview
+  status?: OrgStatus
+  /** Set while the intro sweep is on; the tile shows its thumbnail after this many ms. */
+  flashDelay?: number
+  flashing?: boolean
+}>()
 
 defineEmits<{ select: [] }>()
 
@@ -20,35 +35,70 @@ const groupName = computed(() =>
 const projectName = computed(() =>
   props.org ? organizationProjectName(props.org, locale.value) : '',
 )
+
+// Tiles and the column preview stay small; the row preview fills its cell
+const thumbSrc = computed(() => (props.org ? organizationImageSrc(props.org, 160) : undefined))
+const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 400) : undefined))
 </script>
 
 <template>
-  <div v-if="org" class="cell" :class="{ expanded }">
+  <div v-if="org" class="cell" :class="{ expanded, wide: preview === 'wide' }">
     <div class="head-row">
       <button type="button" class="cell-head" :aria-expanded="expanded" @click="$emit('select')">
         <span class="label">{{ groupName }}</span>
         <span v-if="projectName" class="name">{{ projectName }}</span>
       </button>
       <OrgStatusBadges v-if="!expanded && status" :status="status" class="cell-status" />
+      <OrgMeta v-if="expanded" :place="org.place">
+        <slot name="actions"></slot>
+      </OrgMeta>
+      <Transition name="preview-fade">
+        <img
+          v-if="preview === 'wide' && thumbSrc"
+          class="preview wide"
+          :src="thumbSrc"
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
+      </Transition>
     </div>
+    <Transition name="preview-fade">
+      <img
+        v-if="preview === 'tall' && previewSrc"
+        class="preview tall"
+        :src="previewSrc"
+        alt=""
+        loading="lazy"
+        decoding="async"
+      />
+    </Transition>
     <Transition name="detail-fade">
       <div v-if="expanded" class="detail">
-        <OrgDetail :org="org" :status="status">
-          <template #actions>
-            <slot name="actions"></slot>
-          </template>
-        </OrgDetail>
+        <OrgDetail :org="org" :status="status" />
       </div>
     </Transition>
+    <img
+      v-if="thumbSrc && flashDelay != null && !expanded"
+      class="flash"
+      :class="{ running: flashing, lead: flashDelay <= FLASH_LEAD }"
+      :src="thumbSrc"
+      :style="{ animationDelay: `${flashDelay}ms` }"
+      alt=""
+      aria-hidden="true"
+      decoding="async"
+    />
   </div>
   <div v-else class="cell blank" aria-hidden="true"></div>
 </template>
 
 <style scoped>
+/* The preview and the detail share the second row, so one fading out never pushes the other */
 .cell {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 100%;
+  align-content: start;
   gap: 8px;
   min-width: 0;
   min-height: 0;
@@ -83,6 +133,12 @@ const projectName = computed(() =>
     align-items: center;
     gap: 8px;
     min-width: 0;
+
+    .preview.wide {
+      flex-shrink: 0;
+      width: auto;
+      height: 100%;
+    }
 
     .cell-status {
       flex-direction: column;
@@ -126,6 +182,54 @@ const projectName = computed(() =>
       text-overflow: ellipsis;
     }
   }
+
+  /* Laid out at the final width from the start, so the name wraps the same while the column widens */
+  &.expanded .head-row,
+  &.wide .head-row {
+    width: var(--expanded-content);
+  }
+
+  &.wide {
+    grid-template-rows: 1fr;
+
+    .head-row {
+      align-items: flex-start;
+      min-height: 0;
+    }
+  }
+
+  .preview.tall {
+    grid-row: 2;
+    align-self: start;
+    width: 100%;
+    height: auto;
+  }
+
+  .flash {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    pointer-events: none;
+
+    &.running {
+      animation: flash var(--flash-duration) ease-in-out both;
+    }
+  }
+}
+
+@keyframes flash {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  20%,
+  60% {
+    opacity: 1;
+  }
 }
 
 .cell-status :deep(.badge) {
@@ -144,7 +248,7 @@ const projectName = computed(() =>
  * measured while it moves.
  */
 .detail {
-  flex: none;
+  grid-row: 2;
   width: var(--expanded-content);
 }
 
@@ -157,5 +261,22 @@ const projectName = computed(() =>
 .detail-fade-enter-from,
 .detail-fade-leave-to {
   opacity: 0;
+}
+
+.preview-fade-enter-active {
+  transition: opacity 0.3s ease-out;
+}
+
+.preview-fade-enter-from {
+  opacity: 0;
+}
+
+/*
+ * Out of flow rather than transitioned out: one lingering frame would push the
+ * detail replacing it, and a wide preview would still be in the head row the
+ * open row measures.
+ */
+.preview-fade-leave-active {
+  display: none;
 }
 </style>

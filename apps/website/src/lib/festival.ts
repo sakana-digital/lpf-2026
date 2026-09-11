@@ -1,5 +1,5 @@
-import { festivalDates, festivalNow, jstDate } from '@shared/schedule'
-import type { FestivalDay } from '@shared/schedule'
+import { festivalDates, festivalNow, jstDate } from '@shared/timetable'
+import type { FestivalDay } from '@shared/timetable'
 
 const firstDate = festivalDates[0]
 const lastDate = festivalDates[festivalDates.length - 1]!

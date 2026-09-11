@@ -1,6 +1,12 @@
 import { classNumbers, grades } from '@/data/organizations'
 import type { Organization } from '@/data/organizations'
-import { clubSections } from '@/lib/organization'
+import { categorySections } from '@/lib/organization'
+import type { OrganizationSection } from '@/lib/organization'
+
+/** Rows by grade, club and committee, or by what every group runs */
+export const EVENT_GROUPINGS = ['group', 'category'] as const
+
+export type EventsGrouping = (typeof EVENT_GROUPINGS)[number]
 
 export const EVENT_COLUMNS = classNumbers.length
 
@@ -8,6 +14,9 @@ export const EVENT_COLUMNS = classNumbers.length
 export const GUTTER = 32
 export const GAP = 8
 export const INLINE_PADDING = 16
+
+/** Shape a cell takes from sharing the open row (tall) or the open column (wide). */
+export type CellPreview = 'tall' | 'wide'
 
 export interface EventRow {
   id: string
@@ -31,36 +40,56 @@ function chunkRows(orgs: Organization[], idPrefix: string, labelKey: string): Ev
   return rows
 }
 
-export function buildEventRows(orgs: Organization[]): EventRow[] {
-  const rows: EventRow[] = grades.map((grade) => ({
-    id: `grade-${grade}`,
-    labelKey: 'explore.events.gradeHeader',
-    labelParams: { grade },
-    cells: classNumbers.map(
-      (classNo) =>
-        orgs.find(
-          (org) => org.kind === 'class' && org.grade === grade && org.classNo === classNo,
-        ) ?? null,
-    ),
-  }))
+function spacer(id: string): EventRow {
+  return { id: `spacer-${id}`, spacer: true, cells: [] }
+}
 
-  for (const section of clubSections(orgs)) {
-    rows.push(
-      { id: `spacer-${section.id}`, spacer: true, cells: [] },
-      ...chunkRows(section.members, section.id, section.labelKey),
-    )
-  }
+// A spacer row parts the sections
+function sectionRows(sections: OrganizationSection[]): EventRow[] {
+  return sections.flatMap((section, i) => [
+    ...(i > 0 ? [spacer(section.id)] : []),
+    ...chunkRows(section.members, section.id, section.labelKey),
+  ])
+}
 
-  rows.push(
-    { id: 'spacer-committees', spacer: true, cells: [] },
-    ...chunkRows(
-      orgs.filter((org) => org.kind === 'committee'),
-      'committees',
-      'explore.events.committeeHeader',
-    ),
-  )
+function groupRows(orgs: Organization[]): EventRow[] {
+  return [
+    ...grades.map((grade) => ({
+      id: `grade-${grade}`,
+      labelKey: 'explore.events.gradeHeader',
+      labelParams: { grade },
+      cells: classNumbers.map(
+        (classNo) =>
+          orgs.find(
+            (org) => org.kind === 'class' && org.grade === grade && org.classNo === classNo,
+          ) ?? null,
+      ),
+    })),
+    spacer('clubs'),
+    ...sectionRows([
+      ...categorySections(
+        orgs.filter((org) => org.kind === 'club'),
+        'clubs',
+        'explore.events.clubHeader',
+      ),
+      {
+        id: 'committees',
+        labelKey: 'explore.events.committeeHeader',
+        members: orgs.filter((org) => org.kind === 'committee'),
+      },
+    ]),
+  ]
+}
 
-  return rows
+function categoryRows(orgs: Organization[]): EventRow[] {
+  return sectionRows(categorySections(orgs, 'category', 'explore.events.uncategorizedHeader'))
+}
+
+export function buildEventRows(
+  orgs: Organization[],
+  grouping: EventsGrouping = 'group',
+): EventRow[] {
+  return grouping === 'category' ? categoryRows(orgs) : groupRows(orgs)
 }
 
 // Narrow enough to clear the sticky row head
@@ -106,6 +135,16 @@ export function rowTracks(
       i === selected ? `${expandedHeight}px` : row.spacer ? `${GUTTER}px` : `${BASE_ROW}px`,
     )
     .join(' ')
+}
+
+/** Tiles join the intro sweep one diagonal after another, starting at the top-left corner. */
+export const FLASH_STEP = 45
+export const FLASH_DURATION = 900
+/** Delay up to which a tile leads the sweep, so its thumbnail is waited for before it starts. */
+export const FLASH_LEAD = FLASH_STEP * 2
+
+export function flashDelay(row: number, col: number): number {
+  return (row + col) * FLASH_STEP
 }
 
 export function findCellPosition(

@@ -11,7 +11,9 @@ import { filterEntries, groupEntries } from '@/lib/search'
 import type { SearchEntry } from '@/lib/search'
 import {
   categoryLabelKey,
+  divisionLabelKey,
   organizationGroupName,
+  organizationPlaceLabel,
   organizationProjectName,
 } from '@/lib/organization'
 import { useFocusTrap } from '@/composables/useFocusTrap'
@@ -58,15 +60,16 @@ const pageEntries = computed<SearchEntry[]>(() =>
 
 function orgKeywords(org: Organization): string[] {
   const keywords = [org.id]
-  if (org.location) keywords.push(org.location.room.slice(1))
   for (const loc of availableLocales) {
     // Same lookup as the display name, but pinned to the other locale
     const translate = (key: string, params?: Record<string, unknown>) =>
       t(key, params ?? {}, { locale: loc })
     keywords.push(
       organizationGroupName(org, loc, translate),
+      organizationPlaceLabel(org.place, loc, translate),
       localized(org.project, loc),
       localized(org.description, loc),
+      org.division ? translate(divisionLabelKey(org.division)) : '',
       org.category ? translate(categoryLabelKey(org.category)) : '',
     )
     for (const item of org.menus ?? []) {

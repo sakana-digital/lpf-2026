@@ -1,7 +1,8 @@
 import { localized } from '@shared/locale'
 import type { Locale } from '@shared/locale'
-import { daySlots, festivalNow, parseTime, slotDisplayName, venueLabels } from '@shared/schedule'
-import type { ScheduleSlot } from '@shared/schedule'
+import { daySlots, festivalNow, parseTime, slotDisplayName } from '@shared/timetable'
+import type { TimetableSlot } from '@shared/timetable'
+import { venueLabels } from '@shared/venues'
 
 /** How long before a slot starts the footer begins announcing it. */
 export const LEAD_MINUTES = 10
@@ -9,7 +10,7 @@ export const LEAD_MINUTES = 10
 /** The signage has no language switch. */
 const LOCALE: Locale = 'ja'
 
-function label(slot: ScheduleSlot, minutes: number): string {
+function label(slot: TimetableSlot, minutes: number): string {
   const where = `${slotDisplayName(slot, LOCALE)} @ ${localized(venueLabels[slot.venue], LOCALE)}`
   const when = `${slot.start}-${slot.end}`
   const start = parseTime(slot.start)
@@ -31,7 +32,7 @@ export function footerMessages(now: Date, timetable = daySlots): string[] {
     (slot) => parseTime(slot.start) <= today.minutes && today.minutes < parseTime(slot.end),
   )
   const next = slots.find((slot) => parseTime(slot.start) > today.minutes)
-  const toLabel = (slot: ScheduleSlot) => label(slot, today.minutes)
+  const toLabel = (slot: TimetableSlot) => label(slot, today.minutes)
   if (running.length > 0) return [...running, ...(next ? [next] : [])].map(toLabel)
   if (next && parseTime(next.start) - today.minutes <= LEAD_MINUTES) return [toLabel(next)]
   return []

@@ -8,7 +8,10 @@ import type { OrgStatus } from '@shared/status'
 import OrgImage from './OrgImage.vue'
 import OrgStatusBadges from './OrgStatusBadges.vue'
 
-const props = defineProps<{ org: Organization; status?: OrgStatus }>()
+const props = defineProps<{
+  org: Organization
+  status?: OrgStatus
+}>()
 
 const { t, locale } = useI18n()
 
@@ -53,12 +56,6 @@ const menus = computed(() =>
           </span>
         </li>
       </ul>
-    </div>
-    <div class="meta">
-      <span v-if="org.location" class="location">
-        {{ t('explore.events.location', { floor: org.location.floor }) }}
-      </span>
-      <slot name="actions"></slot>
     </div>
   </div>
 </template>
@@ -135,20 +132,6 @@ const menus = computed(() =>
       &.unknown {
         font-style: italic;
       }
-    }
-  }
-
-  .meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-top: auto;
-
-    .location {
-      color: var(--color-text-mute);
-      font-size: 11px;
-      font-variant-numeric: tabular-nums;
     }
   }
 }

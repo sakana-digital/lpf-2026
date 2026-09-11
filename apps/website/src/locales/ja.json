@@ -14,7 +14,7 @@
       },
       "explore": {
         "title": "企画を探す",
-        "description": "八宝祭 2026 の企画・イベント・スケジュール・会場マップをまとめて探せます。"
+        "description": "八宝祭 2026 の企画・イベント・タイムテーブルをまとめて探せます。"
       },
       "news": {
         "title": "ニュース",
@@ -24,13 +24,9 @@
         "title": "イベント",
         "description": "八宝祭 2026 のクラス企画・部活動・有志による出展の一覧です。"
       },
-      "schedule": {
-        "title": "スケジュール",
-        "description": "八宝祭 2026 のステージ・上映などのタイムスケジュールです。"
-      },
-      "map": {
-        "title": "会場マップ",
-        "description": "八宝祭 2026 の会場マップです。各フロアの企画の場所を確認できます。"
+      "timetable": {
+        "title": "タイムテーブル",
+        "description": "八宝祭 2026 の中庭ステージ・視聴覚室のタイムテーブルです。"
       }
     }
   },
@@ -53,31 +49,8 @@
   },
   "explore": {
     "tabs": {
-      "map": "会場マップ",
       "events": "イベント",
-      "schedule": "スケジュール"
-    },
-    "map": {
-      "floorSwitch": "階の切り替え",
-      "floor": "{floor}F",
-      "overview": "全体",
-      "zoomControls": "地図の拡大縮小",
-      "zoomIn": "拡大",
-      "zoomOut": "縮小",
-      "resetZoom": "拡大率をリセット",
-      "directions": {
-        "east": "東",
-        "north": "北"
-      },
-      "labels": {
-        "avRoomRoute": "視聴覚室へ",
-        "classroom": "教室",
-        "courtyard": "中庭",
-        "stage": "中庭ステージ",
-        "stairs": "階段",
-        "tents": "各団体テント",
-        "toilet": "トイレ"
-      }
+      "timetable": "タイムテーブル"
     },
     "events": {
       "gridLabel": "企画一覧",
@@ -85,25 +58,24 @@
       "gradeHeader": "{grade}年次",
       "clubHeader": "部活",
       "committeeHeader": "委員会",
+      "uncategorizedHeader": "未分類",
       "classLabel": "{grade}-{classNo}",
       "noImage": "No Image",
-      "location": "{floor}F",
-      "viewSwitch": "表示切り替え",
+      "groupingSwitch": "分類の切り替え",
       "hint": "各団体の詳細を表示します",
-      "views": {
-        "grid": "一覧",
-        "graph": "グラフ"
+      "groupings": {
+        "group": "団体別",
+        "category": "ジャンル別"
       }
     },
-    "nodes": {
-      "graphLabel": "団体ノードグラフ",
-      "hint": "ドラッグして回転",
-      "close": "詳細を閉じる"
+    "place": {
+      "room": "{floor}F {room}",
+      "tent": "テント {tent}"
     },
-    "schedule": {
+    "timetable": {
       "daySwitch": "日程切り替え",
       "dayLabel": "Day {day} · {date}",
-      "empty": "スケジュールはまだありません"
+      "empty": "タイムテーブルはまだありません"
     },
     "menu": {
       "title": "メニュー",
@@ -217,7 +189,17 @@
     "keywords": {
       "home": ["/", "ホーム", "トップ", "home", "top"],
       "news": ["ニュース", "お知らせ", "新着", "news"],
-      "explore": ["探索", "地図", "マップ", "会場", "アクセス", "explore", "maps", "access"]
+      "explore": [
+        "探索",
+        "企画",
+        "イベント",
+        "タイムテーブル",
+        "スケジュール",
+        "explore",
+        "events",
+        "timetable",
+        "schedule"
+      ]
     }
   },
   "status": {
@@ -234,11 +216,17 @@
       "high": "混雑"
     }
   },
+  "orgDivisions": {
+    "variety": "バラエティ",
+    "market": "マーケット",
+    "performance": "パフォーマンス"
+  },
   "orgCategories": {
-    "food": "食品",
-    "exhibit": "展示",
-    "performance": "公演",
-    "game": "遊び"
+    "experience": "体験",
+    "foodSales": "食品販売",
+    "cooking": "調理",
+    "otherSales": "その他販売",
+    "presentation": "発表"
   },
   "allergens": {
     "shrimp": "えび",

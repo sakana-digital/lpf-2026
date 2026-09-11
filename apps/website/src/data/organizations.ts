@@ -19,16 +19,8 @@ import type {
 export { classNumbers, grades }
 export type { ClassNumber, Grade }
 
-export type Floor = 1 | 2 | 3 | 4
-
-export interface VenueLocation {
-  floor: Floor
-  room: string
-}
-
 interface OrganizationBase extends OrganizationProfile {
   id: string
-  location?: VenueLocation
 }
 
 export interface ClassOrganization extends OrganizationBase {
@@ -48,17 +40,8 @@ export interface CommitteeOrganization extends OrganizationBase {
 export type Organization = ClassOrganization | ClubOrganization | CommitteeOrganization
 
 function cls(grade: Grade, classNo: ClassNumber): ClassOrganization {
-  // Grade 1 is on the top floor (4F), and higher grades sit lower
-  const floor = (5 - grade) as Floor
   const id = classOrgId(grade, classNo)
-  return {
-    kind: 'class',
-    id,
-    grade,
-    classNo,
-    ...organizationProfile(id),
-    location: { floor, room: `r${floor}0${classNo}` },
-  }
+  return { kind: 'class', id, grade, classNo, ...organizationProfile(id) }
 }
 
 function club(no: ClubNumber): ClubOrganization {
@@ -79,8 +62,4 @@ export const organizations: Organization[] = [
 
 export function getOrganization(id: string): Organization | undefined {
   return organizations.find((org) => org.id === id)
-}
-
-export function getOrganizationByRoom(room: string): Organization | undefined {
-  return organizations.find((org) => org.location?.room === room)
 }

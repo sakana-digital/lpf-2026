@@ -30,8 +30,7 @@ const NotFoundView = () => import('@/views/NotFoundView.vue')
 
 const tabViews = {
   events: () => import('@/components/explore/ExploreEventsTab.vue'),
-  schedule: () => import('@/components/explore/ExploreScheduleTab.vue'),
-  map: () => import('@/components/explore/ExploreMapTab.vue'),
+  timetable: () => import('@/components/explore/ExploreTimetableTab.vue'),
 } satisfies Record<ExploreTab, unknown>
 
 const explorePath = pagePath('explore')
@@ -47,7 +46,10 @@ function exploreRoute(language: Language, suffix: string): RouteRecordRaw {
     component: ExploreView,
     meta: { pageTitle: labelKey('explore') },
     children: [
-      { path: '', redirect: () => ({ name: `explore-${getLastExploreTab()}${suffix}` }) },
+      {
+        path: '',
+        redirect: (to) => ({ name: `explore-${getLastExploreTab()}${suffix}`, query: to.query }),
+      },
       ...EXPLORE_TABS.map(
         (tab): RouteRecordRaw => ({
           path: exploreChildPath(pagePath(tab)),
@@ -55,14 +57,10 @@ function exploreRoute(language: Language, suffix: string): RouteRecordRaw {
           component: tabViews[tab],
         }),
       ),
-      // The graph used to be its own tab; the events tab now holds it behind a toggle.
       ...legacyPages.map(
         (page): RouteRecordRaw => ({
           path: exploreChildPath(page.path),
-          redirect: (to) => ({
-            name: `explore-${page.id}${suffix}`,
-            query: { ...to.query, view: 'graph' },
-          }),
+          redirect: (to) => ({ name: `explore-${page.id}${suffix}`, query: to.query }),
         }),
       ),
     ],

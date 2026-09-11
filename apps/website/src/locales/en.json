@@ -14,7 +14,7 @@
       },
       "explore": {
         "title": "Explore",
-        "description": "Browse the projects, events, schedule and venue map of Happo-sai 2026."
+        "description": "Browse the projects, events and timetable of Happo-sai 2026."
       },
       "news": {
         "title": "News",
@@ -24,13 +24,9 @@
         "title": "Events",
         "description": "All class projects, club exhibits and independent events at Happo-sai 2026."
       },
-      "schedule": {
-        "title": "Schedule",
-        "description": "Stage performances, screenings and the full timetable of Happo-sai 2026."
-      },
-      "map": {
-        "title": "Venue Map",
-        "description": "Venue map of Happo-sai 2026. Find where each project is located on every floor."
+      "timetable": {
+        "title": "Timetable",
+        "description": "Timetable for the courtyard stage and AV room at Happo-sai 2026."
       }
     }
   },
@@ -53,31 +49,8 @@
   },
   "explore": {
     "tabs": {
-      "map": "Venue Map",
       "events": "Events",
-      "schedule": "Schedule"
-    },
-    "map": {
-      "floorSwitch": "Switch floor",
-      "floor": "{floor}F",
-      "overview": "All",
-      "zoomControls": "Map zoom",
-      "zoomIn": "Zoom in",
-      "zoomOut": "Zoom out",
-      "resetZoom": "Reset zoom",
-      "directions": {
-        "east": "E",
-        "north": "N"
-      },
-      "labels": {
-        "avRoomRoute": "To AV Room",
-        "classroom": "Classroom",
-        "courtyard": "Courtyard",
-        "stage": "Courtyard Stage",
-        "stairs": "Stairs",
-        "tents": "Group Tents",
-        "toilet": "Restroom"
-      }
+      "timetable": "Timetable"
     },
     "events": {
       "gridLabel": "Event list",
@@ -85,25 +58,24 @@
       "gradeHeader": "Y{grade}",
       "clubHeader": "Clubs",
       "committeeHeader": "Committees",
+      "uncategorizedHeader": "Uncategorized",
       "classLabel": "{grade}-{classNo}",
       "noImage": "No Image",
-      "location": "{floor}F",
-      "viewSwitch": "Switch view",
+      "groupingSwitch": "Switch grouping",
       "hint": "Shows details for each organization",
-      "views": {
-        "grid": "List",
-        "graph": "Graph"
+      "groupings": {
+        "group": "By groups",
+        "category": "By category"
       }
     },
-    "nodes": {
-      "graphLabel": "Organization node graph",
-      "hint": "Drag to rotate",
-      "close": "Close detail"
+    "place": {
+      "room": "{floor}F {room}",
+      "tent": "Tent {tent}"
     },
-    "schedule": {
+    "timetable": {
       "daySwitch": "Switch day",
       "dayLabel": "Day {day} · {date}",
-      "empty": "No schedule has been announced yet."
+      "empty": "No timetable has been announced yet."
     },
     "menu": {
       "title": "Menu",
@@ -219,7 +191,7 @@
     "keywords": {
       "home": ["/", "home", "top"],
       "news": ["news", "updates", "announcements"],
-      "explore": ["explore", "maps", "venue", "access", "location"]
+      "explore": ["explore", "projects", "events", "timetable", "schedule"]
     }
   },
   "status": {
@@ -236,11 +208,17 @@
       "high": "Busy"
     }
   },
+  "orgDivisions": {
+    "variety": "Variety",
+    "market": "Market",
+    "performance": "Performance"
+  },
   "orgCategories": {
-    "food": "Food",
-    "exhibit": "Exhibition",
-    "performance": "Performance",
-    "game": "Games"
+    "experience": "Hands-on",
+    "foodSales": "Food sales",
+    "cooking": "Cooking",
+    "otherSales": "Other sales",
+    "presentation": "Shows"
   },
   "allergens": {
     "shrimp": "Shrimp",

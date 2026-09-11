@@ -1,16 +1,16 @@
-import { afterEach, describe, expect, it } from 'vite-plus/test'
+import { afterEach, beforeEach, describe, expect, it } from 'vite-plus/test'
 import { organizationProfiles } from '@shared/organizations'
-import { slotDisplayName } from '@shared/schedule'
-import type { FestivalDay, ScheduleSlot } from '@shared/schedule'
-import { clockOffset, footerMessages } from '../src/lib/signageSchedule'
+import { slotDisplayName } from '@shared/timetable'
+import type { FestivalDay, TimetableSlot } from '@shared/timetable'
+import { clockOffset, footerMessages } from '../src/lib/signageTimetable'
 
 /** Day 1 is 2026-09-26, day 2 the 27th; JST is UTC+9. */
 function at(time: string, date = '2026-09-26'): Date {
   return new Date(`${date}T${time}:00+09:00`)
 }
 
-/** Stand-in for the real timetable so these cases survive schedule edits. */
-const fixture: ScheduleSlot[] = [
+/** Stand-in for the real timetable so these cases survive timetable edits. */
+const fixture: TimetableSlot[] = [
   { id: 'd1-a', day: 1, venue: 'courtyard', start: '10:30', end: '11:00', title: { ja: '開会式' } },
   { id: 'd1-b', day: 1, venue: 'avRoom', start: '11:30', end: '12:30', title: { ja: '上映' } },
   { id: 'd1-c', day: 1, venue: 'courtyard', start: '13:00', end: '14:00', title: { ja: '演奏' } },
@@ -19,7 +19,7 @@ const fixture: ScheduleSlot[] = [
   { id: 'd2-c', day: 2, venue: 'avRoom', start: '14:00', end: '14:45', title: { ja: '閉会式' } },
 ]
 
-function timetable(day: FestivalDay): ScheduleSlot[] {
+function timetable(day: FestivalDay): TimetableSlot[] {
   return fixture.filter((slot) => slot.day === day)
 }
 
@@ -81,9 +81,15 @@ describe('footerMessages', () => {
 describe('slotDisplayName', () => {
   const orgId = 'club-1'
   const opening = { ...fixture[0]!, organizationId: orgId }
+  const real = organizationProfiles[orgId]
+
+  // Each case decides the profile itself, so the real one is set aside
+  beforeEach(() => {
+    delete organizationProfiles[orgId]
+  })
 
   afterEach(() => {
-    delete organizationProfiles[orgId]
+    organizationProfiles[orgId] = real
   })
 
   it('joins the title with the organization name', () => {

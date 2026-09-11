@@ -2,23 +2,17 @@
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { localized } from '@shared/locale'
-import {
-  daySlots,
-  festivalDates,
-  scheduleVenues,
-  slotDisplayName,
-  venueLabels,
-} from '@shared/schedule'
-import type { FestivalDay, ScheduleSlot } from '@shared/schedule'
+import { daySlots, festivalDates, slotDisplayName } from '@shared/timetable'
+import type { FestivalDay, TimetableSlot } from '@shared/timetable'
+import { venueLabels, venues } from '@shared/venues'
 import { resolveFestivalDay } from '@/lib/festival'
 import { getOrganization } from '@/data/organizations'
-import { organizationGroupName, organizationProjectName } from '@/lib/organization'
-import { buildTimeAxis, slotRows } from '@/lib/scheduleGrid'
+import { buildTimeAxis, ROW_HEIGHT, slotRows } from '@/lib/timetableGrid'
 import { useOrgStatus } from '@/stores/orgStatus'
 import { useSelectedOrg } from '@/composables/useSelectedOrg'
 import BookmarkToggle from '@/components/layout/BookmarkToggle.vue'
 import SegmentedSwitch from './SegmentedSwitch.vue'
-import OrgDetail from './OrgDetail.vue'
+import OrgPanel from './OrgPanel.vue'
 
 const { t, locale } = useI18n()
 const { statuses } = useOrgStatus()
@@ -33,22 +27,12 @@ const axis = computed(() => buildTimeAxis(slots.value))
 
 const { selectedId, toggle } = useSelectedOrg()
 
-function isExpanded(slot: ScheduleSlot): boolean {
+function isExpanded(slot: TimetableSlot): boolean {
   return slot.organizationId != null && slot.organizationId === selectedId.value
 }
 
-function slotOrg(slot: ScheduleSlot) {
+function slotOrg(slot: TimetableSlot) {
   return slot.organizationId ? getOrganization(slot.organizationId) : undefined
-}
-
-function slotGroupName(slot: ScheduleSlot): string {
-  const org = slotOrg(slot)
-  return org ? organizationGroupName(org, locale.value, t) : ''
-}
-
-function slotProjectName(slot: ScheduleSlot): string {
-  const org = slotOrg(slot)
-  return org ? organizationProjectName(org, locale.value) : ''
 }
 
 const gridRef = useTemplateRef<HTMLElement>('gridRef')
@@ -56,7 +40,7 @@ const gridRef = useTemplateRef<HTMLElement>('gridRef')
 // Keeps the .active height applied while the closing animation runs
 const closingId = ref<string>()
 
-async function onSlotClick(slot: ScheduleSlot) {
+async function onSlotClick(slot: TimetableSlot) {
   if (!slot.organizationId) return
   const next = slot.organizationId === selectedId.value ? undefined : slot.organizationId
   await toggle(slot.organizationId)
@@ -69,42 +53,42 @@ async function onSlotClick(slot: ScheduleSlot) {
 
 function dayLabel(d: FestivalDay): string {
   const [, month = '', dayNum = ''] = (festivalDates[d - 1] ?? '').split('-')
-  return t('explore.schedule.dayLabel', { day: d, date: `${Number(month)}/${Number(dayNum)}` })
+  return t('explore.timetable.dayLabel', { day: d, date: `${Number(month)}/${Number(dayNum)}` })
 }
 
-function slotTitle(slot: ScheduleSlot): string {
+function slotTitle(slot: TimetableSlot): string {
   return slotDisplayName(slot, locale.value)
 }
 
-function slotStyle(slot: ScheduleSlot) {
+function slotStyle(slot: TimetableSlot) {
   const rows = slotRows(slot, axis.value)
   return {
-    gridColumn: scheduleVenues.indexOf(slot.venue) + 2,
+    gridColumn: venues.indexOf(slot.venue) + 2,
     gridRow: `${rows.start + 1} / ${rows.end + 1}`,
   }
 }
 </script>
 
 <template>
-  <div class="schedule">
+  <div class="timetable">
     <SegmentedSwitch
       v-model="day"
       class="day-switch"
       :options="dayOptions"
-      :aria-label="t('explore.schedule.daySwitch')"
+      :aria-label="t('explore.timetable.daySwitch')"
     />
 
-    <p v-if="slots.length === 0" class="empty">{{ t('explore.schedule.empty') }}</p>
+    <p v-if="slots.length === 0" class="empty">{{ t('explore.timetable.empty') }}</p>
 
     <div
       ref="gridRef"
       class="grid"
-      :style="{ gridTemplateRows: `auto repeat(${axis.rowCount}, 10px)` }"
+      :style="{ gridTemplateRows: `auto repeat(${axis.rowCount}, ${ROW_HEIGHT}px)` }"
       role="group"
-      :aria-label="t('explore.tabs.schedule')"
+      :aria-label="t('explore.tabs.timetable')"
     >
       <div
-        v-for="(venue, i) in scheduleVenues"
+        v-for="(venue, i) in venues"
         :key="venue"
         class="venue-head"
         :style="{ gridColumn: i + 2 }"
@@ -112,7 +96,7 @@ function slotStyle(slot: ScheduleSlot) {
         {{ localized(venueLabels[venue], locale) }}
       </div>
 
-      <template v-for="mark in axis.hourMarks" :key="mark.row">
+      <template v-for="mark in axis.halfHourMarks" :key="mark.row">
         <span class="time-label" :style="{ gridRow: mark.row + 1 }">{{ mark.label }}</span>
         <span class="rule" :style="{ gridRow: mark.row + 1 }" aria-hidden="true"></span>
       </template>
@@ -139,17 +123,15 @@ function slotStyle(slot: ScheduleSlot) {
             @after-leave="closingId = undefined"
           >
             <div v-if="isExpanded(slot) && slotOrg(slot)" class="slot-expand">
-              <div class="slot-expand-inner">
-                <span class="slot-org">{{ slotGroupName(slot) }}</span>
-                <span v-if="slotProjectName(slot)" class="slot-project">
-                  {{ slotProjectName(slot) }}
-                </span>
-                <OrgDetail :org="slotOrg(slot)!" :status="statuses?.get(slot.organizationId)">
-                  <template #actions>
-                    <BookmarkToggle :org-id="slot.organizationId" />
-                  </template>
-                </OrgDetail>
-              </div>
+              <OrgPanel
+                class="slot-expand-inner"
+                :org="slotOrg(slot)!"
+                :status="statuses?.get(slot.organizationId)"
+              >
+                <template #actions>
+                  <BookmarkToggle :org-id="slot.organizationId" />
+                </template>
+              </OrgPanel>
             </div>
           </Transition>
         </div>
@@ -163,7 +145,7 @@ function slotStyle(slot: ScheduleSlot) {
 </template>
 
 <style scoped>
-.schedule {
+.timetable {
   width: min(1024px, 100%);
   margin-inline: auto;
   padding: 24px 16px 48px;
@@ -267,23 +249,7 @@ function slotStyle(slot: ScheduleSlot) {
         margin-top: 10px;
 
         .slot-expand-inner {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          min-height: 0;
           overflow: hidden;
-        }
-
-        .slot-org {
-          color: var(--color-text);
-          font-family: var(--font-text);
-          font-size: 12px;
-        }
-
-        .slot-project {
-          color: var(--color-text-mute);
-          font-family: var(--font-text);
-          font-size: 11px;
         }
 
         &.detail-enter-active {

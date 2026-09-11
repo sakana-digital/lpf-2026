@@ -1,6 +1,7 @@
 import { localized } from '@shared/locale'
 import { ORG_CATEGORIES } from '@shared/organizations'
-import type { OrgCategory } from '@shared/organizations'
+import type { OrgCategory, OrgDivision, OrgPlace } from '@shared/organizations'
+import { venueLabels } from '@shared/venues'
 import type { Organization } from '@/data/organizations'
 
 type Translate = (key: string, params?: Record<string, unknown>) => string
@@ -30,6 +31,10 @@ export function organizationImageAlt(org: Organization, locale: string, t: Trans
   )
 }
 
+export function divisionLabelKey(division: OrgDivision): string {
+  return `orgDivisions.${division}`
+}
+
 export function categoryLabelKey(category: OrgCategory): string {
   return `orgCategories.${category}`
 }
@@ -41,28 +46,59 @@ export interface OrganizationSection {
 }
 
 /**
- * Clubs listed by what they run, in the order the categories are declared.
- * The ones with nothing decided yet trail behind under the plain club label.
+ * Groups listed by what they run, in the order the categories are declared.
+ * The ones with nothing decided yet trail behind under the given label.
  */
-export function clubSections(orgs: Organization[]): OrganizationSection[] {
-  const clubs = orgs.filter((org) => org.kind === 'club')
+export function categorySections(
+  orgs: Organization[],
+  idPrefix: string,
+  restLabelKey: string,
+): OrganizationSection[] {
   return [
     ...ORG_CATEGORIES.map((category) => ({
-      id: `clubs-${category}`,
+      id: `${idPrefix}-${category}`,
       labelKey: categoryLabelKey(category),
-      members: clubs.filter((org) => org.category === category),
+      members: orgs.filter((org) => org.category === category),
     })),
     {
-      id: 'clubs',
-      labelKey: 'explore.events.clubHeader',
-      members: clubs.filter((org) => !org.category),
+      id: idPrefix,
+      labelKey: restLabelKey,
+      members: orgs.filter((org) => !org.category),
     },
   ].filter((section) => section.members.length > 0)
 }
 
-/** Images ship as one file per group under this folder. */
-const IMAGE_BASE = '/orgs/'
+// Bundled so the URLs carry a content hash and a swapped image is never served stale
+const images = import.meta.glob('../assets/orgs/**/*.webp', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>
 
-export function organizationImageSrc(org: Organization): string | undefined {
-  return org.image ? `${IMAGE_BASE}${org.image}` : undefined
+export type OrgImageWidth = 160 | 400
+
+/** One file per group, with smaller copies in a subfolder per width. */
+export function organizationImageSrc(org: Organization, width?: OrgImageWidth): string | undefined {
+  if (!org.image) return undefined
+  return images[`../assets/orgs/${width ? `${width}/` : ''}${org.image}`]
+}
+
+/** Where the group is, as one line. Empty while the place is undecided. */
+export function organizationPlaceLabel(
+  place: OrgPlace | undefined,
+  locale: string,
+  t: Translate,
+): string {
+  switch (place?.kind) {
+    case 'room':
+      return t('explore.place.room', { floor: place.room[0], room: place.room })
+    case 'tent':
+      return t('explore.place.tent', { tent: place.tent })
+    case 'venue':
+      return localized(venueLabels[place.venue], locale)
+    case 'named':
+      return localized(place.name, locale)
+    default:
+      return ''
+  }
 }

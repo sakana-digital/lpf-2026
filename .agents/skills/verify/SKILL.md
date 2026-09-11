@@ -17,11 +17,9 @@ description: Verify changes to this Vue SPA by driving the dev server with Playw
 
 ## Flows worth driving
 
-- `/explore` redirects to the last tab (localStorage `explore-last-tab`); tabs: map / events / schedule, English mirror under `/en/explore/...`. `/explore/nodes` is a redirect to `/explore/events?view=graph`, not a tab.
-- Events grid: click a `.events-grid .cell .cell-head` → row/column expand + `?org=<id>` in URL; deep link `/explore/events?org=c1-3` expands on load.
-- Schedule: click a `.slot.linked .slot-trigger` to expand; the detail sits outside the trigger.
-- Map tab: floor buttons `1F`〜`4F` / `全体` (2D canvas); leave the tab and return to exercise dispose/remount.
-- Graph view (`/explore/events?view=graph`): drag inside `.nodes .viewport` with mouse down/move/up to rotate; click a leaf `.node` for the detail panel.
+- `/explore` redirects to the last tab (localStorage `explore-last-tab`); tabs: events / timetable, English mirror under `/en/explore/...`. `/explore/nodes` and `/explore/schedule` are redirects (to `/explore/events` and `/explore/timetable`), not tabs.
+- Events grid: `?by=category` regroups the rows by category (`.segmented-switch` above the grid); the default lists grades, clubs and committees. Click a `.events-grid .cell .cell-head` → row/column expand + `?org=<id>` in URL; deep link `/explore/events?org=c1-3` expands on load.
+- Timetable: click a `.slot.linked .slot-trigger` to expand; the detail sits outside the trigger.
 - Bookmarks: `.bookmark-toggle` in an expanded cell writes localStorage `bookmarks`. The only place the list renders is the header dropdown: `.bookmarks-dropdown .icon-button` (`ブックマーク`) → `#header-bookmarks`, whose `.caption` always reads `ブックマーク: {count}`. There is no bookmarks sidebar and no menu dropdown.
 - Language: the only switch is `.language-toggle` in the home footer (`.footer` in HomeView); it links to the other locale.
 - Theme always follows the system: drive it with `browser.newContext({ colorScheme: 'dark' })` or `page.emulateMedia({ colorScheme: 'dark' })`; there is no toggle and nothing is stored.

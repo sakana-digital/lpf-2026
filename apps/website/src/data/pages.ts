@@ -31,9 +31,9 @@ export const pages: PageDefinition[] = [
   { id: 'explore', path: '/explore/', indexable: false, navigable: true },
   { id: 'news', path: '/news/', indexable: true, navigable: true },
   { id: 'events', path: '/explore/events/', indexable: true, navigable: false },
-  { id: 'schedule', path: '/explore/schedule/', indexable: true, navigable: false },
-  { id: 'map', path: '/explore/map/', indexable: true, navigable: false },
+  { id: 'timetable', path: '/explore/timetable/', indexable: true, navigable: false },
   { id: 'events', path: '/explore/nodes/', indexable: false, navigable: false, legacy: true },
+  { id: 'timetable', path: '/explore/schedule/', indexable: false, navigable: false, legacy: true },
 ]
 
 const byPath = new Map(pages.map((page) => [page.path, page]))

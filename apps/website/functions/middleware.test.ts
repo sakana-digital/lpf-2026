@@ -99,13 +99,13 @@ describe('structuredData', () => {
       (parse(path)['@graph'] as { '@type': string }[]).map((node) => node['@type'])
 
     expect(types('/')).toEqual(['Event'])
-    expect(types('/explore/map/')).toEqual(['Event', 'BreadcrumbList'])
-    expect(types('/en/explore/map/')).toEqual(['Event', 'BreadcrumbList'])
+    expect(types('/explore/events/')).toEqual(['Event', 'BreadcrumbList'])
+    expect(types('/en/explore/events/')).toEqual(['Event', 'BreadcrumbList'])
   })
 
   it('keeps the BreadcrumbList links on the current locale', () => {
-    const body = structuredData(ORIGIN, '/en/explore/map/')
+    const body = structuredData(ORIGIN, '/en/explore/events/')
     expect(body).toContain(`${ORIGIN}/en/`)
-    expect(body).toContain(`${ORIGIN}/en/explore/map/`)
+    expect(body).toContain(`${ORIGIN}/en/explore/events/`)
   })
 })

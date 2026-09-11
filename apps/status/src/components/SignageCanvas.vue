@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vu
 import { hidesCongestion } from '@shared/status'
 import type { OrgStatus, SignageConfig } from '@shared/status'
 import { classOrgLabel } from '@/lib/orgLabel'
-import { footerMessages } from '@/lib/signageSchedule'
+import { footerMessages } from '@/lib/signageTimetable'
 import { CONGESTION_LABELS, SIGNAGE_SALES_LABELS } from '@/lib/statusLabel'
 
 const props = withDefaults(

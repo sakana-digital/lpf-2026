@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { SignagePayload } from '@shared/status'
-import { clockOffset } from '@/lib/signageSchedule'
+import { clockOffset } from '@/lib/signageTimetable'
 import SignageCanvas from '@/components/SignageCanvas.vue'
 
 const REFRESH_MS = 60_000

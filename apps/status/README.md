@@ -93,7 +93,7 @@ bun run status:token -- --remote --admin
 平文は D1 に保存せず、SHA-256 ハッシュだけを `org_tokens.token_hash` と `admin_tokens.token_hash` に入れます。団体一覧は [shared/organizations.ts](../../shared/organizations.ts) から作ります。
 
 ```sh
-bun run status:token                      # ローカル D1 に全団体（31 件）
+bun run status:token                      # ローカル D1 に全団体（54 件）
 bun run status:token -- --remote          # 本番 D1 に全団体
 bun run status:token -- --remote <org_id> # 指定した団体だけ差し替え
 bun run status:token -- --remote --admin  # 管理者トークン
@@ -118,7 +118,7 @@ bun run status:token -- --remote --admin  # 管理者トークン
 ### サイネージ
 
 - 16:9 レイアウトです。
-- フッターは [shared/schedule.ts](../../shared/schedule.ts) のタイムテーブルから `<まもなく|開催中|次は> <時刻> <企画名 / 団体名> @ <会場>` を表示します。時刻はどの枠も `10:00-10:30` の形で出し、開始前の枠は開始 10 分前から出します。開催中の枠と次の枠を表示します。速報はどちらも上書きします。
+- フッターは [shared/timetable.ts](../../shared/timetable.ts) のタイムテーブルから `<まもなく|開催中|次は> <時刻> <企画名 / 団体名> @ <会場>` を表示します。時刻はどの枠も `10:00-10:30` の形で出し、開始前の枠は開始 10 分前から出します。開催中の枠と次の枠を表示します。速報はどちらも上書きします。
 - 開催日以外でフッターの見た目を確認するときは `/signage?at=2026-09-26T10:22`（端末のタイムゾーンで解釈）を付けます。
 - 動画は MP4・最大 1 GiB、音声は MP3 / M4A・最大 64 MiB です。ブラウザから 16 MiB 単位の Multipart Upload で R2 に保存します。配信は `private, max-age=86400, immutable` です。
 - `signage_config.video_start_at` を過ぎるまで動画を出さず `映像準備中` で待ちます。判定は 1 秒ごとです。null なら常に再生し、管理画面のプレビューは時刻を無視します。
@@ -180,7 +180,7 @@ flowchart LR
 
 - `source` は `org`（団体自身）か `admin`（管理者の代理更新）です。
 - `0011_status_history.sql` は過去分を復元できないため、ログは空から始まります。
-- 削除や期限切れはしません。31 団体 × 2 日の規模を前提にしています。
+- 削除や期限切れはしません。54 団体 × 2 日の規模を前提にしています。
 
 #### 各団体が持つ状態
 

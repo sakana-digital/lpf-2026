@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import type { RouteLocationRaw } from 'vue-router'
 
 interface Tab {
-  to: string
+  id: string
+  to: RouteLocationRaw
   label: string
 }
 
@@ -40,16 +42,16 @@ onMounted(updateIndicator)
 
 onBeforeUnmount(() => resizeObserver.disconnect())
 
+// Joined so a tab list rebuilt with the same labels, as on every query change, does not re-measure
 watch(
-  () => [route.path, props.tabs] as const,
+  () => [route.path, ...props.tabs.map((tab) => tab.label)].join('\0'),
   () => nextTick(updateIndicator),
-  { deep: true },
 )
 </script>
 
 <template>
   <nav ref="navRef" class="tab-bar" :aria-label="ariaLabel">
-    <RouterLink v-for="tab in tabs" :key="tab.to" :to="tab.to" class="tab">
+    <RouterLink v-for="tab in tabs" :key="tab.id" :to="tab.to" class="tab">
       {{ tab.label }}
     </RouterLink>
     <span class="indicator" :style="indicatorStyle" />

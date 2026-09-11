@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vite-plus/test'
-import { ALLERGENS, ORG_CATEGORIES, organizationProfiles, orgIds } from '@shared/organizations'
+import {
+  ALLERGENS,
+  ORG_CATEGORIES,
+  ORG_DIVISIONS,
+  organizationProfiles,
+  orgIds,
+} from '@shared/organizations'
 
 import { organizations } from './organizations'
 
@@ -17,11 +23,14 @@ describe('organizations', () => {
     expect(Object.keys(organizationProfiles).filter((id) => !known.has(id))).toEqual([])
   })
 
-  it('gives every group a known category, or none at all', () => {
-    const known = new Set<string>(ORG_CATEGORIES)
-    const unknown = organizations
-      .map((org) => org.category)
-      .filter((category) => category != null && !known.has(category))
+  it('gives every group a known division and category, or none at all', () => {
+    const divisions = new Set<string>(ORG_DIVISIONS)
+    const categories = new Set<string>(ORG_CATEGORIES)
+    const unknown = organizations.filter(
+      (org) =>
+        (org.division != null && !divisions.has(org.division)) ||
+        (org.category != null && !categories.has(org.category)),
+    )
     expect(unknown).toEqual([])
   })
 

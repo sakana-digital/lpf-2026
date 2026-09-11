@@ -42,6 +42,10 @@ export default defineConfig({
   preview: {
     host: true,
   },
+  build: {
+    // The small thumbnails stay files, so the intro sweep fetches them instead of the bundle carrying them
+    assetsInlineLimit: (file) => (file.includes('/assets/orgs/') ? false : undefined),
+  },
   plugins: lazyPlugins(() => [vue(), vueDevTools(), emitRedirects()]),
   resolve: {
     alias: {
