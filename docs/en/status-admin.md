@@ -48,7 +48,7 @@ Outside the hours:
 
 ## 表示団体 (Published stalls)
 
-Unchecking a stall removes its status from the public site — the `n / 31団体` count shows how many are checked.
+Unchecking a stall removes its status from the public site.
 
 - It takes up to a minute to apply.
 - This affects **the public site only**. Stalls shown on the signage are chosen separately, on the Signage tab.
