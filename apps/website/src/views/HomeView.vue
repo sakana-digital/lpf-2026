@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import LanguageToggle from '@/components/layout/LanguageToggle.vue'
 import IconExplore from '@/components/icons/IconExplore.vue'
-import IconLogo from '@/components/icons/IconLogo.vue'
 import NewsLinksGrid from '@/components/news/NewsLinksGrid.vue'
 import { consumeDirectRootEntrance } from '@/stores/rootEntrance'
 import { formatFestivalPeriod } from '@/lib/festival'
@@ -20,7 +18,6 @@ const festivalPeriod = computed(() => formatFestivalPeriod(locale.value))
 const notes = computed(() => (tm('home.notes.items') as string[]).map((note) => rt(note)))
 const newsPath = computed(() => localePath('/news/', locale.value))
 const explorePath = computed(() => localePath('/explore/', locale.value))
-const homePath = computed(() => localePath('/', locale.value))
 
 const entrance = ref(false)
 
@@ -164,14 +161,6 @@ onMounted(() => {
         </dl>
       </div>
     </section>
-
-    <footer class="footer">
-      <RouterLink :to="homePath" class="brand" :aria-label="t('home.footer.home')">
-        <IconLogo />
-      </RouterLink>
-      <p class="copyright">{{ t('home.footer.copyright') }}</p>
-      <LanguageToggle />
-    </footer>
   </main>
 </template>
 
@@ -292,36 +281,6 @@ onMounted(() => {
 
     &:hover {
       color: var(--color-heading);
-    }
-  }
-}
-
-.footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 160px 0;
-
-  @media (max-width: 600px) {
-    gap: 16px;
-    padding: 96px 0 64px;
-  }
-
-  .brand {
-    display: inline-flex;
-    color: var(--color-heading);
-  }
-
-  .copyright {
-    color: var(--color-text-mute);
-    font-size: 13px;
-
-    @media (max-width: 600px) {
-      order: 1;
-      flex-basis: 100%;
-      text-align: center;
     }
   }
 }

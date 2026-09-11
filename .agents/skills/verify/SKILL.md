@@ -21,7 +21,7 @@ description: Verify changes to this Vue SPA by driving the dev server with Playw
 - Events grid: `?by=category` regroups the rows by category (`.segmented-switch` above the grid); the default lists grades, clubs and committees. Click a `.events-grid .cell .cell-head` → row/column expand + `?org=<id>` in URL; deep link `/explore/events?org=c1-3` expands on load.
 - Timetable: click a `.slot.linked .slot-trigger` to expand; the detail sits outside the trigger.
 - Bookmarks: `.bookmark-toggle` in an expanded cell writes localStorage `bookmarks`. The only place the list renders is the header dropdown: `.bookmarks-dropdown .icon-button` (`ブックマーク`) → `#header-bookmarks`, whose `.caption` always reads `ブックマーク: {count}`. There is no bookmarks sidebar and no menu dropdown.
-- Language: the only switch is `.language-toggle` in the home footer (`.footer` in HomeView); it links to the other locale.
+- Language: the only switch is `.language-toggle` in the site footer (`Footer.vue`, mounted in App.vue after RouterView, so it is on every page); it links to the other locale.
 - Theme always follows the system: drive it with `browser.newContext({ colorScheme: 'dark' })` or `page.emulateMedia({ colorScheme: 'dark' })`; there is no toggle and nothing is stored.
 
 ## Gotchas
