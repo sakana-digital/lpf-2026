@@ -233,6 +233,7 @@ onUnmounted(() => {
   --head-shadow-color: oklch(0% 0 0 / 0.3);
 
   padding: 24px var(--inline-padding) 48px;
+  container-type: inline-size;
   overflow-x: auto;
   scroll-padding-inline-start: calc(var(--inline-padding) + var(--gutter) + var(--gap));
 
