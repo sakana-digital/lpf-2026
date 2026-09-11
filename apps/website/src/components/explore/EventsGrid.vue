@@ -6,16 +6,17 @@ import type { Organization } from '@/data/organizations'
 import {
   buildEventRows,
   columnTracks,
+  EVENT_COLUMNS,
   EXPANDED_CONTENT,
   findCellPosition,
-  FLASH_DURATION,
-  flashDelay,
+  SWEEP_DURATION,
+  sweepDelay,
   GAP,
   GUTTER,
   INLINE_PADDING,
   rowTracks,
 } from '@/lib/eventsGrid'
-import type { CellPreview, EventsGrouping } from '@/lib/eventsGrid'
+import type { CellPreview, EventsGrouping, SweepPhase } from '@/lib/eventsGrid'
 import type { OrgStatus } from '@shared/status'
 import EventsGridCell from './EventsGridCell.vue'
 
@@ -40,7 +41,7 @@ const scrollStyle = {
   '--gap': `${GAP}px`,
   '--inline-padding': `${INLINE_PADDING}px`,
   '--expanded-content': EXPANDED_CONTENT,
-  '--flash-duration': `${FLASH_DURATION}ms`,
+  '--sweep-duration': `${SWEEP_DURATION}ms`,
 }
 
 const expandedHeight = ref<number>()
@@ -118,14 +119,12 @@ function trackExpanded() {
 
 watch(() => props.selectedId, trackExpanded, { flush: 'post' })
 
-// Regrouping remounts the open cell, so it is measured and brought back into
-// view, and the tiles sweep in again like on the first load
+// Regrouping remounts the open cell, so it is measured and brought back into view
 watch(
   () => props.grouping,
   () => {
     trackExpanded()
     scrollSelectedIntoView()
-    void runFlash()
   },
   { flush: 'post' },
 )
@@ -133,45 +132,37 @@ watch(
 // Measuring flushes styles, so without this a deep-linked cell would animate open
 const animated = ref(false)
 
-// The thumbnails are fetched behind hidden tiles first. Only the tiles leading
-// the sweep are waited for: the rest have its travel time to arrive
-type FlashPhase = 'off' | 'load' | 'run'
-const FLASH_LOAD_TIMEOUT = 600
-const flashPhase = ref<FlashPhase>('off')
-let flashTimer: ReturnType<typeof setTimeout> | undefined
-// A sweep started over while one is loading makes the older one stand down
-let flashRun = 0
+// The backdrops start out hidden. Only the tiles leading the sweep are waited
+// for: the rest have its travel time to arrive
+const SWEEP_LOAD_TIMEOUT = 600
+const sweepPhase = ref<SweepPhase>('load')
+let sweepTimer: ReturnType<typeof setTimeout> | undefined
 
-function flashDelayOf(rowIndex: number, colIndex: number): number | undefined {
-  return flashPhase.value === 'off' ? undefined : flashDelay(rowIndex, colIndex)
-}
-
-async function runFlash() {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-  const run = ++flashRun
-  clearTimeout(flashTimer)
-  flashPhase.value = 'load'
+async function runSweep() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    sweepPhase.value = 'off'
+    return
+  }
   await nextTick()
-  const leading = gridRef.value?.querySelectorAll<HTMLImageElement>('img.flash.lead') ?? []
+  const leading = gridRef.value?.querySelectorAll<HTMLImageElement>('img.backdrop.lead') ?? []
   const loaded = Promise.allSettled(Array.from(leading, (img) => img.decode()))
-  await Promise.race([loaded, new Promise((resolve) => setTimeout(resolve, FLASH_LOAD_TIMEOUT))])
-  if (run !== flashRun || flashPhase.value !== 'load') return
-  flashPhase.value = 'run'
-  const end = flashDelay(rows.value.length - 1, 0) + FLASH_DURATION
-  flashTimer = setTimeout(() => (flashPhase.value = 'off'), end)
+  await Promise.race([loaded, new Promise((resolve) => setTimeout(resolve, SWEEP_LOAD_TIMEOUT))])
+  sweepPhase.value = 'run'
+  // The bottom-right tile is the last to arrive
+  const end = sweepDelay(rows.value.length - 1, EVENT_COLUMNS - 1) + SWEEP_DURATION
+  sweepTimer = setTimeout(() => (sweepPhase.value = 'off'), end)
 }
 
 onMounted(() => {
   trackExpanded()
   scrollSelectedIntoView()
   requestAnimationFrame(() => (animated.value = true))
-  void runFlash()
+  void runSweep()
 })
 
 onUnmounted(() => {
   detailResize?.disconnect()
-  clearTimeout(flashTimer)
-  flashPhase.value = 'off'
+  clearTimeout(sweepTimer)
 })
 </script>
 
@@ -214,8 +205,8 @@ onUnmounted(() => {
             :expanded="isExpanded(rowIndex, colIndex)"
             :preview="previewOf(rowIndex, colIndex)"
             :status="cell ? statuses?.get(cell.id) : undefined"
-            :flash-delay="flashDelayOf(rowIndex, colIndex)"
-            :flashing="flashPhase === 'run'"
+            :sweep-delay="sweepDelay(rowIndex, colIndex)"
+            :sweep-phase="sweepPhase"
             @select="onSelect(cell)"
           >
             <template #actions>

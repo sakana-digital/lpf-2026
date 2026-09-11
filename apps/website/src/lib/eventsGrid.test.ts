@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test'
 
-import { buildEventRows, EVENT_COLUMNS, flashDelay } from './eventsGrid'
+import { buildEventRows, EVENT_COLUMNS, sweepDelay } from './eventsGrid'
 import type { EventsGrouping } from './eventsGrid'
 import type { Organization } from '@/data/organizations'
 import type { OrgCategory } from '@shared/organizations'
@@ -65,12 +65,12 @@ describe('buildEventRows', () => {
   })
 })
 
-describe('flashDelay', () => {
+describe('sweepDelay', () => {
   it('sweeps from the top-left corner towards the bottom-right', () => {
     const last = EVENT_COLUMNS - 1
-    expect(flashDelay(0, 0)).toBe(0)
-    expect(flashDelay(1, 0)).toBe(flashDelay(0, 1))
-    expect(flashDelay(2, last)).toBeGreaterThan(flashDelay(1, last))
-    expect(flashDelay(1, last)).toBeGreaterThan(flashDelay(1, last - 1))
+    expect(sweepDelay(0, 0)).toBe(0)
+    expect(sweepDelay(1, 0)).toBe(sweepDelay(0, 1))
+    expect(sweepDelay(2, last)).toBeGreaterThan(sweepDelay(1, last))
+    expect(sweepDelay(1, last)).toBeGreaterThan(sweepDelay(1, last - 1))
   })
 })

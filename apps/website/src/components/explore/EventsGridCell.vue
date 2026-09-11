@@ -7,8 +7,8 @@ import {
   organizationProjectName,
 } from '@/lib/organization'
 import type { Organization } from '@/data/organizations'
-import { FLASH_LEAD } from '@/lib/eventsGrid'
-import type { CellPreview } from '@/lib/eventsGrid'
+import { SWEEP_LEAD } from '@/lib/eventsGrid'
+import type { CellPreview, SweepPhase } from '@/lib/eventsGrid'
 import type { OrgStatus } from '@shared/status'
 import OrgDetail from './OrgDetail.vue'
 import OrgMeta from './OrgMeta.vue'
@@ -19,9 +19,9 @@ const props = defineProps<{
   expanded: boolean
   preview?: CellPreview
   status?: OrgStatus
-  /** Set while the intro sweep is on; the tile shows its thumbnail after this many ms. */
-  flashDelay?: number
-  flashing?: boolean
+  /** When the backdrop joins the intro sweep, in ms after the top-left corner. */
+  sweepDelay: number
+  sweepPhase?: SweepPhase
 }>()
 
 defineEmits<{ select: [] }>()
@@ -42,7 +42,11 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
 </script>
 
 <template>
-  <div v-if="org" class="cell" :class="{ expanded, wide: preview === 'wide' }">
+  <div
+    v-if="org"
+    class="cell"
+    :class="{ expanded, wide: preview === 'wide', tall: preview === 'tall' }"
+  >
     <div class="head-row">
       <button type="button" class="cell-head" :aria-expanded="expanded" @click="$emit('select')">
         <span class="label">{{ groupName }}</span>
@@ -79,11 +83,15 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
       </div>
     </Transition>
     <img
-      v-if="thumbSrc && flashDelay != null && !expanded"
-      class="flash"
-      :class="{ running: flashing, lead: flashDelay <= FLASH_LEAD }"
+      v-if="thumbSrc"
+      class="backdrop"
+      :class="{
+        pending: sweepPhase === 'load',
+        running: sweepPhase === 'run',
+        lead: sweepDelay <= SWEEP_LEAD,
+      }"
       :src="thumbSrc"
-      :style="{ animationDelay: `${flashDelay}ms` }"
+      :style="{ animationDelay: `${sweepDelay}ms` }"
       alt=""
       aria-hidden="true"
       decoding="async"
@@ -96,6 +104,8 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
 /* The preview and the detail share the second row, so one fading out never pushes the other */
 .cell {
   position: relative;
+  --backdrop-blur: 12px;
+
   display: grid;
   grid-template-columns: 100%;
   align-content: start;
@@ -103,6 +113,7 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
   min-width: 0;
   min-height: 0;
   padding: 8px;
+  isolation: isolate;
   border: 1px solid var(--color-border);
   border-radius: 0;
   background: transparent;
@@ -120,6 +131,11 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
   &.expanded {
     border-color: var(--color-heading);
     color: var(--color-heading);
+  }
+
+  &.expanded,
+  &.tall {
+    --backdrop-blur: 28px;
   }
 
   &.blank {
@@ -205,30 +221,32 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
     height: auto;
   }
 
-  .flash {
+  .backdrop {
     position: absolute;
     inset: 0;
+    z-index: -1;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0;
+    scale: 1.15;
+    filter: blur(var(--backdrop-blur)) saturate(1.4);
+    opacity: 0.5;
     pointer-events: none;
+    transition: filter 0.3s;
+
+    &.pending {
+      opacity: 0;
+    }
 
     &.running {
-      animation: flash var(--flash-duration) ease-in-out both;
+      animation: sweep-in var(--sweep-duration) ease-out both;
     }
   }
 }
 
-@keyframes flash {
-  0%,
-  100% {
+@keyframes sweep-in {
+  from {
     opacity: 0;
-  }
-
-  20%,
-  60% {
-    opacity: 1;
   }
 }
 

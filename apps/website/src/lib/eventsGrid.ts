@@ -138,14 +138,17 @@ export function rowTracks(
     .join(' ')
 }
 
-/** Tiles join the intro sweep one diagonal after another, starting at the top-left corner. */
-export const FLASH_STEP = 45
-export const FLASH_DURATION = 900
+/** Backdrops join the intro sweep one diagonal after another, starting at the top-left corner. */
+export const SWEEP_STEP = 45
+export const SWEEP_DURATION = 600
 /** Delay up to which a tile leads the sweep, so its thumbnail is waited for before it starts. */
-export const FLASH_LEAD = FLASH_STEP * 2
+export const SWEEP_LEAD = SWEEP_STEP * 2
 
-export function flashDelay(row: number, col: number): number {
-  return (row + col) * FLASH_STEP
+/** Backdrops are held hidden while the leading thumbnails load, then fade in and stay. */
+export type SweepPhase = 'load' | 'run' | 'off'
+
+export function sweepDelay(row: number, col: number): number {
+  return (row + col) * SWEEP_STEP
 }
 
 export function findCellPosition(
