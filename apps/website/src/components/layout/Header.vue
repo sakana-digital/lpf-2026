@@ -56,7 +56,7 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
 
 <template>
   <header class="header" :class="{ 'is-entrance': entrance, 'has-page-header': pageTitleKey }">
-    <ProgressiveBlur class="header-blur" :blur="3" />
+    <ProgressiveBlur class="header-blur" />
     <PageHeader v-if="pageTitleKey" :title-key="pageTitleKey" />
     <nav class="global-nav">
       <div class="header-brand">
@@ -89,23 +89,42 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
   height: var(--header-height);
 
   .header-blur {
-    top: 0;
-    left: 0;
-    right: 0;
-    height: calc(var(--header-height) + 16px);
+    /* Falls off across the visible header; the overshoot past the viewport
+       edge keeps Safari's edge fade of backdrop-filter off screen */
+    --progressive-blur-tail: var(--header-height);
+
+    inset: -16px 0 0;
     z-index: -1;
 
     @media (max-width: 768px) {
       display: none;
     }
+
+    @media (max-height: 500px) {
+      html[data-orientation='landscape-left'] & {
+        --progressive-blur-direction: to right;
+
+        inset: 0 0 0 -16px;
+      }
+
+      html[data-orientation='landscape-right'] & {
+        --progressive-blur-direction: to left;
+
+        inset: 0 -16px 0 0;
+      }
+    }
   }
 
   &.has-page-header .header-blur {
-    height: calc(var(--header-height) + var(--page-title-height) + 16px);
+    --progressive-blur-tail: calc(var(--header-height) + var(--page-title-height));
+
+    bottom: calc(var(--page-title-height) * -1);
 
     @media (max-height: 500px) {
       html[data-orientation^='landscape'] & {
-        height: calc(var(--header-height) + 16px);
+        --progressive-blur-tail: var(--header-height);
+
+        bottom: 0;
       }
     }
   }

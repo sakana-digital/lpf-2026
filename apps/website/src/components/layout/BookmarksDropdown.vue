@@ -52,12 +52,7 @@ const items = computed(() =>
     </button>
     <Transition name="dropdown" :duration="250">
       <div v-if="isOpen" id="header-bookmarks" class="dropdown">
-        <ProgressiveBlur
-          class="dropdown-blur"
-          tail="32px"
-          :blur="3"
-          side-mask="linear-gradient(to right, transparent, black 32px, black calc(100% - 32px), transparent), linear-gradient(to bottom, transparent 20px, black 52px)"
-        />
+        <ProgressiveBlur class="dropdown-blur" />
         <div class="dropdown-items">
           <span class="caption">{{ t('bookmarks.count', { count: bookmarkIds.length }) }}</span>
           <ul class="list">
@@ -119,9 +114,13 @@ const items = computed(() =>
     }
 
     .dropdown-blur {
+      --progressive-blur-tail: 32px;
       --progressive-blur-veil: var(--progressive-blur-veil-strong);
+      --progressive-blur-side-mask:
+        linear-gradient(to right, transparent, black 32px, black calc(100% - 32px), transparent),
+        linear-gradient(to bottom, transparent 20px, black 52px);
 
-      inset: -52px 0 -32px 0;
+      inset: -52px -32px -32px;
       z-index: -1;
     }
   }
@@ -176,7 +175,12 @@ const items = computed(() =>
       right: auto;
 
       .dropdown-blur {
-        inset: 0 -32px 0 -52px;
+        --progressive-blur-direction: to right;
+        --progressive-blur-side-mask:
+          linear-gradient(to bottom, transparent, black 32px, black calc(100% - 32px), transparent),
+          linear-gradient(to right, transparent 20px, black 52px);
+
+        inset: -32px -32px -32px -52px;
       }
     }
 
@@ -187,7 +191,12 @@ const items = computed(() =>
       left: auto;
 
       .dropdown-blur {
-        inset: 0 -52px 0 -32px;
+        --progressive-blur-direction: to left;
+        --progressive-blur-side-mask:
+          linear-gradient(to bottom, transparent, black 32px, black calc(100% - 32px), transparent),
+          linear-gradient(to left, transparent 20px, black 52px);
+
+        inset: -32px -52px -32px -32px;
       }
     }
   }
@@ -201,7 +210,7 @@ const items = computed(() =>
       clip-path 0.25s ease-out;
   }
 
-  :deep(.blur-layer) {
+  .dropdown-blur :deep(*) {
     transition: opacity 0.25s ease-out;
   }
 }
@@ -214,7 +223,7 @@ const items = computed(() =>
       clip-path 0.25s ease-in;
   }
 
-  :deep(.blur-layer) {
+  .dropdown-blur :deep(*) {
     transition: opacity 0.2s ease-in;
   }
 }
@@ -227,7 +236,7 @@ const items = computed(() =>
     clip-path: inset(0 0 100% 0);
   }
 
-  :deep(.blur-layer) {
+  .dropdown-blur :deep(*) {
     opacity: 0;
   }
 }
