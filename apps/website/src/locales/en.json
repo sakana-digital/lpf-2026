@@ -75,6 +75,7 @@
     "timetable": {
       "daySwitch": "Switch day",
       "dayLabel": "Day {day} · {date}",
+      "slotHead": "{group}: {project}",
       "empty": "No timetable has been announced yet."
     },
     "menu": {

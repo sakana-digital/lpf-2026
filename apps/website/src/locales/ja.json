@@ -75,6 +75,7 @@
     "timetable": {
       "daySwitch": "日程切り替え",
       "dayLabel": "Day {day} · {date}",
+      "slotHead": "{group}: {project}",
       "empty": "タイムテーブルはまだありません"
     },
     "menu": {

@@ -92,8 +92,9 @@ export function buildEventRows(
   return grouping === 'category' ? categoryRows(orgs) : groupRows(orgs)
 }
 
-// Narrow enough to clear the sticky row head
-const EXPANDED_COLUMN = `min(560px, 100vw - ${INLINE_PADDING * 2 + GUTTER + GAP}px)`
+// Narrow enough to clear the sticky row head. Container units rather than 100vw,
+// which counts a classic vertical scrollbar and would leave the grid that much too wide
+const EXPANDED_COLUMN = `min(560px, 100cqw - ${GUTTER + GAP}px)`
 
 // Cell padding on both sides plus its border
 const CELL_INSET = 18
@@ -110,8 +111,8 @@ const BASE_ROW = 64
 
 // The unselected 1fr width in px units, so grid-template can interpolate the tracks
 function baseColumn(count: number): string {
-  const fixed = INLINE_PADDING * 2 + GUTTER + GAP * count
-  return `max(${MIN_COLUMN}px, calc((100vw - ${fixed}px) / ${count}))`
+  const fixed = GUTTER + GAP * count
+  return `max(${MIN_COLUMN}px, calc((100cqw - ${fixed}px) / ${count}))`
 }
 
 export function columnTracks(count: number, selected: number | null): string {
@@ -137,14 +138,17 @@ export function rowTracks(
     .join(' ')
 }
 
-/** Tiles join the intro sweep one diagonal after another, starting at the top-left corner. */
-export const FLASH_STEP = 45
-export const FLASH_DURATION = 900
+/** Backdrops join the intro sweep one diagonal after another, starting at the top-left corner. */
+export const SWEEP_STEP = 45
+export const SWEEP_DURATION = 600
 /** Delay up to which a tile leads the sweep, so its thumbnail is waited for before it starts. */
-export const FLASH_LEAD = FLASH_STEP * 2
+export const SWEEP_LEAD = SWEEP_STEP * 2
 
-export function flashDelay(row: number, col: number): number {
-  return (row + col) * FLASH_STEP
+/** Backdrops are held hidden while the leading thumbnails load, then fade in and stay. */
+export type SweepPhase = 'load' | 'run' | 'off'
+
+export function sweepDelay(row: number, col: number): number {
+  return (row + col) * SWEEP_STEP
 }
 
 export function findCellPosition(
