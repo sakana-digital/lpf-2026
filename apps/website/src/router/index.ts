@@ -93,6 +93,12 @@ function localeRoutes(language: Language): RouteRecordRaw[] {
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: LANGUAGES.flatMap(localeRoutes),
+  // The explore tabs keep their selection in the query, so only a move to
+  // another page starts at the top
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition
+    return to.path === from.path ? false : { top: 0 }
+  },
 })
 
 router.beforeEach((to) => {
