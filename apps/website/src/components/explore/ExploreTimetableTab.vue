@@ -7,12 +7,20 @@ import type { FestivalDay, TimetableSlot } from '@shared/timetable'
 import { venueLabels, venues } from '@shared/venues'
 import { resolveFestivalDay } from '@/lib/festival'
 import { getOrganization } from '@/data/organizations'
+import type { Organization } from '@/data/organizations'
+import {
+  organizationGroupName,
+  organizationImageSrc,
+  organizationProjectName,
+} from '@/lib/organization'
 import { buildTimeAxis, ROW_HEIGHT, slotRows } from '@/lib/timetableGrid'
 import { useOrgStatus } from '@/stores/orgStatus'
 import { useSelectedOrg } from '@/composables/useSelectedOrg'
 import BookmarkToggle from '@/components/layout/BookmarkToggle.vue'
 import SegmentedSwitch from './SegmentedSwitch.vue'
-import OrgPanel from './OrgPanel.vue'
+import OrgBackdrop from './OrgBackdrop.vue'
+import OrgDetail from './OrgDetail.vue'
+import OrgMeta from './OrgMeta.vue'
 
 const { t, locale } = useI18n()
 const { statuses } = useOrgStatus()
@@ -25,14 +33,17 @@ const dayOptions = computed(() => days.map((d) => ({ value: d, label: dayLabel(d
 const slots = computed(() => daySlots(day.value))
 const axis = computed(() => buildTimeAxis(slots.value))
 
+const entries = computed(() =>
+  slots.value.map((slot) => {
+    const org = slot.organizationId ? getOrganization(slot.organizationId) : undefined
+    return { slot, org, thumb: org && organizationImageSrc(org, 160) }
+  }),
+)
+
 const { selectedId, toggle } = useSelectedOrg()
 
 function isExpanded(slot: TimetableSlot): boolean {
   return slot.organizationId != null && slot.organizationId === selectedId.value
-}
-
-function slotOrg(slot: TimetableSlot) {
-  return slot.organizationId ? getOrganization(slot.organizationId) : undefined
 }
 
 const gridRef = useTemplateRef<HTMLElement>('gridRef')
@@ -58,6 +69,14 @@ function dayLabel(d: FestivalDay): string {
 
 function slotTitle(slot: TimetableSlot): string {
   return slotDisplayName(slot, locale.value)
+}
+
+// The slot's own title wins over the group's project; an act billed under the
+// group's own name is not repeated
+function slotHead(slot: TimetableSlot, org: Organization): string {
+  const group = organizationGroupName(org, locale.value, t)
+  const project = localized(slot.title, locale.value) || organizationProjectName(org, locale.value)
+  return project && project !== group ? t('explore.timetable.slotHead', { group, project }) : group
 }
 
 function slotStyle(slot: TimetableSlot) {
@@ -101,39 +120,37 @@ function slotStyle(slot: TimetableSlot) {
         <span class="rule" :style="{ gridRow: mark.row + 1 }" aria-hidden="true"></span>
       </template>
 
-      <template v-for="slot in slots" :key="slot.id">
+      <template v-for="{ slot, org, thumb } in entries" :key="slot.id">
         <div
-          v-if="slot.organizationId"
+          v-if="org"
           class="slot linked"
-          :class="{ active: isExpanded(slot) || closingId === slot.organizationId }"
+          :class="{ active: isExpanded(slot) || closingId === org.id }"
           :style="slotStyle(slot)"
         >
-          <button
-            type="button"
-            class="slot-trigger"
-            :aria-expanded="isExpanded(slot)"
-            @click="onSlotClick(slot)"
-          >
-            <span class="slot-title">{{ slotTitle(slot) }}</span>
-            <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
-          </button>
+          <div class="slot-head">
+            <button
+              type="button"
+              class="slot-trigger"
+              :aria-expanded="isExpanded(slot)"
+              @click="onSlotClick(slot)"
+            >
+              <span class="slot-title">{{ slotHead(slot, org) }}</span>
+              <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
+            </button>
+            <OrgMeta :place="org.place">
+              <BookmarkToggle :org-id="org.id" />
+            </OrgMeta>
+          </div>
           <Transition
             name="detail"
-            @before-leave="closingId = slot.organizationId"
+            @before-leave="closingId = org.id"
             @after-leave="closingId = undefined"
           >
-            <div v-if="isExpanded(slot) && slotOrg(slot)" class="slot-expand">
-              <OrgPanel
-                class="slot-expand-inner"
-                :org="slotOrg(slot)!"
-                :status="statuses?.get(slot.organizationId)"
-              >
-                <template #actions>
-                  <BookmarkToggle :org-id="slot.organizationId" />
-                </template>
-              </OrgPanel>
+            <div v-if="isExpanded(slot)" class="slot-expand">
+              <OrgDetail class="slot-expand-inner" :org="org" :status="statuses?.get(org.id)" />
             </div>
           </Transition>
+          <OrgBackdrop v-if="thumb" :src="thumb" />
         </div>
         <div v-else class="slot" :style="slotStyle(slot)">
           <span class="slot-title">{{ slotTitle(slot) }}</span>
@@ -193,6 +210,7 @@ function slotStyle(slot: TimetableSlot) {
     }
 
     .slot {
+      position: relative;
       display: flex;
       flex-direction: column;
       margin: 1px 0;
@@ -205,16 +223,31 @@ function slotStyle(slot: TimetableSlot) {
       &.linked {
         transition: border-color 0.15s;
 
-        .slot-trigger {
+        .slot-head {
           display: flex;
+          align-items: flex-start;
+          gap: 8px;
+          min-width: 0;
+        }
+
+        .slot-trigger {
           flex: 1;
+          display: flex;
           flex-direction: column;
           align-items: stretch;
+          min-width: 0;
           padding: 0;
           color: inherit;
           font: inherit;
           text-align: left;
           cursor: pointer;
+
+          /* Stretch the hit area over the whole slot */
+          &::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+          }
         }
 
         &:hover {
@@ -222,6 +255,8 @@ function slotStyle(slot: TimetableSlot) {
         }
 
         &.active {
+          --backdrop-blur: 28px;
+
           align-self: start;
           height: max-content;
           min-height: calc(100% - 2px);
@@ -232,7 +267,7 @@ function slotStyle(slot: TimetableSlot) {
 
       .slot-title {
         color: var(--color-heading);
-        font-size: 13px;
+        font-size: 12px;
         line-height: 1.3;
       }
 
@@ -273,6 +308,11 @@ function slotStyle(slot: TimetableSlot) {
           opacity: 0;
         }
       }
+    }
+
+    /* Only the controls in the detail sit above that hit area */
+    .slot :deep(.org-detail :is(a, button)) {
+      position: relative;
     }
   }
 }

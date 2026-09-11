@@ -10,6 +10,7 @@ import type { Organization } from '@/data/organizations'
 import { SWEEP_LEAD } from '@/lib/eventsGrid'
 import type { CellPreview, SweepPhase } from '@/lib/eventsGrid'
 import type { OrgStatus } from '@shared/status'
+import OrgBackdrop from './OrgBackdrop.vue'
 import OrgDetail from './OrgDetail.vue'
 import OrgMeta from './OrgMeta.vue'
 import OrgStatusBadges from './OrgStatusBadges.vue'
@@ -82,7 +83,7 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
         <OrgDetail :org="org" :status="status" />
       </div>
     </Transition>
-    <img
+    <OrgBackdrop
       v-if="thumbSrc"
       class="backdrop"
       :class="{
@@ -92,9 +93,6 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
       }"
       :src="thumbSrc"
       :style="{ animationDelay: `${sweepDelay}ms` }"
-      alt=""
-      aria-hidden="true"
-      decoding="async"
     />
   </div>
   <div v-else class="cell blank" aria-hidden="true"></div>
@@ -104,8 +102,6 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
 /* The preview and the detail share the second row, so one fading out never pushes the other */
 .cell {
   position: relative;
-  --backdrop-blur: 12px;
-
   display: grid;
   grid-template-columns: 100%;
   align-content: start;
@@ -219,18 +215,6 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
   }
 
   .backdrop {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    scale: 1.15;
-    filter: blur(var(--backdrop-blur)) saturate(1.4);
-    opacity: 0.5;
-    pointer-events: none;
-    transition: filter 0.3s;
-
     &.pending {
       opacity: 0;
     }
