@@ -115,89 +115,108 @@ function slotStyle(slot: TimetableSlot) {
 
     <p v-if="slots.length === 0" class="empty">{{ t('explore.timetable.empty') }}</p>
 
-    <div
-      ref="gridRef"
-      class="grid"
-      :style="{ gridTemplateRows: `auto repeat(${axis.rowCount}, ${ROW_HEIGHT}px)` }"
-      role="group"
-      :aria-label="t('explore.tabs.timetable')"
-    >
+    <div class="grid-scroll">
       <div
-        v-for="(venue, i) in venues"
-        :key="venue"
-        class="venue-head"
-        :style="{ gridColumn: i + 2 }"
+        ref="gridRef"
+        class="grid"
+        :style="{ gridTemplateRows: `auto repeat(${axis.rowCount}, ${ROW_HEIGHT}px)` }"
+        role="group"
+        :aria-label="t('explore.tabs.timetable')"
       >
-        {{ localized(venueLabels[venue], locale) }}
-      </div>
-
-      <template v-for="mark in axis.halfHourMarks" :key="mark.row">
-        <span class="time-label" :style="{ gridRow: mark.row + 1 }">{{ mark.label }}</span>
-        <span class="rule" :style="{ gridRow: mark.row + 1 }" aria-hidden="true"></span>
-      </template>
-
-      <template v-for="{ slot, org, thumb } in entries" :key="slot.id">
         <div
-          v-if="org"
-          class="slot linked"
-          :class="{ active: isExpanded(slot) || closingId === org.id }"
-          :style="slotStyle(slot)"
+          v-for="(venue, i) in venues"
+          :key="venue"
+          class="venue-head"
+          :style="{ gridColumn: i + 2 }"
         >
-          <div class="slot-head">
-            <button
-              type="button"
-              class="slot-trigger"
-              :aria-expanded="isExpanded(slot)"
-              @click="onSlotClick(slot)"
-            >
-              <span class="slot-title">{{ slotHead(slot, org) }}</span>
-              <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
-            </button>
-            <OrgMeta :place="org.place">
-              <BookmarkToggle :org-id="org.id" />
-            </OrgMeta>
-          </div>
-          <Transition
-            name="detail"
-            @before-leave="closingId = org.id"
-            @after-leave="closingId = undefined"
+          {{ localized(venueLabels[venue], locale) }}
+        </div>
+
+        <template v-for="mark in axis.halfHourMarks" :key="mark.row">
+          <span class="time-label" :style="{ gridRow: mark.row + 1 }">{{ mark.label }}</span>
+          <span class="rule" :style="{ gridRow: mark.row + 1 }" aria-hidden="true"></span>
+        </template>
+
+        <template v-for="{ slot, org, thumb } in entries" :key="slot.id">
+          <div
+            v-if="org"
+            class="slot linked"
+            :class="{ active: isExpanded(slot) || closingId === org.id }"
+            :style="slotStyle(slot)"
           >
-            <div v-if="isExpanded(slot)" class="slot-expand">
-              <OrgDetail class="slot-expand-inner" :org="org" :status="statuses?.get(org.id)" />
+            <div class="slot-head">
+              <button
+                type="button"
+                class="slot-trigger"
+                :aria-expanded="isExpanded(slot)"
+                @click="onSlotClick(slot)"
+              >
+                <span class="slot-title">{{ slotHead(slot, org) }}</span>
+                <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
+              </button>
+              <OrgMeta>
+                <BookmarkToggle :org-id="org.id" />
+              </OrgMeta>
             </div>
-          </Transition>
-          <OrgBackdrop v-if="thumb" :src="thumb" />
-        </div>
-        <div v-else class="slot" :style="slotStyle(slot)">
-          <span class="slot-title">{{ slotTitle(slot) }}</span>
-          <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
-        </div>
-      </template>
+            <Transition
+              name="detail"
+              @before-leave="closingId = org.id"
+              @after-leave="closingId = undefined"
+            >
+              <div v-if="isExpanded(slot)" class="slot-expand">
+                <OrgDetail class="slot-expand-inner" :org="org" :status="statuses?.get(org.id)" />
+              </div>
+            </Transition>
+            <OrgBackdrop v-if="thumb" :src="thumb" />
+          </div>
+          <div v-else class="slot" :style="slotStyle(slot)">
+            <span class="slot-title">{{ slotTitle(slot) }}</span>
+            <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
+          </div>
+        </template>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
 .timetable {
+  --inline-padding: 16px;
+  --time-column: 32px;
+  --gap: 8px;
+  --min-venue-column: 280px;
+
   width: min(1024px, 100%);
   margin-inline: auto;
-  padding: 24px 16px 48px;
+  padding: 24px 0 48px;
 
   .day-switch {
     justify-content: flex-end;
-    margin-bottom: 24px;
+    margin: 0 var(--inline-padding) 24px;
   }
 
   .empty {
-    margin-bottom: 16px;
+    margin: 0 var(--inline-padding) 16px;
     color: var(--color-text-mute);
     font-size: 13px;
   }
 
+  .grid-scroll {
+    container-type: inline-size;
+    padding-inline: var(--inline-padding);
+    overflow-x: auto;
+  }
+
   .grid {
     display: grid;
-    grid-template-columns: 44px repeat(2, minmax(0, 1fr));
-    column-gap: 8px;
+    grid-template-columns:
+      var(--time-column)
+      repeat(
+        2,
+        max(var(--min-venue-column), calc((100cqw - var(--time-column) - var(--gap) * 2) / 2))
+      );
+    width: max-content;
+    column-gap: var(--gap);
 
     .venue-head {
       grid-row: 1;
@@ -241,7 +260,7 @@ function slotStyle(slot: TimetableSlot) {
 
         .slot-head {
           display: flex;
-          align-items: flex-start;
+          align-items: center;
           gap: 8px;
           min-width: 0;
         }
@@ -282,9 +301,12 @@ function slotStyle(slot: TimetableSlot) {
       }
 
       .slot-title {
+        overflow: hidden;
         color: var(--color-heading);
         font-size: 12px;
         line-height: 1.3;
+        white-space: nowrap;
+        text-overflow: ellipsis;
       }
 
       .slot-time {
