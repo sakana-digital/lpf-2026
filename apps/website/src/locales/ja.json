@@ -58,6 +58,7 @@
       "gradeHeader": "{grade}年次",
       "clubHeader": "部活",
       "committeeHeader": "委員会",
+      "volunteerHeader": "有志団体",
       "uncategorizedHeader": "未分類",
       "classLabel": "{grade}-{classNo}",
       "noImage": "No Image",

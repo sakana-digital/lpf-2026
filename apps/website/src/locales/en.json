@@ -58,6 +58,7 @@
       "gradeHeader": "Y{grade}",
       "clubHeader": "Clubs",
       "committeeHeader": "Committees",
+      "volunteerHeader": "Volunteers",
       "uncategorizedHeader": "Uncategorized",
       "classLabel": "{grade}-{classNo}",
       "noImage": "No Image",

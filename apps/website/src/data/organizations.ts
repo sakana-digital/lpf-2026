@@ -7,6 +7,8 @@ import {
   committeeOrgId,
   grades,
   organizationProfile,
+  volunteerNumbers,
+  volunteerOrgId,
 } from '@shared/organizations'
 import type {
   ClassNumber,
@@ -14,6 +16,7 @@ import type {
   CommitteeNumber,
   Grade,
   OrganizationProfile,
+  VolunteerNumber,
 } from '@shared/organizations'
 
 export { classNumbers, grades }
@@ -37,7 +40,15 @@ export interface CommitteeOrganization extends OrganizationBase {
   kind: 'committee'
 }
 
-export type Organization = ClassOrganization | ClubOrganization | CommitteeOrganization
+export interface VolunteerOrganization extends OrganizationBase {
+  kind: 'volunteer'
+}
+
+export type Organization =
+  | ClassOrganization
+  | ClubOrganization
+  | CommitteeOrganization
+  | VolunteerOrganization
 
 function cls(grade: Grade, classNo: ClassNumber): ClassOrganization {
   const id = classOrgId(grade, classNo)
@@ -54,10 +65,16 @@ function committee(no: CommitteeNumber): CommitteeOrganization {
   return { kind: 'committee', id, ...organizationProfile(id) }
 }
 
+function volunteer(no: VolunteerNumber): VolunteerOrganization {
+  const id = volunteerOrgId(no)
+  return { kind: 'volunteer', id, ...organizationProfile(id) }
+}
+
 export const organizations: Organization[] = [
   ...grades.flatMap((grade) => classNumbers.map((classNo) => cls(grade, classNo))),
   ...clubNumbers.map((no) => club(no)),
   ...committeeNumbers.map((no) => committee(no)),
+  ...volunteerNumbers.map((no) => volunteer(no)),
 ]
 
 export function getOrganization(id: string): Organization | undefined {
