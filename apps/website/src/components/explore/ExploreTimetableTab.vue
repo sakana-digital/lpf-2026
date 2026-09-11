@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { localized } from '@shared/locale'
 import { daySlots, festivalDates, slotDisplayName } from '@shared/timetable'
@@ -22,11 +23,25 @@ import OrgBackdrop from './OrgBackdrop.vue'
 import OrgDetail from './OrgDetail.vue'
 import OrgMeta from './OrgMeta.vue'
 
+const route = useRoute()
+const router = useRouter()
+
 const { t, locale } = useI18n()
 const { statuses } = useOrgStatus()
 
 const days = [1, 2] as const
-const day = ref<FestivalDay>(resolveFestivalDay() === 2 ? 2 : 1)
+const defaultDay: FestivalDay = resolveFestivalDay() === 2 ? 2 : 1
+
+// Kept in `?day=` like the grouping, so it survives a tab switch
+const day = computed<FestivalDay>(() =>
+  route.query.day === '2' ? 2 : route.query.day === '1' ? 1 : defaultDay,
+)
+
+function setDay(value: FestivalDay) {
+  router.replace({
+    query: { ...route.query, day: value === defaultDay ? undefined : String(value) },
+  })
+}
 
 const dayOptions = computed(() => days.map((d) => ({ value: d, label: dayLabel(d) })))
 
@@ -91,10 +106,11 @@ function slotStyle(slot: TimetableSlot) {
 <template>
   <div class="timetable">
     <SegmentedSwitch
-      v-model="day"
       class="day-switch"
       :options="dayOptions"
+      :model-value="day"
       :aria-label="t('explore.timetable.daySwitch')"
+      @update:model-value="setDay"
     />
 
     <p v-if="slots.length === 0" class="empty">{{ t('explore.timetable.empty') }}</p>
