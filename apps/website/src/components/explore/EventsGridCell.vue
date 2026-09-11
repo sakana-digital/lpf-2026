@@ -183,17 +183,14 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
       inset: 0;
     }
 
-    .label {
+    .label,
+    .name {
       font-size: 12px;
       font-variant-numeric: tabular-nums;
     }
 
     .name {
       overflow: hidden;
-      color: var(--color-text-mute);
-      font-family: var(--font-text);
-      font-size: 11px;
-      line-height: 1.3;
       white-space: nowrap;
       text-overflow: ellipsis;
     }
