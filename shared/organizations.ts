@@ -5,19 +5,27 @@ export const grades = [1, 2, 3] as const
 export const classNumbers = [1, 2, 3, 4, 5, 6, 7, 8] as const
 /** Clubs and committees are numbered in the order they first answered the description form. */
 export const clubNumbers = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 ] as const
-export const committeeNumbers = [1, 2, 3, 4, 5, 6, 7, 8] as const
+export const committeeNumbers = [1, 2, 3] as const
+/**
+ * Volunteer groups are what the festival committee files everything that is
+ * neither a class, a club nor a committee under: bands, the supporters,
+ * a research team. Numbered in the order the printed programme lists them.
+ */
+export const volunteerNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const
 
 export type Grade = (typeof grades)[number]
 export type ClassNumber = (typeof classNumbers)[number]
 export type ClubNumber = (typeof clubNumbers)[number]
 export type CommitteeNumber = (typeof committeeNumbers)[number]
+export type VolunteerNumber = (typeof volunteerNumbers)[number]
 
 export type ClassOrgId = `c${Grade}-${ClassNumber}`
 export type ClubOrgId = `club-${ClubNumber}`
 export type CommitteeOrgId = `com-${CommitteeNumber}`
-export type OrgId = ClassOrgId | ClubOrgId | CommitteeOrgId
+export type VolunteerOrgId = `vol-${VolunteerNumber}`
+export type OrgId = ClassOrgId | ClubOrgId | CommitteeOrgId | VolunteerOrgId
 
 /*
  * The return types below are annotated on purpose: without them TypeScript widens
@@ -36,10 +44,15 @@ export function committeeOrgId(no: CommitteeNumber): CommitteeOrgId {
   return `com-${no}`
 }
 
+export function volunteerOrgId(no: VolunteerNumber): VolunteerOrgId {
+  return `vol-${no}`
+}
+
 export const orgIds: readonly OrgId[] = [
   ...grades.flatMap((grade) => classNumbers.map((classNo) => classOrgId(grade, classNo))),
   ...clubNumbers.map((no) => clubOrgId(no)),
   ...committeeNumbers.map((no) => committeeOrgId(no)),
+  ...volunteerNumbers.map((no) => volunteerOrgId(no)),
 ]
 
 const orgIdSet: ReadonlySet<string> = new Set(orgIds)
@@ -618,17 +631,6 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     image: 'street-performance.webp',
   },
   'club-19': {
-    name: { ja: '初恋前夜のPoppys' },
-    project: { ja: '初恋前夜のPoppys' },
-    division: 'performance',
-    category: 'presentation',
-    place: STAGE,
-    description: {
-      ja: 'こんにちは！初恋前夜のPoppysです！私達は文化祭1日目、中庭ステージで演奏します！甘酸っぱい青春を音楽に乗せて、全力で届けます！ぜひ聴きに来てください！',
-    },
-    image: 'hatsukoi-zenya-no-poppys.webp',
-  },
-  'club-20': {
     name: { ja: '鉄道研究部' },
     project: { ja: 'LiSA EXPRESS' },
     division: 'variety',
@@ -639,7 +641,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     },
     image: 'railway-research.webp',
   },
-  'club-21': {
+  'club-20': {
     name: { ja: '軽音部' },
     project: { ja: 'アオハル MUSIC FEST' },
     division: 'performance',
@@ -650,65 +652,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     },
     image: 'light-music.webp',
   },
-  'club-22': {
-    name: { ja: '青春ノイローゼ' },
-    project: { ja: '青春ノイローゼ' },
-    division: 'performance',
-    category: 'presentation',
-    place: STAGE,
-    image: 'seishun-neurose.webp',
-  },
-  'club-23': {
-    name: { ja: '教員有志' },
-    project: { ja: 'NON QUALITY' },
-    division: 'performance',
-    category: 'presentation',
-    place: STAGE,
-  },
-  'club-24': {
-    name: { ja: 'ノーチラス' },
-    project: { ja: 'ノーチラス' },
-    division: 'performance',
-    category: 'presentation',
-    place: STAGE,
-  },
-  'club-25': {
-    name: { ja: 'IRIS＝Hz' },
-    project: { ja: 'IRIS＝Hz' },
-    division: 'performance',
-    category: 'presentation',
-    place: STAGE,
-  },
-  'club-26': {
-    name: { ja: '天然パーマ' },
-    project: { ja: '天然パーマ' },
-    division: 'performance',
-    category: 'presentation',
-    place: STAGE,
-  },
   'com-1': {
-    name: { ja: 'サポーターズふれあい委員会' },
-    project: { ja: '縁日' },
-    division: 'market',
-    category: 'otherSales',
-    place: named({ ja: '食堂前' }),
-    description: {
-      ja: 'ふれあい委員会では、西棟１階学食前で縁日を開催。無料で楽しめる『わなげ』と『はかりゲーム』に挑戦して景品をゲット！どなた様でも大歓迎♪君の感覚とコントロールを試してみない？',
-    },
-    image: 'supporters-fureai.webp',
-  },
-  'com-2': {
-    name: { ja: 'サポーターズ本部(本部・交通安全委員会・環境美化委員会)' },
-    project: { ja: 'お休み処' },
-    division: 'market',
-    category: 'otherSales',
-    place: named({ ja: '会議室' }),
-    description: {
-      ja: 'サポーターズ本部は今年も東棟1F会議室にてドリンクの無料提供とパンやクッキーの軽食をご用意します♪大好評LiSAグッズの新作も販売します。お休み処でおくつろぎください♪',
-    },
-    image: 'supporters-hq.webp',
-  },
-  'com-3': {
     name: { ja: '図書委員会' },
     project: { ja: 'そうだ、今年も図書館行こう' },
     division: 'variety',
@@ -719,7 +663,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     },
     image: 'library-committee.webp',
   },
-  'com-4': {
+  'com-2': {
     name: { ja: '生徒会' },
     project: { ja: '「リサクエ」勇者達よ、くじを引かないか' },
     division: 'market',
@@ -730,7 +674,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     },
     image: 'student-council.webp',
   },
-  'com-5': {
+  'com-3': {
     name: { ja: '福祉委員会' },
     project: { ja: 'あしなが募金' },
     division: 'variety',
@@ -741,7 +685,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     },
     image: 'welfare-committee.webp',
   },
-  'com-6': {
+  'vol-1': {
     name: { ja: '連携広報グループ' },
     project: { ja: '学校説明会' },
     division: 'variety',
@@ -752,7 +696,86 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     },
     image: 'pr-group.webp',
   },
-  'com-7': {
+  'vol-2': {
+    name: { ja: 'サポーターズ本部(本部・交通安全委員会・環境美化委員会)' },
+    project: { ja: 'お休み処' },
+    division: 'market',
+    category: 'otherSales',
+    place: named({ ja: '会議室' }),
+    description: {
+      ja: 'サポーターズ本部は今年も東棟1F会議室にてドリンクの無料提供とパンやクッキーの軽食をご用意します♪大好評LiSAグッズの新作も販売します。お休み処でおくつろぎください♪',
+    },
+    image: 'supporters-hq.webp',
+  },
+  'vol-3': {
+    name: { ja: 'サポーターズふれあい委員会' },
+    project: { ja: '縁日' },
+    division: 'market',
+    category: 'otherSales',
+    place: named({ ja: '食堂前' }),
+    description: {
+      ja: 'ふれあい委員会では、西棟１階学食前で縁日を開催。無料で楽しめる『わなげ』と『はかりゲーム』に挑戦して景品をゲット！どなた様でも大歓迎♪君の感覚とコントロールを試してみない？',
+    },
+    image: 'supporters-fureai.webp',
+  },
+  'vol-4': {
+    name: { ja: '青春ノイローゼ' },
+    project: { ja: '青春ノイローゼ' },
+    division: 'performance',
+    category: 'presentation',
+    place: STAGE,
+    image: 'seishun-neurose.webp',
+  },
+  'vol-5': {
+    name: { ja: '初恋前夜のPoppys' },
+    project: { ja: '初恋前夜のPoppys' },
+    division: 'performance',
+    category: 'presentation',
+    place: STAGE,
+    description: {
+      ja: 'こんにちは！初恋前夜のPoppysです！私達は文化祭1日目、中庭ステージで演奏します！甘酸っぱい青春を音楽に乗せて、全力で届けます！ぜひ聴きに来てください！',
+    },
+    image: 'hatsukoi-zenya-no-poppys.webp',
+  },
+  'vol-6': {
+    name: { ja: '教員有志' },
+    project: { ja: 'NON QUALITY' },
+    division: 'performance',
+    category: 'presentation',
+    place: STAGE,
+  },
+  'vol-7': {
+    name: { ja: 'ノーチラス' },
+    project: { ja: 'ノーチラス' },
+    division: 'performance',
+    category: 'presentation',
+    place: STAGE,
+  },
+  'vol-8': {
+    name: { ja: 'IRIS＝Hz' },
+    project: { ja: 'IRIS＝Hz' },
+    division: 'performance',
+    category: 'presentation',
+    place: STAGE,
+  },
+  'vol-9': {
+    name: { ja: '天然パーマ' },
+    project: { ja: '天然パーマ' },
+    division: 'performance',
+    category: 'presentation',
+    place: STAGE,
+  },
+  'vol-10': {
+    name: { ja: '課題研究リベラルアーツマンガ班' },
+    project: { ja: '緊急！子供の読解力低下！！〜漫画を読書の入り口に〜' },
+    division: 'variety',
+    category: 'experience',
+    place: room('30A'),
+    description: {
+      ja: '私達は課題研究の一環として漫画を研究しそれをもとに実際に描いてみました！皆さんに配布しようと思います！！場所は美術室です！！お待ちしています！',
+    },
+  },
+  'vol-11': {
     name: { ja: 'JICA海外研修' },
     project: { ja: '2026年度JICA横浜教師海外研修(inペルー共和国)報告' },
     division: 'variety',
@@ -762,16 +785,6 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
       ja: '「誰一人取り残さない社会～日系社会の現場から考える～」を研修テーマとし、現地で得た気づきを展示します。ペルーとのつながりを体験できる企画もあります！ぜひお待ちしています！',
     },
     image: 'jica-report.webp',
-  },
-  'com-8': {
-    name: { ja: '課題研究リベラルアーツマンガ班' },
-    project: { ja: '緊急！子供の読解力低下！！〜漫画を読書の入り口に〜' },
-    division: 'variety',
-    category: 'experience',
-    place: room('30A'),
-    description: {
-      ja: '私達は課題研究の一環として漫画を研究しそれをもとに実際に描いてみました！皆さんに配布しようと思います！！場所は美術室です！！お待ちしています！',
-    },
   },
 }
 

@@ -3,7 +3,7 @@ import type { Organization } from '@/data/organizations'
 import { categorySections } from '@/lib/organization'
 import type { OrganizationSection } from '@/lib/organization'
 
-/** Rows by grade, club and committee, or by what every group runs */
+/** Rows by grade, club, committee and volunteer group, or by what every group runs */
 export const EVENT_GROUPINGS = ['group', 'category'] as const
 
 export type EventsGrouping = (typeof EVENT_GROUPINGS)[number]
@@ -76,6 +76,11 @@ function groupRows(orgs: Organization[]): EventRow[] {
         id: 'committees',
         labelKey: 'explore.events.committeeHeader',
         members: orgs.filter((org) => org.kind === 'committee'),
+      },
+      {
+        id: 'volunteers',
+        labelKey: 'explore.events.volunteerHeader',
+        members: orgs.filter((org) => org.kind === 'volunteer'),
       },
     ]),
   ]

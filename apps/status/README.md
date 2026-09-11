@@ -93,7 +93,7 @@ bun run status:token -- --remote --admin
 平文は D1 に保存せず、SHA-256 ハッシュだけを `org_tokens.token_hash` と `admin_tokens.token_hash` に入れます。団体一覧は [shared/organizations.ts](../../shared/organizations.ts) から作ります。
 
 ```sh
-bun run status:token                      # ローカル D1 に全団体（54 件）
+bun run status:token                      # ローカル D1 に全団体
 bun run status:token -- --remote          # 本番 D1 に全団体
 bun run status:token -- --remote <org_id> # 指定した団体だけ差し替え
 bun run status:token -- --remote --admin  # 管理者トークン
@@ -180,7 +180,7 @@ flowchart LR
 
 - `source` は `org`（団体自身）か `admin`（管理者の代理更新）です。
 - `0011_status_history.sql` は過去分を復元できないため、ログは空から始まります。
-- 削除や期限切れはしません。54 団体 × 2 日の規模を前提にしています。
+- 削除や期限切れはしません。
 
 #### 各団体が持つ状態
 

@@ -48,7 +48,7 @@ export const timetableSlots: TimetableSlot[] = [
     venue: 'courtyard',
     start: '12:15',
     end: '12:35',
-    organizationId: 'club-26',
+    organizationId: 'vol-9',
   },
   {
     id: 'd1-dance',
@@ -65,7 +65,7 @@ export const timetableSlots: TimetableSlot[] = [
     start: '13:00',
     end: '14:00',
     title: { ja: '学校説明会', en: 'School Briefing' },
-    organizationId: 'com-6',
+    organizationId: 'vol-1',
   },
   {
     id: 'd1-poppys',
@@ -73,7 +73,7 @@ export const timetableSlots: TimetableSlot[] = [
     venue: 'courtyard',
     start: '13:15',
     end: '13:35',
-    organizationId: 'club-19',
+    organizationId: 'vol-5',
   },
   {
     id: 'd1-light-music',
@@ -81,7 +81,7 @@ export const timetableSlots: TimetableSlot[] = [
     venue: 'courtyard',
     start: '13:35',
     end: '14:35',
-    organizationId: 'club-21',
+    organizationId: 'club-20',
   },
   {
     id: 'd1-jazz-band',
@@ -130,7 +130,7 @@ export const timetableSlots: TimetableSlot[] = [
     start: '12:25',
     end: '12:45',
     title: { ja: 'NON QUALITY' },
-    organizationId: 'club-23',
+    organizationId: 'vol-6',
   },
   {
     id: 'd2-iris-hz',
@@ -138,7 +138,7 @@ export const timetableSlots: TimetableSlot[] = [
     venue: 'courtyard',
     start: '12:45',
     end: '13:05',
-    organizationId: 'club-25',
+    organizationId: 'vol-8',
   },
   {
     id: 'd2-school-info',
@@ -147,7 +147,7 @@ export const timetableSlots: TimetableSlot[] = [
     start: '13:00',
     end: '14:00',
     title: { ja: '学校説明会', en: 'School Briefing' },
-    organizationId: 'com-6',
+    organizationId: 'vol-1',
   },
   {
     id: 'd2-seishun-neurose',
@@ -155,7 +155,7 @@ export const timetableSlots: TimetableSlot[] = [
     venue: 'courtyard',
     start: '13:05',
     end: '13:25',
-    organizationId: 'club-22',
+    organizationId: 'vol-4',
   },
   {
     id: 'd2-nautilus',
@@ -163,7 +163,7 @@ export const timetableSlots: TimetableSlot[] = [
     venue: 'courtyard',
     start: '13:25',
     end: '13:45',
-    organizationId: 'club-24',
+    organizationId: 'vol-7',
   },
   {
     id: 'd2-light-music',
@@ -171,7 +171,7 @@ export const timetableSlots: TimetableSlot[] = [
     venue: 'courtyard',
     start: '13:45',
     end: '14:45',
-    organizationId: 'club-21',
+    organizationId: 'club-20',
   },
 ]
 
