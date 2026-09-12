@@ -5,15 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vp dev",
-    "build": "vp build",
+    "build": "panda codegen --silent && vp build",
     "dev:worker": "wrangler dev --no-types",
     "cf-typegen": "wrangler types --include-runtime=false",
     "migrate": "wrangler d1 migrations apply happo-sai-status",
     "seed": "wrangler d1 execute happo-sai-status --local --command 'DELETE FROM org_tokens; DELETE FROM admin_tokens; DELETE FROM org_status; DELETE FROM org_status_log' && wrangler d1 execute happo-sai-status --local --file seed.example.sql",
-    "test": "vitest run",
+    "test": "panda codegen --silent && vitest run",
     "token:issue": "bun scripts/issue-token.ts",
-    "type-check": "vue-tsc -p tsconfig.json --noEmit && tsc -p tsconfig.worker.json --noEmit",
-    "deploy": "vp build && wrangler deploy"
+    "type-check": "panda codegen --silent && vue-tsc -p tsconfig.json --noEmit && tsc -p tsconfig.worker.json --noEmit",
+    "deploy": "bun run build && wrangler deploy",
+    "prepare": "panda codegen --silent"
   },
   "dependencies": {
     "vue": "beta"
@@ -21,6 +22,7 @@
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.18.4",
     "@cloudflare/workers-types": "^5.20260711.1",
+    "@pandacss/dev": "^1.12.1",
     "@vitejs/plugin-vue": "^6.0.7",
     "@vue/tsconfig": "^0.9.1",
     "typescript": "~6.0.3",

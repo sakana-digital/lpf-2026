@@ -5,6 +5,9 @@ import type { Venue } from './venues'
 
 export const festivalDates = ['2026-09-26', '2026-09-27'] as const
 
+/** Opening hours on each festival day, JST. */
+export const festivalHours = { open: '10:00', close: '15:30' } as const
+
 export type FestivalDay = 1 | 2
 
 export interface TimetableSlot {

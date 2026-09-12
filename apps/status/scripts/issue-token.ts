@@ -1,4 +1,4 @@
-import { isOrgId, orgIds } from '../../../shared/organizations'
+import { STATUS_ORG_IDS, isStatusOrg } from '../../../shared/status'
 import { classOrgLabel } from '../src/lib/orgLabel'
 
 /** Only what this script uses: the repo installs no Bun type package. */
@@ -89,10 +89,10 @@ async function saveCsv(remote: boolean, issued: readonly Issued[]): Promise<stri
     rows.set(id, [id, label, `${origin}/?t=${token}`].map(csvField).join(','))
   }
 
-  const known: readonly string[] = [...orgIds, ADMIN_ID]
+  const known: readonly string[] = [...STATUS_ORG_IDS, ADMIN_ID]
   const ordered = [
     ...known.flatMap((id) => rows.get(id) ?? []),
-    // Ids that left shared/organizations.ts still hold a token D1 accepts
+    // Ids that left STATUS_ORG_IDS still hold a token D1 accepts
     ...[...rows].flatMap(([id, line]) => (known.includes(id) ? [] : line)),
   ]
   await Bun.write(path, `${CSV_HEADER}\n${ordered.join('\n')}\n`)
@@ -103,9 +103,9 @@ const args = Bun.argv.slice(2)
 const remote = args.includes('--remote')
 const requested = args.filter((arg) => !arg.startsWith('--'))
 
-const unknown = requested.filter((id) => !isOrgId(id))
+const unknown = requested.filter((id) => !isStatusOrg(id))
 if (unknown.length > 0) {
-  console.error(`Unknown organization: ${unknown.join(', ')}`)
+  console.error(`Not a status organization: ${unknown.join(', ')}`)
   process.exit(1)
 }
 
@@ -120,7 +120,7 @@ if (args.includes('--admin')) {
   console.error('Revoked every existing admin token')
   issued = [admin]
 } else {
-  const ids = requested.length > 0 ? requested : [...orgIds]
+  const ids = requested.length > 0 ? requested : [...STATUS_ORG_IDS]
   issued = await Promise.all(ids.map((id) => issue(id, classOrgLabel(id))))
   const values = issued.map(({ id, hash }) => `('${hash}', '${id}')`).join(', ')
   execute(
@@ -135,5 +135,3 @@ for (const { id, token } of issued) console.log(`${id}\t${token}`)
 const path = await saveCsv(remote, issued)
 console.error(`URL: ${ORIGINS[remote ? 'remote' : 'local']}/?t=<token>`)
 console.error(`Wrote ${path} (git-ignored)`)
-
-export {}

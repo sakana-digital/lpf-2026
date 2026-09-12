@@ -11,7 +11,8 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@shared/*": ["../../shared/*"]
+      "@shared/*": ["../../shared/*"],
+      "@styled/*": ["./styled-system/*"]
     }
   }
 }

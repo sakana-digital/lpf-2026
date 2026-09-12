@@ -1,4 +1,4 @@
-import type { CongestionLevel, SalesStatus } from '@shared/status'
+import type { CongestionLevel, SalesStatus, StatusSource } from '@shared/status'
 
 export const SALES_LABELS: Record<SalesStatus, string> = {
   available: '販売中',
@@ -18,4 +18,9 @@ export const CONGESTION_LABELS: Record<CongestionLevel, string> = {
   low: '空いている',
   medium: 'やや混雑',
   high: '混雑',
+}
+
+export const SOURCE_LABELS: Record<StatusSource, string> = {
+  org: '団体',
+  admin: '管理者',
 }

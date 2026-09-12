@@ -1,31 +1,50 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue'
-import { CONGESTION_LEVELS, SALES_STATUSES, hidesCongestion, isSubmitOpen } from '@shared/status'
-import type { CongestionLevel, OrgStatus, SalesStatus, SubmitWindows } from '@shared/status'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import {
+  CONGESTION_LEVELS,
+  SALES_STATUSES,
+  hidesCongestion,
+  isSubmitRefusal,
+  submitAllow,
+} from '@shared/status'
+import type {
+  CongestionLevel,
+  OrgStatus,
+  SalesStatus,
+  SubmitRefusal,
+  SubmitWindows,
+} from '@shared/status'
 import { ApiError, updateStatus } from '@/lib/api'
-import { classOrgLabel } from '@/lib/orgLabel'
 import { CONGESTION_LABELS, SALES_LABELS } from '@/lib/statusLabel'
 import { formatElapsed } from '@/lib/relativeTime'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import StatusHistory from '@/components/StatusHistory.vue'
+import { CONGESTION_TONES, SALES_TONES, statusChip, statusDot } from '@/styles/status'
+import { css, cx } from '@styled/css'
+import { button, hint, resultBadge, sectionLabel } from '@styled/recipes'
 
-const props = defineProps<{
-  token: string
-  admin: boolean
-  orgs: string[]
-  statuses: OrgStatus[]
-  windows: SubmitWindows
-}>()
+const props = withDefaults(
+  defineProps<{
+    token: string
+    admin: boolean
+    orgId: string
+    status: OrgStatus | null
+    windows: SubmitWindows
+    accepted?: boolean
+    testing?: boolean
+  }>(),
+  { accepted: true, testing: false },
+)
 
 const emit = defineEmits<{ updated: [OrgStatus] }>()
 
 const RESULT_TIMEOUT_MS = 10000
 
-const selectedOrg = ref(props.orgs[0] ?? '')
-const current = computed(
-  () => props.statuses.find((status) => status.orgId === selectedOrg.value) ?? null,
-)
-const savedAt = computed(() => current.value?.updatedAt ?? null)
+const REFUSAL_LABELS: Record<SubmitRefusal, string> = {
+  not_accepted: '受付対象外です。',
+  closed: '文化祭時間外です。',
+}
+
+const savedAt = computed(() => props.status?.updatedAt ?? null)
 
 const sales = ref<SalesStatus | null>(null)
 const congestion = ref<CongestionLevel | null>(null)
@@ -34,7 +53,6 @@ const saveError = ref<string | null>(null)
 const justSaved = ref(false)
 const confirmingSoldout = ref(false)
 const now = ref(Date.now())
-const history = useTemplateRef<InstanceType<typeof StatusHistory>>('history')
 
 const savedTime = computed(() => {
   if (savedAt.value === null) return ''
@@ -49,17 +67,33 @@ const elapsedLabel = computed(() => {
   return formatElapsed(savedAt.value, Math.floor(now.value / 1000))
 })
 
-const windowClosed = computed(() => {
-  if (props.admin) return false
-  return !isSubmitOpen(props.windows, Math.floor(now.value / 1000))
+const permission = computed(() =>
+  submitAllow(
+    props.windows,
+    Math.floor(now.value / 1000),
+    { admin: props.admin, accepted: props.accepted },
+    props.testing,
+  ),
+)
+
+// Why the form is blocked outranks how the last submit went.
+const notice = computed<{ tone: 'ok' | 'error'; text: string } | null>(() => {
+  if (!permission.value.allowed) {
+    return { tone: 'error', text: REFUSAL_LABELS[permission.value.refusal] }
+  }
+  if (saveError.value) return { tone: 'error', text: saveError.value }
+  if (justSaved.value) return { tone: 'ok', text: '更新しました。' }
+  if (props.testing)
+    return { tone: 'ok', text: 'テスト受付中です。送信内容はテスト終了時に削除します。' }
+  return null
 })
 
 const canSubmit = computed(
   () =>
     sales.value !== null &&
     (hidesCongestion(sales.value) || congestion.value !== null) &&
-    selectedOrg.value !== '' &&
-    !windowClosed.value &&
+    props.orgId !== '' &&
+    permission.value.allowed &&
     !saving.value,
 )
 
@@ -74,28 +108,33 @@ function scheduleResultClear() {
   }, RESULT_TIMEOUT_MS)
 }
 
+// The server can rewrite a status behind the form (ending a rehearsal), so the chips follow it.
 watch(
-  selectedOrg,
-  () => {
-    sales.value = current.value?.sales ?? null
-    congestion.value = current.value?.congestion ?? null
-    justSaved.value = false
-    saveError.value = null
+  [() => props.orgId, () => props.status?.updatedAt ?? null],
+  ([orgId], previous) => {
+    sales.value = props.status?.sales ?? null
+    congestion.value = props.status?.congestion ?? null
+    if (previous?.[0] !== orgId) {
+      justSaved.value = false
+      saveError.value = null
+    }
   },
   { immediate: true },
 )
 
-function selectSales(value: SalesStatus) {
-  if (value === 'soldout' && sales.value !== 'soldout') {
+// Selling out is asked about once, when it is actually about to be sent.
+function requestSubmit() {
+  if (!canSubmit.value) return
+  if (sales.value === 'soldout' && props.status?.sales !== 'soldout') {
     confirmingSoldout.value = true
     return
   }
-  sales.value = value
+  void submit()
 }
 
 function confirmSoldout() {
-  sales.value = 'soldout'
   confirmingSoldout.value = false
+  void submit()
 }
 
 async function submit() {
@@ -111,20 +150,16 @@ async function submit() {
         props.token,
         sales.value,
         congestionValue,
-        props.admin ? selectedOrg.value : undefined,
+        props.admin ? props.orgId : undefined,
       ),
     )
     justSaved.value = true
-    void history.value?.reload()
-    scheduleResultClear()
   } catch (error) {
-    saveError.value =
-      error instanceof ApiError && error.status === 403
-        ? '文化祭時間外です。'
-        : '送信に失敗しました。'
-    scheduleResultClear()
+    const code = error instanceof ApiError ? error.code : null
+    saveError.value = isSubmitRefusal(code) ? REFUSAL_LABELS[code] : '送信に失敗しました。'
   } finally {
     saving.value = false
+    scheduleResultClear()
   }
 }
 
@@ -138,82 +173,110 @@ onUnmounted(() => {
   clearInterval(tickTimer)
   clearTimeout(resultTimer)
 })
+
+const styles = {
+  form: css({ display: 'flex', flexDirection: 'column', gap: '16px' }),
+  groups: css({
+    display: 'grid',
+    gridTemplateAreas: '"top top" "sales congestion"',
+    gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+    gap: '16px',
+    width: '100%',
+    maxWidth: '440px',
+    margin: '0 auto',
+  }),
+  top: css({
+    gridArea: 'top',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '31px',
+  }),
+  updated: cx(
+    hint(),
+    statusDot({ tone: 'good' }),
+    css({
+      fontSize: '13px',
+      fontVariantNumeric: 'tabular-nums',
+      _before: { animation: 'pulse 2.4s ease-in-out infinite' },
+    }),
+  ),
+  result: css({ fontSize: '13px', animation: 'popIn 0.25s ease' }),
+  fieldset: css({ display: 'flex', flexDirection: 'column', border: 'none', padding: 0 }),
+  sales: css({ gridArea: 'sales' }),
+  congestion: css({ gridArea: 'congestion' }),
+  legend: cx(
+    sectionLabel(),
+    css({ padding: '0 2px', marginBottom: '10px', fontSize: '14px', textAlign: 'center' }),
+  ),
+  // The button sits in the same column as the chips so the two grids line up.
+  choices: css({ display: 'flex', flex: 1, flexDirection: 'column', gap: '6px' }),
+  submit: css({
+    height: 'auto',
+    marginTop: 'auto',
+    padding: '11px 16px',
+    fontSize: '16px',
+    fontWeight: 'black',
+  }),
+}
 </script>
 
 <template>
-  <div class="status-editor" :class="{ admin }">
-    <form @submit.prevent="submit">
-      <label v-if="admin" class="org-select section-label">
-        <span>団体</span>
-        <select v-model="selectedOrg">
-          <option v-for="id in orgs" :key="id" :value="id">{{ classOrgLabel(id) }}</option>
-        </select>
-      </label>
-
-      <ul v-if="admin" class="org-list">
-        <li v-for="id in orgs" :key="id">
-          <button
-            type="button"
-            :class="{ selected: selectedOrg === id }"
-            :aria-pressed="selectedOrg === id"
-            @click="selectedOrg = id"
-          >
-            {{ classOrgLabel(id) }}
-          </button>
-        </li>
-      </ul>
-
-      <div class="groups">
-        <p v-if="savedAt !== null" class="updated hint">
+  <form :class="styles.form" @submit.prevent="requestSubmit">
+    <div :class="styles.groups">
+      <div :class="styles.top">
+        <p
+          v-if="notice"
+          :class="cx(resultBadge({ tone: notice.tone }), styles.result)"
+          role="status"
+        >
+          {{ notice.text }}
+        </p>
+        <p v-else-if="savedAt !== null" :class="styles.updated">
           最終更新 {{ savedTime }}（{{ elapsedLabel }}）
         </p>
+      </div>
 
-        <fieldset class="sales">
-          <legend class="section-label">販売状況</legend>
-          <div class="choices">
-            <button
-              v-for="value in SALES_STATUSES"
-              :key="value"
-              type="button"
-              :class="[`sales-${value}`, { selected: sales === value }]"
-              :aria-pressed="sales === value"
-              @click="selectSales(value)"
-            >
-              {{ SALES_LABELS[value] }}
-            </button>
-          </div>
-        </fieldset>
+      <fieldset :class="[styles.fieldset, styles.sales]">
+        <legend :class="styles.legend">販売状況</legend>
+        <div :class="styles.choices">
+          <button
+            v-for="value in SALES_STATUSES"
+            :key="value"
+            type="button"
+            :class="statusChip({ tone: SALES_TONES[value], selected: sales === value })"
+            :aria-pressed="sales === value"
+            @click="sales = value"
+          >
+            {{ SALES_LABELS[value] }}
+          </button>
+        </div>
+      </fieldset>
 
-        <div class="col">
-          <fieldset>
-            <legend class="section-label">混雑状況</legend>
-            <div class="choices">
-              <button
-                v-for="value in CONGESTION_LEVELS"
-                :key="value"
-                type="button"
-                :class="[`congestion-${value}`, { selected: congestion === value }]"
-                :aria-pressed="congestion === value"
-                :disabled="sales !== null && hidesCongestion(sales)"
-                @click="congestion = value"
-              >
-                {{ CONGESTION_LABELS[value] }}
-              </button>
-            </div>
-          </fieldset>
-
-          <p v-if="windowClosed" class="result error" role="status">文化祭時間外です。</p>
-          <p v-else-if="saveError" class="result error" role="status">{{ saveError }}</p>
-          <p v-else-if="justSaved" class="result" role="status">更新しました。</p>
-
-          <button type="submit" class="submit" :disabled="!canSubmit">
+      <fieldset :class="[styles.fieldset, styles.congestion]">
+        <legend :class="styles.legend">混雑状況</legend>
+        <div :class="styles.choices">
+          <button
+            v-for="value in CONGESTION_LEVELS"
+            :key="value"
+            type="button"
+            :class="statusChip({ tone: CONGESTION_TONES[value], selected: congestion === value })"
+            :aria-pressed="congestion === value"
+            :disabled="sales !== null && hidesCongestion(sales)"
+            @click="congestion = value"
+          >
+            {{ CONGESTION_LABELS[value] }}
+          </button>
+          <button
+            type="submit"
+            :class="cx(button({ variant: 'primary' }), styles.submit)"
+            :disabled="!canSubmit"
+          >
             {{ saving ? '送信中…' : '更新する' }}
           </button>
         </div>
-      </div>
-    </form>
-
-    <StatusHistory v-if="admin" ref="history" :token="token" :org-id="selectedOrg" />
+      </fieldset>
+    </div>
 
     <ConfirmDialog
       :open="confirmingSoldout"
@@ -222,294 +285,5 @@ onUnmounted(() => {
       @confirm="confirmSoldout"
       @cancel="confirmingSoldout = false"
     />
-  </div>
+  </form>
 </template>
-
-<style scoped>
-.status-editor {
-  .updated {
-    grid-area: updated;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-variant-numeric: tabular-nums;
-
-    &::before {
-      content: '';
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: var(--color-status-good);
-      animation: pulse 2.4s ease-in-out infinite;
-    }
-  }
-
-  form {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
-    padding: 24px 20px 20px;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-  }
-
-  .groups {
-    display: grid;
-    grid-template-areas:
-      'updated updated'
-      'sales congestion';
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 16px;
-  }
-
-  .org-select {
-    display: none;
-    flex-direction: column;
-    gap: 6px;
-    text-align: center;
-
-    @media (max-width: 560px) {
-      display: flex;
-    }
-
-    select {
-      padding: 9px 12px;
-      border: 1px solid var(--color-accent);
-      background: var(--color-accent);
-      color: var(--color-on-accent);
-      font: inherit;
-      text-align: center;
-      cursor: pointer;
-      color-scheme: light;
-    }
-  }
-
-  .org-list {
-    display: grid;
-    align-content: start;
-    gap: 2px;
-    max-height: 420px;
-    padding: 0;
-    overflow-y: auto;
-    list-style: none;
-
-    @media (max-width: 560px) {
-      display: none;
-    }
-
-    button {
-      width: 100%;
-      padding: 9px 12px;
-      border: 1px solid var(--color-border);
-      color: var(--color-text-mute);
-      font-size: 13px;
-      text-align: center;
-      cursor: pointer;
-
-      &:hover:not(.selected) {
-        background: var(--color-surface-soft);
-      }
-
-      &.selected {
-        border-color: var(--color-accent);
-        background: var(--color-accent);
-        color: var(--color-on-accent);
-      }
-
-      &:focus-visible {
-        outline: 2px solid var(--color-accent);
-        outline-offset: -2px;
-      }
-    }
-  }
-
-  .sales {
-    grid-area: sales;
-  }
-
-  .col {
-    grid-area: congestion;
-    display: flex;
-    flex-direction: column;
-  }
-
-  fieldset {
-    border: none;
-    padding: 0;
-
-    legend {
-      padding: 0 2px;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-  }
-
-  .choices {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 4px;
-    background: var(--color-surface-soft);
-
-    button {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 13px 14px;
-      border: 1px solid var(--c);
-      font-size: 14px;
-      text-wrap: nowrap;
-      cursor: pointer;
-      color: var(--color-text-mute);
-      transition:
-        background 0.18s ease,
-        color 0.18s ease,
-        box-shadow 0.18s ease,
-        transform 0.1s ease;
-
-      &::before {
-        content: '';
-        position: absolute;
-        left: 14px;
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: var(--c);
-        transition: background 0.18s ease;
-      }
-
-      &:active {
-        transform: scale(0.96);
-      }
-
-      &.sales-available,
-      &.congestion-low {
-        --c: var(--color-status-good);
-      }
-
-      &.sales-partial,
-      &.congestion-medium {
-        --c: var(--color-status-warn);
-      }
-
-      &.sales-low,
-      &.congestion-high {
-        --c: var(--color-status-bad);
-      }
-
-      &.sales-paused {
-        --c: var(--color-status-pause);
-      }
-
-      &.sales-soldout {
-        --c: var(--color-status-soldout);
-      }
-
-      &.selected {
-        background: var(--c);
-        color: var(--color-on-status);
-        box-shadow:
-          0 0 10px oklch(from var(--c) l c h / 0.6),
-          0 0 28px oklch(from var(--c) l c h / 0.4);
-
-        &.sales-paused,
-        &.sales-partial,
-        &.congestion-medium {
-          color: var(--color-on-status-warn);
-        }
-
-        &.sales-soldout {
-          color: #fff;
-        }
-
-        &::before {
-          background: currentColor;
-        }
-      }
-
-      &:disabled {
-        --c: oklch(60% 0 0 / 0.5);
-        color: oklch(100% 0 0 / 0.35);
-        cursor: not-allowed;
-        box-shadow: none;
-
-        &.selected {
-          background: oklch(60% 0 0 / 0.35);
-          color: oklch(100% 0 0 / 0.6);
-        }
-      }
-    }
-  }
-
-  .submit {
-    margin: auto 4px 4px;
-    padding: 13px 4px;
-    border: 1px solid var(--color-accent);
-    background: var(--color-accent);
-    color: var(--color-on-accent);
-    font-size: 14px;
-    letter-spacing: 0.04em;
-    cursor: pointer;
-    box-shadow:
-      0 0 10px oklch(100% 0 0 / 0.4),
-      0 0 28px oklch(100% 0 0 / 0.3);
-    transition:
-      background 0.18s ease,
-      box-shadow 0.18s ease,
-      transform 0.1s ease;
-
-    &:hover:not(:disabled) {
-      background: var(--color-accent-strong);
-    }
-
-    &:active:not(:disabled) {
-      transform: scale(0.98);
-    }
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-  }
-
-  .result {
-    margin: auto auto 0;
-    animation: pop-in 0.25s ease;
-
-    + .submit {
-      margin-top: 10px;
-    }
-  }
-
-  &.admin {
-    form {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 420px) minmax(0, 1fr);
-
-      @media (max-width: 940px) {
-        grid-template-columns: minmax(0, 220px) minmax(0, 420px);
-        justify-content: center;
-      }
-
-      @media (max-width: 560px) {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-  }
-}
-
-@keyframes pulse {
-  50% {
-    opacity: 0.3;
-  }
-}
-
-@keyframes pop-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-}
-</style>

@@ -10,27 +10,43 @@ import type {
   SignageUploadStartResponse,
   StatusHistoryEntry,
   SubmitWindows,
+  TestSince,
 } from '@shared/status'
 
 export interface OrgMeResponse {
   orgId: string
   status: OrgStatus | null
   windows: SubmitWindows
+  testSince: TestSince
+  /** False for a group outside `STATUS_ORG_IDS`: its token exists but nothing is taken. */
+  accepted: boolean
 }
 
 export interface AdminMeResponse {
   admin: true
-  orgs: string[]
   windows: SubmitWindows
+  testSince: TestSince
   statuses: OrgStatus[]
-  hiddenOrgs: string[]
 }
 
 export type MeResponse = OrgMeResponse | AdminMeResponse
 
 export class ApiError extends Error {
-  constructor(readonly status: number) {
+  constructor(
+    readonly status: number,
+    /** The Worker's `error` field, when it sent one. */
+    readonly code: string | null = null,
+  ) {
     super(`api error: ${status}`)
+  }
+}
+
+async function errorCode(res: Response): Promise<string | null> {
+  try {
+    const body = (await res.json()) as { error?: unknown }
+    return typeof body.error === 'string' ? body.error : null
+  } catch {
+    return null
   }
 }
 
@@ -38,7 +54,7 @@ async function request<T>(path: string, token: string, init?: RequestInit): Prom
   const headers = new Headers(init?.headers)
   headers.set('Authorization', `Bearer ${token}`)
   const res = await fetch(path, { ...init, headers })
-  if (!res.ok) throw new ApiError(res.status)
+  if (!res.ok) throw new ApiError(res.status, await errorCode(res))
   return res.json() as Promise<T>
 }
 
@@ -71,12 +87,13 @@ export function updateWindows(token: string, windows: SubmitWindows): Promise<Su
   })
 }
 
-export function updateHiddenOrgs(token: string, hidden: string[]): Promise<{ hidden: string[] }> {
-  return request('/api/orgs', token, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ hidden }),
-  })
+export function startTest(token: string): Promise<{ testSince: TestSince }> {
+  return request('/api/test', token, { method: 'POST' })
+}
+
+/** Ends the rehearsal and discards everything sent during it. */
+export function stopTest(token: string): Promise<{ testSince: TestSince }> {
+  return request('/api/test', token, { method: 'DELETE' })
 }
 
 export function getSignageAdmin(token: string): Promise<SignagePayload> {

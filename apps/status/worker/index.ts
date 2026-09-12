@@ -3,8 +3,13 @@ import {
   hidesCongestion,
   isCongestionLevel,
   isSalesStatus,
+  defaultSubmitWindows,
+  isStatusOrg,
   isSubmitOpen,
+  parseSubmitWindow,
   SIGNAGE_MEDIA_KINDS,
+  STATUS_HISTORY_LIMIT,
+  submitAllow,
 } from '../../../shared/status'
 import type {
   CongestionLevel,
@@ -17,8 +22,8 @@ import type {
   SignageUploadedPart,
   StatusHistoryEntry,
   StatusSource,
-  SubmitWindow,
   SubmitWindows,
+  TestSince,
 } from '../../../shared/status'
 
 const SIGNAGE_COOKIE = 'signage-session'
@@ -54,7 +59,6 @@ const MEDIA_KINDS: Record<SignageMediaKind, MediaKindSpec> = {
 const FOOTER_MAX_LENGTH = 120
 const ALERT_MAX_LENGTH = 200
 const PUBLIC_STATUS_MAX_AGE = 15
-const HISTORY_LIMIT = 200
 const WORKER_DOMAIN_SUFFIX = '.workers.dev'
 
 interface StatusRow {
@@ -73,7 +77,6 @@ interface StatusLogRow {
 }
 
 interface SignageConfigRow {
-  org_ids: string
   active_video_key: string | null
   video_start_at: number | null
   active_audio_key: string | null
@@ -204,18 +207,16 @@ function sessionCookie(token: string, requestUrl: string): string {
 
 interface WindowRow {
   day: number
-  accept_from: number | null
-  accept_until: number | null
+  accept_from: number
+  accept_until: number
 }
 
+/** Saved hours per day, falling back to the opening hours for a day never saved. */
 async function getWindows(env: Env): Promise<SubmitWindows> {
   const { results } = await env.DB.prepare(
     'SELECT day, accept_from, accept_until FROM submit_windows',
   ).all<WindowRow>()
-  const windows: SubmitWindows = {
-    day1: { from: null, until: null },
-    day2: { from: null, until: null },
-  }
+  const windows = defaultSubmitWindows()
   for (const row of results) {
     const key = row.day === 1 ? 'day1' : row.day === 2 ? 'day2' : null
     if (key) windows[key] = { from: row.accept_from, until: row.accept_until }
@@ -223,60 +224,64 @@ async function getWindows(env: Env): Promise<SubmitWindows> {
   return windows
 }
 
+/**
+ * 0 with no rehearsal running, 1 while one does. Inlined into each statement so a query
+ * scopes itself without a round trip to look the flag up first.
+ */
+const TEST_SCOPE = '(SELECT COUNT(*) FROM test_session)'
+
+async function getTestSince(env: Env): Promise<TestSince> {
+  const row = await env.DB.prepare('SELECT started_at FROM test_session WHERE id = 1').first<{
+    started_at: number
+  }>()
+  return row?.started_at ?? null
+}
+
+/** A token issued to a group outside `STATUS_ORG_IDS` is not enough: such rows never show. */
 async function fetchStatuses(env: Env): Promise<OrgStatus[]> {
   const { results } = await env.DB.prepare(
-    'SELECT org_id, sales, congestion, updated_at FROM org_status',
+    `SELECT org_id, sales, congestion, updated_at FROM org_status WHERE test = ${TEST_SCOPE}`,
   ).all<StatusRow>()
-  return results.map(toOrgStatus)
-}
-
-async function fetchPublicStatuses(env: Env): Promise<OrgStatus[]> {
-  const { results } = await env.DB.prepare(
-    `SELECT org_id, sales, congestion, updated_at FROM org_status
-     WHERE org_id NOT IN (SELECT org_id FROM hidden_orgs)`,
-  ).all<StatusRow>()
-  return results.map(toOrgStatus)
-}
-
-async function fetchHiddenOrgs(env: Env): Promise<string[]> {
-  const { results } = await env.DB.prepare('SELECT org_id FROM hidden_orgs ORDER BY org_id').all<{
-    org_id: string
-  }>()
-  return results.map((row) => row.org_id)
-}
-
-async function fetchOrgIds(env: Env): Promise<string[]> {
-  const { results } = await env.DB.prepare('SELECT org_id FROM org_tokens ORDER BY org_id').all<{
-    org_id: string
-  }>()
-  return results.map((row) => row.org_id)
+  return results.map(toOrgStatus).filter((status) => isStatusOrg(status.orgId))
 }
 
 async function getAllStatuses(env: Env): Promise<Response> {
   const headers = { 'Cache-Control': `public, max-age=${PUBLIC_STATUS_MAX_AGE}` }
-  const windows = await getWindows(env)
-  if (!isSubmitOpen(windows, Math.floor(Date.now() / 1000))) return json([], 200, headers)
-  return json(await fetchPublicStatuses(env), 200, headers)
+  const [windows, testSince] = await Promise.all([getWindows(env), getTestSince(env)])
+  // Closed is the common case off-festival, so the statuses are only read once they can show.
+  const open = testSince !== null || isSubmitOpen(windows, Math.floor(Date.now() / 1000))
+  if (!open) return json([], 200, headers)
+  return json(await fetchStatuses(env), 200, headers)
 }
 
 async function getMe(request: Request, env: Env): Promise<Response> {
   const auth = await authorize(request, env)
   if (!auth) return json({ error: 'unauthorized' }, 401)
-  const windows = await getWindows(env)
   if (auth.kind === 'admin') {
-    const [orgs, statuses, hiddenOrgs] = await Promise.all([
-      fetchOrgIds(env),
+    const [windows, testSince, statuses] = await Promise.all([
+      getWindows(env),
+      getTestSince(env),
       fetchStatuses(env),
-      fetchHiddenOrgs(env),
     ])
-    return json({ admin: true, orgs, windows, statuses, hiddenOrgs })
+    return json({ admin: true, windows, testSince, statuses })
   }
-  const row = await env.DB.prepare(
-    'SELECT org_id, sales, congestion, updated_at FROM org_status WHERE org_id = ?1',
-  )
-    .bind(auth.orgId)
-    .first<StatusRow>()
-  return json({ orgId: auth.orgId, status: row ? toOrgStatus(row) : null, windows })
+  const [windows, testSince, row] = await Promise.all([
+    getWindows(env),
+    getTestSince(env),
+    env.DB.prepare(
+      `SELECT org_id, sales, congestion, updated_at FROM org_status
+       WHERE org_id = ?1 AND test = ${TEST_SCOPE}`,
+    )
+      .bind(auth.orgId)
+      .first<StatusRow>(),
+  ])
+  return json({
+    orgId: auth.orgId,
+    status: row ? toOrgStatus(row) : null,
+    windows,
+    testSince,
+    accepted: isStatusOrg(auth.orgId),
+  })
 }
 
 async function postStatus(request: Request, env: Env): Promise<Response> {
@@ -300,34 +305,36 @@ async function postStatus(request: Request, env: Env): Promise<Response> {
   }
 
   const now = Math.floor(Date.now() / 1000)
+  const [testSince, windows] = await Promise.all([getTestSince(env), getWindows(env)])
   let orgId: string
   if (auth.kind === 'admin') {
     if (typeof bodyOrgId !== 'string' || bodyOrgId === '') {
       return json({ error: 'invalid_value' }, 400)
     }
-    const org = await env.DB.prepare('SELECT org_id FROM org_tokens WHERE org_id = ?1')
-      .bind(bodyOrgId)
-      .first()
-    if (!org) return json({ error: 'unknown_org' }, 400)
+    if (!isStatusOrg(bodyOrgId)) return json({ error: 'unknown_org' }, 400)
     orgId = bodyOrgId
   } else {
-    if (!isSubmitOpen(await getWindows(env), now)) {
-      return json({ error: 'closed' }, 403)
-    }
+    const permission = submitAllow(
+      windows,
+      now,
+      { admin: false, accepted: isStatusOrg(auth.orgId) },
+      testSince !== null,
+    )
+    if (!permission.allowed) return json({ error: permission.refusal }, 403)
     orgId = auth.orgId
   }
 
   const [updated] = await env.DB.batch<StatusRow>([
     env.DB.prepare(
-      `INSERT INTO org_status (org_id, sales, congestion, updated_at)
-       VALUES (?1, ?2, ?3, ?4)
-       ON CONFLICT (org_id) DO UPDATE
+      `INSERT INTO org_status (org_id, test, sales, congestion, updated_at)
+       VALUES (?1, ${TEST_SCOPE}, ?2, ?3, ?4)
+       ON CONFLICT (org_id, test) DO UPDATE
        SET sales = excluded.sales, congestion = excluded.congestion, updated_at = excluded.updated_at
        RETURNING org_id, sales, congestion, updated_at`,
     ).bind(orgId, sales, congestionValue, now),
     env.DB.prepare(
-      `INSERT INTO org_status_log (org_id, sales, congestion, source, created_at)
-       VALUES (?1, ?2, ?3, ?4, ?5)`,
+      `INSERT INTO org_status_log (org_id, test, sales, congestion, source, created_at)
+       VALUES (?1, ${TEST_SCOPE}, ?2, ?3, ?4, ?5)`,
     ).bind(orgId, sales, congestionValue, auth.kind, now),
   ])
   const row = updated?.results[0]
@@ -340,41 +347,18 @@ async function getHistory(request: Request, env: Env): Promise<Response> {
   if (auth instanceof Response) return auth
 
   const orgId = new URL(request.url).searchParams.get('orgId')
-  const columns = 'SELECT org_id, sales, congestion, source, created_at FROM org_status_log'
+  const columns = `SELECT org_id, sales, congestion, source, created_at FROM org_status_log
+     WHERE test = ${TEST_SCOPE}`
   const query = orgId
-    ? env.DB.prepare(
-        `${columns} WHERE org_id = ?1 ORDER BY created_at DESC, id DESC LIMIT ?2`,
-      ).bind(orgId, HISTORY_LIMIT)
-    : env.DB.prepare(`${columns} ORDER BY created_at DESC, id DESC LIMIT ?1`).bind(HISTORY_LIMIT)
+    ? env.DB.prepare(`${columns} AND org_id = ?1 ORDER BY created_at DESC, id DESC LIMIT ?2`).bind(
+        orgId,
+        STATUS_HISTORY_LIMIT,
+      )
+    : env.DB.prepare(`${columns} ORDER BY created_at DESC, id DESC LIMIT ?1`).bind(
+        STATUS_HISTORY_LIMIT,
+      )
   const { results } = await query.all<StatusLogRow>()
   return json(results.map(toHistoryEntry))
-}
-
-async function putHiddenOrgs(request: Request, env: Env): Promise<Response> {
-  const auth = await requireAdmin(request, env)
-  if (auth instanceof Response) return auth
-
-  let body: unknown
-  try {
-    body = await request.json()
-  } catch {
-    return json({ error: 'invalid_json' }, 400)
-  }
-  const { hidden } = (body ?? {}) as Record<string, unknown>
-  if (!Array.isArray(hidden) || hidden.some((id) => typeof id !== 'string')) {
-    return json({ error: 'invalid_value' }, 400)
-  }
-
-  const ids = [...new Set(hidden as string[])].sort()
-  const known = new Set(await fetchOrgIds(env))
-  if (ids.some((id) => !known.has(id))) return json({ error: 'unknown_org' }, 400)
-
-  const insert = env.DB.prepare('INSERT INTO hidden_orgs (org_id) VALUES (?1)')
-  await env.DB.batch([
-    env.DB.prepare('DELETE FROM hidden_orgs'),
-    ...ids.map((id) => insert.bind(id)),
-  ])
-  return json({ hidden: ids })
 }
 
 async function putWindow(request: Request, env: Env): Promise<Response> {
@@ -387,17 +371,9 @@ async function putWindow(request: Request, env: Env): Promise<Response> {
   } catch {
     return json({ error: 'invalid_json' }, 400)
   }
-  const isEpochOrNull = (value: unknown): value is number | null =>
-    value === null || (typeof value === 'number' && Number.isSafeInteger(value))
-  const parseWindow = (value: unknown): SubmitWindow | null => {
-    const { from, until } = (value ?? {}) as Record<string, unknown>
-    if (!isEpochOrNull(from) || !isEpochOrNull(until)) return null
-    if (from !== null && until !== null && from > until) return null
-    return { from, until }
-  }
   const raw = (body ?? {}) as Record<string, unknown>
-  const day1 = parseWindow(raw.day1)
-  const day2 = parseWindow(raw.day2)
+  const day1 = parseSubmitWindow(raw.day1)
+  const day2 = parseSubmitWindow(raw.day2)
   if (!day1 || !day2) return json({ error: 'invalid_value' }, 400)
 
   const upsert = env.DB.prepare(
@@ -410,18 +386,34 @@ async function putWindow(request: Request, env: Env): Promise<Response> {
   return json({ day1, day2 })
 }
 
-function parseOrgIds(value: string): string[] {
-  try {
-    const parsed: unknown = JSON.parse(value)
-    return Array.isArray(parsed) && parsed.every((id) => typeof id === 'string') ? parsed : []
-  } catch {
-    return []
-  }
+async function startTest(request: Request, env: Env): Promise<Response> {
+  const auth = await requireAdmin(request, env)
+  if (auth instanceof Response) return auth
+
+  // A rehearsal already running keeps its start; the test tables carry over untouched.
+  await env.DB.prepare(
+    'INSERT INTO test_session (id, started_at) VALUES (1, ?1) ON CONFLICT (id) DO NOTHING',
+  )
+    .bind(Math.floor(Date.now() / 1000))
+    .run()
+  return json({ testSince: await getTestSince(env) })
+}
+
+async function stopTest(request: Request, env: Env): Promise<Response> {
+  const auth = await requireAdmin(request, env)
+  if (auth instanceof Response) return auth
+
+  // Only the rehearsal's own tables are emptied: the real data was never written to.
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM org_status_log WHERE test = 1'),
+    env.DB.prepare('DELETE FROM org_status WHERE test = 1'),
+    env.DB.prepare('DELETE FROM test_session WHERE id = 1'),
+  ])
+  return json({ testSince: null })
 }
 
 function toSignageConfig(row: SignageConfigRow): SignageConfig {
   return {
-    orgIds: parseOrgIds(row.org_ids),
     activeVideoKey: row.active_video_key,
     videoStartAt: row.video_start_at,
     activeAudioKey: row.active_audio_key,
@@ -435,13 +427,12 @@ function toSignageConfig(row: SignageConfigRow): SignageConfig {
 
 async function fetchSignageConfig(env: Env): Promise<SignageConfig> {
   const row = await env.DB.prepare(
-    `SELECT org_ids, active_video_key, video_start_at, active_audio_key, audio_start_at,
+    `SELECT active_video_key, video_start_at, active_audio_key, audio_start_at,
             footer_text, alert_enabled, alert_text, updated_at
      FROM signage_config WHERE id = 1`,
   ).first<SignageConfigRow>()
   if (!row) {
     return {
-      orgIds: await fetchOrgIds(env),
       activeVideoKey: null,
       videoStartAt: null,
       activeAudioKey: null,
@@ -452,20 +443,14 @@ async function fetchSignageConfig(env: Env): Promise<SignageConfig> {
       updatedAt: 0,
     }
   }
-  const config = toSignageConfig(row)
-  return config.orgIds.length > 0 ? config : { ...config, orgIds: await fetchOrgIds(env) }
+  return toSignageConfig(row)
 }
 
 async function getSignage(request: Request, env: Env): Promise<Response> {
   const auth = await authorizeSignage(request, env)
   if (!auth) return json({ error: 'unauthorized' }, 401)
-  const [config, allStatuses] = await Promise.all([fetchSignageConfig(env), fetchStatuses(env)])
-  const selected = new Set(config.orgIds)
-  const payload: SignagePayload = {
-    config,
-    statuses: allStatuses.filter((status) => selected.has(status.orgId)),
-    version: config.updatedAt,
-  }
+  const [config, statuses] = await Promise.all([fetchSignageConfig(env), fetchStatuses(env)])
+  const payload: SignagePayload = { config, statuses, version: config.updatedAt }
   const headers =
     auth.kind === 'admin' ? { 'Set-Cookie': sessionCookie(auth.token, request.url) } : undefined
   return json(payload, 200, headers)
@@ -485,10 +470,6 @@ async function putSignageConfig(request: Request, env: Env): Promise<Response> {
   const activeAudioKey = raw.activeAudioKey ?? null
   const audioStartAt = raw.audioStartAt ?? null
   if (
-    !Array.isArray(raw.orgIds) ||
-    raw.orgIds.length === 0 ||
-    !raw.orgIds.every((id) => typeof id === 'string') ||
-    new Set(raw.orgIds).size !== raw.orgIds.length ||
     (raw.activeVideoKey !== null && typeof raw.activeVideoKey !== 'string') ||
     (videoStartAt !== null && !Number.isSafeInteger(videoStartAt)) ||
     (activeAudioKey !== null && typeof activeAudioKey !== 'string') ||
@@ -502,10 +483,6 @@ async function putSignageConfig(request: Request, env: Env): Promise<Response> {
     return json({ error: 'invalid_value' }, 400)
   }
 
-  const knownOrgIds = new Set(await fetchOrgIds(env))
-  if (!raw.orgIds.every((id) => knownOrgIds.has(id as string))) {
-    return json({ error: 'unknown_org' }, 400)
-  }
   const active: Record<SignageMediaKind, string | null> = {
     video: raw.activeVideoKey,
     audio: activeAudioKey,
@@ -519,15 +496,14 @@ async function putSignageConfig(request: Request, env: Env): Promise<Response> {
 
   const row = await env.DB.prepare(
     `UPDATE signage_config
-     SET org_ids = ?1, active_video_key = ?2, video_start_at = ?3, active_audio_key = ?4,
-         audio_start_at = ?5, footer_text = ?6, alert_enabled = ?7, alert_text = ?8,
+     SET active_video_key = ?1, video_start_at = ?2, active_audio_key = ?3,
+         audio_start_at = ?4, footer_text = ?5, alert_enabled = ?6, alert_text = ?7,
          updated_at = unixepoch()
      WHERE id = 1
-     RETURNING org_ids, active_video_key, video_start_at, active_audio_key, audio_start_at,
+     RETURNING active_video_key, video_start_at, active_audio_key, audio_start_at,
                footer_text, alert_enabled, alert_text, updated_at`,
   )
     .bind(
-      JSON.stringify(raw.orgIds),
       raw.activeVideoKey,
       videoStartAt,
       activeAudioKey,
@@ -821,12 +797,13 @@ export default {
       if (request.method === 'GET') return getHistory(request, env)
       return json({ error: 'method_not_allowed' }, 405)
     }
-    if (pathname === '/api/orgs') {
-      if (request.method === 'PUT') return putHiddenOrgs(request, env)
-      return json({ error: 'method_not_allowed' }, 405)
-    }
     if (pathname === '/api/window') {
       if (request.method === 'PUT') return putWindow(request, env)
+      return json({ error: 'method_not_allowed' }, 405)
+    }
+    if (pathname === '/api/test') {
+      if (request.method === 'POST') return startTest(request, env)
+      if (request.method === 'DELETE') return stopTest(request, env)
       return json({ error: 'method_not_allowed' }, 405)
     }
     if (pathname === '/api/signage') {

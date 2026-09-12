@@ -50,3 +50,6 @@ docs/.vitepress/cache
 
 # Issued status tokens (distribution list)
 apps/status/tokens.*.csv
+
+# Panda CSS
+apps/status/styled-system
