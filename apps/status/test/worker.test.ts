@@ -1,9 +1,23 @@
-import { beforeEach, describe, expect, it } from 'vite-plus/test'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { env, SELF } from 'cloudflare:test'
+import { STATUS_ORG_IDS } from '../../../shared/status'
+import { festivalDates, festivalHours } from '../../../shared/timetable'
 
 const origin = 'https://happo-sai-status.test.workers.dev'
 const siteOrigin = 'https://happo-sai.pages.dev'
 const adminHeaders = { Authorization: 'Bearer test-admin' }
+
+function jstDate(sec: number): string {
+  return new Date(sec * 1000).toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' })
+}
+
+function jstClock(sec: number): string {
+  return new Date(sec * 1000).toLocaleTimeString('en-GB', {
+    timeZone: 'Asia/Tokyo',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
 
 async function tokenHash(token: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token))
@@ -20,7 +34,12 @@ async function issueViewerCookie(): Promise<string> {
   return bootstrap.headers.get('Set-Cookie')!.split(';')[0]!
 }
 
+// Stalls may only send while the festival is open, so every test sits inside Day 1.
+const FESTIVAL_NOON = new Date('2026-09-26T12:00:00+09:00')
+
 beforeEach(async () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(FESTIVAL_NOON)
   const [orgHash, adminHash] = await Promise.all([tokenHash('test-org'), tokenHash('test-admin')])
   await env.DB.batch([
     env.DB.prepare('DELETE FROM org_status'),
@@ -28,21 +47,25 @@ beforeEach(async () => {
     env.DB.prepare('DELETE FROM org_tokens'),
     env.DB.prepare('DELETE FROM admin_tokens'),
     env.DB.prepare('DELETE FROM signage_viewer_auth'),
-    env.DB.prepare('DELETE FROM hidden_orgs'),
     env.DB.prepare('DELETE FROM submit_windows'),
+    env.DB.prepare('DELETE FROM test_session'),
     env.DB.prepare(
       `UPDATE signage_config
-       SET org_ids = '[]', active_video_key = NULL, video_start_at = NULL,
+       SET active_video_key = NULL, video_start_at = NULL,
            active_audio_key = NULL, audio_start_at = NULL, footer_text = '',
            alert_enabled = 0, alert_text = '', updated_at = unixepoch()
        WHERE id = 1`,
     ),
     env.DB.prepare('INSERT INTO org_tokens (token_hash, org_id) VALUES (?1, ?2)').bind(
       orgHash,
-      'c1-1',
+      'c2-3',
     ),
     env.DB.prepare('INSERT INTO admin_tokens (token_hash) VALUES (?1)').bind(adminHash),
   ])
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 describe('signage authentication and configuration', () => {
@@ -77,27 +100,16 @@ describe('signage authentication and configuration', () => {
     ).toBe(200)
   })
 
-  it('stores ordered organizations and returns statuses outside submission windows', async () => {
-    const secondOrgHash = await tokenHash('test-org-2')
-    await env.DB.batch([
-      env.DB.prepare('INSERT INTO org_tokens (token_hash, org_id) VALUES (?1, ?2)').bind(
-        secondOrgHash,
-        'c1-2',
-      ),
-      env.DB.prepare(
-        `INSERT INTO org_status (org_id, sales, congestion, updated_at)
-         VALUES ('c1-2', 'available', 'low', unixepoch())`,
-      ),
-      env.DB.prepare(
-        `INSERT INTO submit_windows (day, accept_from, accept_until) VALUES (1, 1, 2)
-         ON CONFLICT (day) DO UPDATE SET accept_from = 1, accept_until = 2`,
-      ),
-    ])
+  it('lists the status organizations and keeps statuses while the public list is closed', async () => {
+    vi.setSystemTime(new Date('2026-09-26T17:00:00+09:00'))
+    await env.DB.prepare(
+      `INSERT INTO org_status (org_id, sales, congestion, updated_at)
+       VALUES ('c2-5', 'available', 'low', unixepoch())`,
+    ).run()
     const saved = await SELF.fetch(`${origin}/api/signage`, {
       method: 'PUT',
       headers: { ...adminHeaders, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        orgIds: ['c1-2', 'c1-1'],
         activeVideoKey: null,
         videoStartAt: 1790000000,
         footerText: '文化祭開催中',
@@ -110,21 +122,19 @@ describe('signage authentication and configuration', () => {
     const cookie = await issueViewerCookie()
     const response = await SELF.fetch(`${origin}/api/signage`, { headers: { Cookie: cookie } })
     const payload = (await response.json()) as {
-      config: { orgIds: string[]; videoStartAt: number | null }
+      config: { videoStartAt: number | null }
       statuses: Array<{ orgId: string }>
     }
-    expect(payload.config.orgIds).toEqual(['c1-2', 'c1-1'])
     expect(payload.config.videoStartAt).toBe(1790000000)
-    expect(payload.statuses).toEqual([expect.objectContaining({ orgId: 'c1-2' })])
+    expect(payload.statuses).toEqual([expect.objectContaining({ orgId: 'c2-5' })])
     expect(await (await SELF.fetch(`${siteOrigin}/api/status`)).json()).toEqual([])
   })
 
-  it('validates organization IDs and text limits', async () => {
+  it('validates times and text limits', async () => {
     const response = await SELF.fetch(`${origin}/api/signage`, {
       method: 'PUT',
       headers: { ...adminHeaders, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        orgIds: ['missing'],
         activeVideoKey: null,
         videoStartAt: 'noon',
         footerText: 'x'.repeat(121),
@@ -168,9 +178,7 @@ describe('signage media', () => {
       httpMetadata: { contentType: 'video/mp4' },
       customMetadata: { originalName: 'test.mp4' },
     })
-    await env.DB.prepare(
-      `UPDATE signage_config SET org_ids = '["c1-1"]', active_video_key = ?1 WHERE id = 1`,
-    )
+    await env.DB.prepare(`UPDATE signage_config SET active_video_key = ?1 WHERE id = 1`)
       .bind(key)
       .run()
     const cookie = await issueViewerCookie()
@@ -220,7 +228,6 @@ describe('signage media', () => {
       method: 'PUT',
       headers: { ...adminHeaders, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        orgIds: ['c1-1'],
         activeVideoKey: null,
         videoStartAt: null,
         activeAudioKey: key,
@@ -274,53 +281,40 @@ describe('public status endpoint', () => {
   })
 })
 
-describe('public organizations', () => {
-  it('hides the selected organizations from the public list only', async () => {
-    await env.DB.batch([
-      env.DB.prepare('INSERT INTO org_tokens (token_hash, org_id) VALUES (?1, ?2)').bind(
-        await tokenHash('test-org-2'),
-        'c1-2',
-      ),
-      env.DB.prepare(
-        `INSERT INTO org_status (org_id, sales, congestion, updated_at) VALUES
-         ('c1-1', 'available', 'low', unixepoch()), ('c1-2', 'available', 'low', unixepoch())`,
-      ),
-    ])
+describe('status organizations', () => {
+  it('accepts the food stalls only, whatever tokens exist', async () => {
+    await env.DB.prepare('INSERT INTO org_tokens (token_hash, org_id) VALUES (?1, ?2)')
+      .bind(await tokenHash('test-org-2'), 'c1-1')
+      .run()
+    const post = (token: string, body: Record<string, unknown>) =>
+      SELF.fetch(`${origin}/api/status`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
 
-    const saved = await SELF.fetch(`${origin}/api/orgs`, {
-      method: 'PUT',
-      headers: { ...adminHeaders, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ hidden: ['c1-2'] }),
-    })
-    expect(saved.status).toBe(200)
+    const refused = await post('test-org-2', { sales: 'available', congestion: 'low' })
+    expect(refused.status).toBe(403)
+    expect(await refused.json()).toEqual({ error: 'not_accepted' })
 
-    const publicList = (await (await SELF.fetch(`${siteOrigin}/api/status`)).json()) as Array<{
-      orgId: string
-    }>
-    expect(publicList.map((status) => status.orgId)).toEqual(['c1-1'])
+    const me = (await (
+      await SELF.fetch(`${origin}/api/me`, { headers: { Authorization: 'Bearer test-org-2' } })
+    ).json()) as { accepted: boolean }
+    expect(me.accepted).toBe(false)
 
-    const me = (await (await SELF.fetch(`${origin}/api/me`, { headers: adminHeaders })).json()) as {
-      statuses: Array<{ orgId: string }>
-      hiddenOrgs: string[]
-    }
-    expect(me.statuses.map((status) => status.orgId).sort()).toEqual(['c1-1', 'c1-2'])
-    expect(me.hiddenOrgs).toEqual(['c1-2'])
-  })
-
-  it('rejects unknown organizations and non-admin callers', async () => {
-    const unknown = await SELF.fetch(`${origin}/api/orgs`, {
-      method: 'PUT',
-      headers: { ...adminHeaders, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ hidden: ['missing'] }),
-    })
+    expect((await post('test-org', { sales: 'available', congestion: 'low' })).status).toBe(200)
+    expect(
+      (await post('test-admin', { sales: 'soldout', congestion: null, orgId: 'c2-5' })).status,
+    ).toBe(200)
+    const unknown = await post('test-admin', { sales: 'soldout', congestion: null, orgId: 'c1-1' })
     expect(unknown.status).toBe(400)
 
-    const forbidden = await SELF.fetch(`${origin}/api/orgs`, {
-      method: 'PUT',
-      headers: { Authorization: 'Bearer test-org', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ hidden: [] }),
-    })
-    expect(forbidden.status).toBe(403)
+    const admin = (await (
+      await SELF.fetch(`${origin}/api/me`, { headers: adminHeaders })
+    ).json()) as {
+      statuses: Array<{ orgId: string }>
+    }
+    expect(admin.statuses.map((status) => status.orgId).sort()).toEqual(['c2-3', 'c2-5'])
   })
 })
 
@@ -335,10 +329,10 @@ describe('status history', () => {
 
     expect((await post('available', 'low', 'test-org')).status).toBe(200)
     expect((await post('low', 'high', 'test-org')).status).toBe(200)
-    expect((await post('soldout', null, 'test-admin', 'c1-1')).status).toBe(200)
+    expect((await post('soldout', null, 'test-admin', 'c2-3')).status).toBe(200)
 
     const history = (await (
-      await SELF.fetch(`${origin}/api/history?orgId=c1-1`, { headers: adminHeaders })
+      await SELF.fetch(`${origin}/api/history?orgId=c2-3`, { headers: adminHeaders })
     ).json()) as Array<{ orgId: string; sales: string; congestion: string | null; source: string }>
 
     expect(history.map((entry) => [entry.sales, entry.congestion, entry.source])).toEqual([
@@ -346,13 +340,13 @@ describe('status history', () => {
       ['low', 'high', 'org'],
       ['available', 'low', 'org'],
     ])
-    expect(history.every((entry) => entry.orgId === 'c1-1')).toBe(true)
+    expect(history.every((entry) => entry.orgId === 'c2-3')).toBe(true)
 
     const current = (await (
       await SELF.fetch(`${origin}/api/me`, { headers: adminHeaders })
     ).json()) as { statuses: Array<{ sales: string }> }
     expect(current.statuses).toEqual([
-      expect.objectContaining({ orgId: 'c1-1', sales: 'soldout', congestion: null }),
+      expect.objectContaining({ orgId: 'c2-3', sales: 'soldout', congestion: null }),
     ])
   })
 
@@ -392,5 +386,152 @@ describe('public list domain', () => {
     })
     expect(posted.status).toBe(200)
     expect((await SELF.fetch(`${origin}/api/me`, { headers: adminHeaders })).status).toBe(200)
+  })
+})
+
+describe('submit windows', () => {
+  it('defaults to the opening hours and follows what the admin saves', async () => {
+    const me = async () =>
+      (await (await SELF.fetch(`${origin}/api/me`, { headers: adminHeaders })).json()) as {
+        windows: { day1: { from: number; until: number } }
+      }
+    const post = () =>
+      SELF.fetch(`${origin}/api/status`, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer test-org', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sales: 'available', congestion: 'low' }),
+      })
+
+    const defaults = (await me()).windows
+    expect(jstDate(defaults.day1.from)).toBe(festivalDates[0])
+    expect(jstClock(defaults.day1.from)).toBe(festivalHours.open)
+    expect(jstClock(defaults.day1.until)).toBe(festivalHours.close)
+
+    vi.setSystemTime(new Date('2026-09-26T17:00:00+09:00'))
+    expect((await post()).status).toBe(403)
+
+    const saved = await SELF.fetch(`${origin}/api/window`, {
+      method: 'PUT',
+      headers: { ...adminHeaders, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        day1: { from: defaults.day1.from, until: defaults.day1.until + 2 * 3600 },
+        day2: { from: 1, until: 2 },
+      }),
+    })
+    expect(saved.status).toBe(200)
+    expect((await me()).windows.day1.until).toBe(defaults.day1.until + 2 * 3600)
+    expect((await post()).status).toBe(200)
+
+    const invalid = await SELF.fetch(`${origin}/api/window`, {
+      method: 'PUT',
+      headers: { ...adminHeaders, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ day1: { from: 5, until: 5 }, day2: { from: 1, until: 2 } }),
+    })
+    expect(invalid.status).toBe(400)
+  })
+})
+
+describe('test session', () => {
+  const post = (token: string, body: Record<string, unknown>) =>
+    SELF.fetch(`${origin}/api/status`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+  const me = async (token: string) =>
+    (await (
+      await SELF.fetch(`${origin}/api/me`, { headers: { Authorization: `Bearer ${token}` } })
+    ).json()) as { testSince: number | null; status: { sales: string; updatedAt: number } | null }
+  const history = async () =>
+    (await (
+      await SELF.fetch(`${origin}/api/history?orgId=c2-3`, { headers: adminHeaders })
+    ).json()) as { sales: string }[]
+
+  it('opens submissions outside the hours while it runs', async () => {
+    vi.setSystemTime(new Date('2026-09-25T12:00:00+09:00'))
+    const closed = await post('test-org', { sales: 'available', congestion: 'low' })
+    expect(closed.status).toBe(403)
+    expect(await closed.json()).toEqual({ error: 'closed' })
+    expect(
+      ((await SELF.fetch(`${siteOrigin}/api/status`).then((r) => r.json())) as []).length,
+    ).toBe(0)
+
+    const started = await SELF.fetch(`${origin}/api/test`, {
+      method: 'POST',
+      headers: adminHeaders,
+    })
+    const { testSince } = (await started.json()) as { testSince: number }
+    expect(typeof testSince).toBe('number')
+    expect((await me('test-org')).testSince).toBe(testSince)
+
+    expect((await post('test-org', { sales: 'available', congestion: 'low' })).status).toBe(200)
+    expect(
+      ((await SELF.fetch(`${siteOrigin}/api/status`).then((r) => r.json())) as []).length,
+    ).toBe(1)
+
+    await SELF.fetch(`${origin}/api/test`, { method: 'DELETE', headers: adminHeaders })
+    expect((await me('test-org')).testSince).toBeNull()
+    expect((await post('test-org', { sales: 'available', congestion: 'low' })).status).toBe(403)
+  })
+
+  it('is admin only', async () => {
+    for (const method of ['POST', 'DELETE']) {
+      const response = await SELF.fetch(`${origin}/api/test`, {
+        method,
+        headers: { Authorization: 'Bearer test-org' },
+      })
+      expect(response.status).toBe(403)
+    }
+  })
+
+  it('keeps the rehearsal apart from the real data and empties it on stop', async () => {
+    const before = Math.floor(Date.now() / 1000) - 600
+    await env.DB.batch([
+      env.DB.prepare('INSERT INTO org_tokens (token_hash, org_id) VALUES (?1, ?2)').bind(
+        await tokenHash('test-org-2'),
+        'c2-5',
+      ),
+      env.DB.prepare(
+        'INSERT INTO org_status (org_id, sales, congestion, updated_at) VALUES (?1, ?2, ?3, ?4)',
+      ).bind('c2-3', 'partial', 'medium', before),
+      env.DB.prepare(
+        `INSERT INTO org_status_log (org_id, sales, congestion, source, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5)`,
+      ).bind('c2-3', 'partial', 'medium', 'org', before),
+    ])
+
+    await SELF.fetch(`${origin}/api/test`, { method: 'POST', headers: adminHeaders })
+    // Inside the rehearsal nothing real shows: the group starts from a blank slate.
+    expect((await me('test-org')).status).toBeNull()
+    expect(await history()).toEqual([])
+
+    expect((await post('test-org', { sales: 'soldout', congestion: null })).status).toBe(200)
+    expect((await post('test-org-2', { sales: 'available', congestion: 'low' })).status).toBe(200)
+    expect((await history()).map((entry) => entry.sales)).toEqual(['soldout'])
+    expect((await me('test-org')).status).toMatchObject({ sales: 'soldout' })
+    expect(
+      ((await SELF.fetch(`${siteOrigin}/api/status`).then((r) => r.json())) as []).length,
+    ).toBe(2)
+
+    const real = await env.DB.prepare(
+      'SELECT count(*) AS n FROM org_status_log WHERE test = 0',
+    ).first<{ n: number }>()
+    expect(real?.n).toBe(1)
+
+    const stopped = await SELF.fetch(`${origin}/api/test`, {
+      method: 'DELETE',
+      headers: adminHeaders,
+    })
+    expect(await stopped.json()).toEqual({ testSince: null })
+
+    expect((await history()).map((entry) => entry.sales)).toEqual(['partial'])
+    expect((await me('test-org')).status).toMatchObject({ sales: 'partial', updatedAt: before })
+    expect((await me('test-org-2')).status).toBeNull()
+    for (const table of ['org_status', 'org_status_log']) {
+      const left = await env.DB.prepare(`SELECT count(*) AS n FROM ${table} WHERE test = 1`).first<{
+        n: number
+      }>()
+      expect(left?.n).toBe(0)
+    }
   })
 })

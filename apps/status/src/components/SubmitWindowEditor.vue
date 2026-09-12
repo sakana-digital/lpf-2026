@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { SUBMIT_DAYS } from '@shared/status'
+import { computed, reactive } from 'vue'
+import { SUBMIT_DAYS, defaultSubmitWindows, parseSubmitWindow } from '@shared/status'
 import type { SubmitWindows } from '@shared/status'
 import { updateWindows } from '@/lib/api'
+import { useSaveState } from '@/composables/useSaveState'
 import { fromLocalInput, toLocalInput } from '@/lib/localDateTime'
+import { css, cx } from '@styled/css'
+import { button, control, hint, resultBadge, sectionLabel } from '@styled/recipes'
 
 const props = defineProps<{
   token: string
@@ -12,145 +15,112 @@ const props = defineProps<{
 
 const emit = defineEmits<{ updated: [SubmitWindows] }>()
 
-const DAY_LABELS: Record<(typeof SUBMIT_DAYS)[number], string> = {
-  day1: 'Day 1',
-  day2: 'Day 2',
-}
+type Day = (typeof SUBMIT_DAYS)[number]
 
-const fields = reactive(
-  Object.fromEntries(
+const DAY_LABELS: Record<Day, string> = { day1: 'Day 1', day2: 'Day 2' }
+
+function toFields(windows: SubmitWindows) {
+  return Object.fromEntries(
     SUBMIT_DAYS.map((day) => [
       day,
-      {
-        from: toLocalInput(props.windows[day].from),
-        until: toLocalInput(props.windows[day].until),
-      },
+      { from: toLocalInput(windows[day].from), until: toLocalInput(windows[day].until) },
     ]),
-  ) as Record<(typeof SUBMIT_DAYS)[number], { from: string; until: string }>,
-)
-
-const saving = ref(false)
-const saved = ref(false)
-const failed = ref(false)
-
-function clearFields() {
-  for (const day of SUBMIT_DAYS) {
-    fields[day].from = ''
-    fields[day].until = ''
-  }
+  ) as Record<Day, { from: string; until: string }>
 }
 
+const fields = reactive(toFields(props.windows))
+
+const { saving, saved, failed, save: runSave } = useSaveState()
+
+function resetToDefault() {
+  Object.assign(fields, toFields(defaultSubmitWindows()))
+}
+
+function parseDay(day: Day) {
+  return parseSubmitWindow({
+    from: fromLocalInput(fields[day].from),
+    until: fromLocalInput(fields[day].until),
+  })
+}
+
+const parsed = computed(() => {
+  const day1 = parseDay('day1')
+  const day2 = parseDay('day2')
+  return day1 && day2 ? { day1, day2 } : null
+})
+
 async function save() {
-  if (saving.value) return
-  saving.value = true
-  saved.value = false
-  failed.value = false
-  try {
-    const updated = await updateWindows(props.token, {
-      day1: { from: fromLocalInput(fields.day1.from), until: fromLocalInput(fields.day1.until) },
-      day2: { from: fromLocalInput(fields.day2.from), until: fromLocalInput(fields.day2.until) },
-    })
-    saved.value = true
-    emit('updated', updated)
-  } catch {
-    failed.value = true
-  } finally {
-    saving.value = false
-  }
+  if (!parsed.value) return
+  const { day1, day2 } = parsed.value
+  const updated = await runSave(() => updateWindows(props.token, { day1, day2 }))
+  if (updated) emit('updated', updated)
+}
+
+const styles = {
+  root: css({ display: 'flex', flexDirection: 'column' }),
+  heading: cx(sectionLabel(), css({ marginBottom: '6px' })),
+  day: css({ border: 'none', padding: 0, margin: '12px 0 0' }),
+  legend: css({ padding: 0, marginBottom: '6px', fontSize: '13px', fontWeight: 'bold' }),
+  fields: css({
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+    gap: '8px',
+  }),
+  field: cx(hint(), css({ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 })),
+  actions: css({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: '8px',
+    marginTop: 'auto',
+    paddingTop: '14px',
+  }),
+  result: css({ marginRight: 'auto' }),
 }
 </script>
 
 <template>
-  <section class="window-editor">
-    <h2 class="section-label">送信できる時間</h2>
-    <p class="hint">未設定の日は制限されません（両日未設定なら常に送信可）</p>
-    <fieldset v-for="day in SUBMIT_DAYS" :key="day" class="day">
-      <legend class="section-label">{{ DAY_LABELS[day] }}</legend>
-      <div class="fields">
-        <label class="hint">
+  <section :class="styles.root">
+    <h3 :class="styles.heading">受付時間</h3>
+    <p :class="hint()">
+      団体が送信できる時間です。初期値は開場時間で、両日とも終了が開始より後である必要があります。
+    </p>
+    <fieldset v-for="day in SUBMIT_DAYS" :key="day" :class="styles.day">
+      <legend :class="styles.legend">{{ DAY_LABELS[day] }}</legend>
+      <div :class="styles.fields">
+        <label :class="styles.field">
           <span>開始</span>
-          <input v-model="fields[day].from" type="datetime-local" />
+          <input v-model="fields[day].from" :class="control()" type="datetime-local" required />
         </label>
-        <label class="hint">
+        <label :class="styles.field">
           <span>終了</span>
-          <input v-model="fields[day].until" type="datetime-local" />
+          <input v-model="fields[day].until" :class="control()" type="datetime-local" required />
         </label>
       </div>
     </fieldset>
-    <p v-if="failed" class="result error" role="status">保存に失敗しました</p>
-    <p v-else-if="saved" class="result" role="status">保存しました</p>
-    <div class="actions">
-      <button type="button" class="clear outline-button" :disabled="saving" @click="clearFields">
-        クリア
+    <div :class="styles.actions">
+      <p v-if="failed" :class="cx(resultBadge({ tone: 'error' }), styles.result)" role="status">
+        保存に失敗しました。
+      </p>
+      <p v-else-if="saved" :class="cx(resultBadge(), styles.result)" role="status">
+        保存しました。
+      </p>
+      <button
+        type="button"
+        :class="button({ variant: 'ghost' })"
+        :disabled="saving"
+        @click="resetToDefault"
+      >
+        開場時間に戻す
       </button>
-      <button type="button" class="save outline-button" :disabled="saving" @click="save">
+      <button
+        type="button"
+        :class="button({ variant: 'primary' })"
+        :disabled="saving || !parsed"
+        @click="save"
+      >
         {{ saving ? '保存中…' : '時間を保存' }}
       </button>
     </div>
   </section>
 </template>
-
-<style scoped>
-.window-editor {
-  margin-top: 16px;
-  padding: 24px 20px 20px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-
-  .hint {
-    margin-top: 2px;
-  }
-
-  .result {
-    margin: 12px auto 0;
-  }
-
-  .day {
-    border: none;
-    padding: 0;
-    margin: 12px 0 0;
-
-    legend {
-      padding: 0;
-      margin-bottom: 6px;
-      font-size: 12px;
-    }
-  }
-
-  .fields {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 8px;
-
-    label {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 0;
-
-      input {
-        width: 100%;
-        min-width: 0;
-        padding: 10px 8px;
-        border: 1px solid var(--color-border);
-        background: var(--color-surface-soft);
-        color: var(--color-text);
-        font-family: inherit;
-        font-size: 13px;
-        color-scheme: dark;
-      }
-    }
-  }
-
-  .actions {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 8px;
-    margin-top: 16px;
-
-    .clear {
-      color: var(--color-text-mute);
-    }
-  }
-}
-</style>

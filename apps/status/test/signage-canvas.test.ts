@@ -6,9 +6,8 @@ import SignageCanvas from '../src/components/SignageCanvas.vue'
 
 const orgIds = ['c1-1', 'c1-2', 'c1-3', 'c1-4', 'c1-5', 'c1-6', 'c1-7', 'c1-8', 'c1-9']
 
-function makeConfig(count: number, alertEnabled = false): SignageConfig {
+function makeConfig(alertEnabled = false): SignageConfig {
   return {
-    orgIds: orgIds.slice(0, count),
     activeVideoKey: null,
     videoStartAt: null,
     activeAudioKey: null,
@@ -20,12 +19,13 @@ function makeConfig(count: number, alertEnabled = false): SignageConfig {
   }
 }
 
-function render(config: SignageConfig, props: Record<string, unknown> = { preview: true }) {
+function render(config: SignageConfig, props: Record<string, unknown> = {}) {
   return renderToString(
     createSSRApp({
       render: () =>
         h(SignageCanvas, {
           config,
+          orgIds,
           statuses: [{ orgId: 'c1-1', sales: 'available', congestion: 'low', updatedAt: 1 }],
           ...props,
         }),
@@ -35,7 +35,7 @@ function render(config: SignageConfig, props: Record<string, unknown> = { previe
 
 function onSignage(videoStartAt: number | null) {
   return render(
-    { ...makeConfig(9), activeVideoKey: 'signage/videos/a.mp4', videoStartAt },
+    { ...makeConfig(), activeVideoKey: 'signage/videos/a.mp4', videoStartAt },
     { videoUrl: '/api/signage/video/a.mp4' },
   )
 }
@@ -44,7 +44,7 @@ const nowSec = Math.floor(Date.now() / 1000)
 
 describe('SignageCanvas', () => {
   it('renders organizations, statuses, footer and video fallback', async () => {
-    const html = await render(makeConfig(9))
+    const html = await render(makeConfig())
 
     expect(html).toContain('1年次1組')
     expect(html).toContain('1年次9組')
@@ -56,7 +56,7 @@ describe('SignageCanvas', () => {
   })
 
   it('lets an alert take the ticker over, keeping the heading', async () => {
-    const html = await render(makeConfig(9, true))
+    const html = await render(makeConfig(true))
 
     expect(html).toContain('INFORMATION')
     expect(html).toContain('速報テスト')
@@ -79,39 +79,29 @@ describe('SignageCanvas', () => {
 
   it('waits for the scheduled start before playing the audio', async () => {
     const audio = { activeAudioKey: 'signage/audios/a.mp3', audioStartAt: nowSec + 3600 }
-    const props = { audioUrl: '/api/signage/audio/a.mp3', preview: false }
-    const pending = await render({ ...makeConfig(9), ...audio }, props)
+    const props = { audioUrl: '/api/signage/audio/a.mp3' }
+    const pending = await render({ ...makeConfig(), ...audio }, props)
 
     expect(pending).not.toContain('<audio')
     // The tap has to happen before the audio is due, so the offer comes early.
     expect(pending).toContain('音声を有効にする')
 
-    const playing = await render({ ...makeConfig(9), ...audio, audioStartAt: nowSec - 1 }, props)
+    const playing = await render({ ...makeConfig(), ...audio, audioStartAt: nowSec - 1 }, props)
     expect(playing).toContain('<audio')
   })
 
   it('stays silent without a start time', async () => {
     const html = await render(
-      { ...makeConfig(9), activeAudioKey: 'signage/audios/a.mp3', audioStartAt: null },
-      { audioUrl: '/api/signage/audio/a.mp3', preview: false },
+      { ...makeConfig(), activeAudioKey: 'signage/audios/a.mp3', audioStartAt: null },
+      { audioUrl: '/api/signage/audio/a.mp3' },
     )
 
     expect(html).not.toContain('<audio')
     expect(html).not.toContain('音声を有効にする')
   })
 
-  it('ignores the schedule in the admin preview', async () => {
-    const html = await render(
-      { ...makeConfig(9), activeVideoKey: 'signage/videos/a.mp4', videoStartAt: nowSec + 3600 },
-      { preview: true, videoUrl: '/api/signage/video/a.mp4' },
-    )
-
-    expect(html).toContain('<video')
-    expect(html).not.toContain('音声を有効にする')
-  })
-
   it('keeps a page between eight and twelve rows', async () => {
-    expect(await render(makeConfig(5))).toContain('--rows:8')
-    expect(await render(makeConfig(9))).toContain('--rows:9')
+    expect(await render(makeConfig(), { orgIds: orgIds.slice(0, 5) })).toContain('--rows:8')
+    expect(await render(makeConfig())).toContain('--rows:9')
   })
 })

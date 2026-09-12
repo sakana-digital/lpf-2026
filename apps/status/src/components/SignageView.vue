@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { STATUS_ORG_IDS } from '@shared/status'
 import type { SignagePayload } from '@shared/status'
 import { clockOffset } from '@/lib/signageTimetable'
 import SignageCanvas from '@/components/SignageCanvas.vue'
+import { css } from '@styled/css'
 
 const REFRESH_MS = 60_000
 
@@ -41,55 +43,51 @@ onMounted(() => {
 })
 
 onUnmounted(() => clearInterval(timer))
+
+const styles = {
+  shell: css({
+    display: 'grid',
+    placeItems: 'center',
+    width: '100vw',
+    height: '100vh',
+    background:
+      'radial-gradient(circle, #555 0 2px, transparent 2px) 0 0 / 12px 12px, token(colors.signage.standby)',
+    color: 'signage.paper',
+    textAlign: 'center',
+  }),
+  box: css({
+    padding: '24px 32px',
+    border: '4px solid token(colors.signage.paper)',
+    background: 'signage.panel',
+  }),
+  title: css({
+    fontSize: 'clamp(24px, 3vw, 54px)',
+    fontWeight: 'black',
+    letterSpacing: '0.12em',
+  }),
+  note: css({ fontSize: 'clamp(12px, 1vw, 20px)', letterSpacing: '0.08em' }),
+}
 </script>
 
 <template>
   <SignageCanvas
     v-if="payload"
     :config="payload.config"
+    :org-ids="STATUS_ORG_IDS"
     :statuses="payload.statuses"
     :video-url="videoUrl"
     :audio-url="audioUrl"
     :connected="failures < 2"
     :clock-offset="offset"
   />
-  <main v-else class="signage-loading">
-    <div>
-      <p>{{ unauthorized ? '閲覧 URL が無効です' : 'SIGNAGE INITIALIZING' }}</p>
-      <small>{{
-        unauthorized ? '管理者から発行された URL を開いてください' : '接続しています'
+  <main v-else :class="styles.shell">
+    <div :class="styles.box">
+      <p :class="styles.title">
+        {{ unauthorized ? '閲覧 URL が無効です。' : 'SIGNAGE INITIALIZING' }}
+      </p>
+      <small :class="styles.note">{{
+        unauthorized ? '管理者から発行された URL を開いてください。' : '接続しています。'
       }}</small>
     </div>
   </main>
 </template>
-
-<style scoped>
-.signage-loading {
-  display: grid;
-  place-items: center;
-  width: 100vw;
-  height: 100vh;
-  background:
-    radial-gradient(circle, #555 0 2px, transparent 2px) 0 0 / 12px 12px,
-    #111;
-  color: #fff;
-  text-align: center;
-
-  div {
-    padding: 24px 32px;
-    border: 4px solid #fff;
-    background: #080808;
-  }
-
-  p {
-    font-size: clamp(24px, 3vw, 54px);
-    font-weight: var(--weight-black);
-    letter-spacing: 0.12em;
-  }
-
-  small {
-    font-size: clamp(12px, 1vw, 20px);
-    letter-spacing: 0.08em;
-  }
-}
-</style>

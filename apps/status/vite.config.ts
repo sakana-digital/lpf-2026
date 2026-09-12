@@ -22,6 +22,7 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@shared': fileURLToPath(new URL('../../shared', import.meta.url)),
+      '@styled': fileURLToPath(new URL('./styled-system', import.meta.url)),
     },
   },
 })
