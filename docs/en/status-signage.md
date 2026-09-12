@@ -8,7 +8,7 @@ There is no English UI. Japanese labels are quoted below exactly as they appear 
 
 ## Getting ready
 
-1. Ask an admin to issue a **viewing URL**, from the サイネージ (Signage) tab of the admin screen.
+1. Ask an admin to issue a **viewing URL**, from サイネージ (Signage) on the admin screen.
 2. Open that URL in the display device's browser.
    - Opening it saves the sign-in to the device.
    - It lasts about 30 days, so you can set the displays up the day before

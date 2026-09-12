@@ -16,7 +16,8 @@ bun run status:seed
 bun run status:dev
 ```
 
-- 入力 SPA は末尾に `?t=dev-token-c3-9`、管理者モードは `?t=dev-token-admin` をつけて開きます。
+- シードが入れるトークンは 2 件だけです。`http://localhost:8787/?t=dev-token-c2-3`（2年次3組）と `http://localhost:8787/?t=dev-token-admin`（管理者）で開きます。
+- 他の団体として開くには `bun run status:token` で全団体分を発行し、`apps/status/tokens.local.csv` の URL を使います（[トークン](#トークン)）。
 - サイネージは管理者画面の「サイネージ設定」で閲覧 URL を発行して開きます。
 - 本体サイトは `bun dev`（:5173）です。`/api` は vite の proxy で :8787 に転送されます。
 - 入力 SPA 自体を開発するときは `bun run status:dev:spa` を使います（別ポートの vite dev で、API は proxy で :8787 へ転送されます）。
@@ -93,7 +94,7 @@ bun run status:token -- --remote --admin
 平文は D1 に保存せず、SHA-256 ハッシュだけを `org_tokens.token_hash` と `admin_tokens.token_hash` に入れます。団体一覧は [shared/organizations.ts](../../shared/organizations.ts) から作ります。
 
 ```sh
-bun run status:token                      # ローカル D1 に全団体
+bun run status:token                      # ローカル D1 に食品販売・調理の全団体
 bun run status:token -- --remote          # 本番 D1 に全団体
 bun run status:token -- --remote <org_id> # 指定した団体だけ差し替え
 bun run status:token -- --remote --admin  # 管理者トークン
@@ -105,14 +106,20 @@ bun run status:token -- --remote --admin  # 管理者トークン
 
 ### 管理者モード
 
-管理者 URL でアクセスすると管理者モードになり、以下ができます。
+管理者 URL でアクセスすると管理画面になります。ヘッダー右のタブで「ステータス」と「設定」を切り替えます。
 
-- 団体をセレクトから選んで、任意の団体のステータスを代理更新できます。
-- 選んだ団体の更新履歴（新しい順に最大 200 件）を見られます。
-- ステータスを表示する団体、表示しない団体を選べます。
-- サイネージの表示団体・並び順、固定案内・速報、R2 の動画・音声、閲覧 URL を管理できます。
-- ステータスの送信可能時間を設定します。
-  - 両日とも未設定なら常に送信できます。設定済みの日は、そのいずれかの時間内なら送信できます。
+- 「ステータス」は固定の grid で、ステータス送信（団体のセレクト付き）と更新履歴が横並びです。「設定」は同じ区切りの grid に「サイネージ」（フッター・閲覧 URL・動画・音声）と「ステータス」（受付時間・テスト受付）が並びます。テスト受付は確認モーダルから開始・終了します。
+- 表示中のページ（`admin-page`）を localStorage に持ちます。
+- ウィンドウは `container-type: inline-size` のコンテナで、中身は自分の幅だけを見てレイアウトを変えます（ビューポート幅ではありません）。
+- 団体向けの送信画面も同じシェルを使います。ヘッダーは無く、ウィンドウはステータスだけです。
+
+できることは次のとおりです。
+
+- セレクトで団体を選んで、その団体のステータスを代理更新できます。
+- 「更新履歴」で、その団体の販売状況・混雑状況の推移（新しい順に最大 200 件）を折れ線グラフで見られます。ドラッグで移動、ホイールで拡大、`Day 1` / `Day 2` でその日に絞り、ダブルクリックで全期間に戻ります。グラフの計算は [historyChart.ts](src/lib/historyChart.ts) にあります。
+- ステータスを受け付ける団体は [shared/status.ts](../../shared/status.ts) の `STATUS_ORG_IDS`（`category` が `foodSales` / `cooking` の団体）で決め打ちです。他の団体は `POST /api/status` が 403 になり、公開サイトとサイネージにも出ません。サイネージはこの一覧を `org_id` 順で出します。
+- サイネージの固定案内・速報、R2 の動画・音声、閲覧 URL を管理できます。
+- 送信できる時間は「設定」の受付時間で決めます。未保存の日は [shared/timetable.ts](../../shared/timetable.ts) の `festivalDates` と `festivalHours`（両日 10:00-15:30）が初期値です（`submit_windows`）。
   - 時間外は団体トークンの `POST /api/status` が 403 になり、公開の `GET /api/status` は空配列を返します（本体サイトにステータスが表示されません）。
 
 ### サイネージ
@@ -125,6 +132,15 @@ bun run status:token -- --remote --admin  # 管理者トークン
 - 音声は `signage_config.audio_start_at` を過ぎたときに 1 回だけ再生します。文化祭終了時刻を入れて使います。null なら再生せず、プレビューでも鳴りません。
 - 自動再生は消音でしか始まらないため、端末で「音声を有効にする」を一度押しておく必要があります。動画と音声の両方に効きます。
 - 設定とステータスは 60 秒間隔で更新され、取得失敗時は最後に成功した表示を維持します。
+
+## スタイル
+
+[Panda CSS](https://panda-css.com/) を使います。`.vue` から静的に抽出するので、`css()` / `cva()` にはリテラルを渡します。
+
+- トークンとレシピは [theme/](theme/) にあり、[panda.config.ts](panda.config.ts) が読み込みます。生成物 `styled-system/` は `@styled/*` で参照し、gitignore 済みです（`bun run status:build` などが `panda codegen` を先に走らせます）。
+- 条件付きのスタイルは `:class="[a, cond && b]"` ではなく `cva` の variant にします。並べても打ち消せず、勝つのは配列の順ではなく生成 CSS の順だからです。
+- ダークが base で、`_osLight` が端末の設定に追従します。CSS だけで完結するのでスクリプトは要りません。サイネージが端末の設定に関わらずダークなのは、意味論トークンではなく `signage.*` で描いているからです。
+- サイネージは表示専用のため、テーマに追従しない `signage.*` トークンを別に持ちます。
 
 ## アーキテクチャ
 
@@ -158,7 +174,7 @@ flowchart LR
 - `GET /api/status`
   - Worker ドメイン（`*.workers.dev`）では 404 です。エッジキャッシュを迂回させないためです。
   - Pages Functions がエッジにキャッシュするので、D1 は最大 15 秒に 1 回しか読みません。
-  - `hidden_orgs` にある団体を除いて返します。管理者向けの `GET /api/me` は全団体を返します。
+  - `STATUS_ORG_IDS` の団体だけを返します。
 
 ### API
 
@@ -168,9 +184,10 @@ flowchart LR
 | `GET /api/me`      | Bearer                   | トークンに対応する団体と現在値             |
 | `POST /api/status` | Bearer                   | 自団体の `{ sales, congestion }` を UPSERT |
 | `GET /api/history` | Admin Bearer             | 更新履歴（`?orgId=` で団体を絞る）         |
-| `GET /api/signage` | Cookie / Admin Bearer    | サイネージ設定と選択団体の最新値           |
-| `PUT /api/orgs`    | Admin Bearer             | ステータスを表示しない団体の一覧を保存     |
+| `GET /api/signage` | Cookie / Admin Bearer    | サイネージ設定・対象団体・その最新値       |
 | `PUT /api/window`  | Admin Bearer             | Day 1 / Day 2 の送信可能時間を保存         |
+| `POST /api/test`   | Admin Bearer             | テスト受付を開始                           |
+| `DELETE /api/test` | Admin Bearer             | テスト受付を終了し、テスト分を消す         |
 
 管理者用の `/api/signage/*` では設定保存、閲覧 URL 発行、R2 Multipart Upload、動画・音声の選択と削除を行います。
 
@@ -181,6 +198,7 @@ flowchart LR
 - `source` は `org`（団体自身）か `admin`（管理者の代理更新）です。
 - `0011_status_history.sql` は過去分を復元できないため、ログは空から始まります。
 - 削除や期限切れはしません。
+- テスト受付中は `test = 1` の行に書き、読み出しも同じ行だけを見ます。終了時に `test = 1` を削除するだけなので、本番の行には影響しません。
 
 #### 各団体が持つ状態
 
