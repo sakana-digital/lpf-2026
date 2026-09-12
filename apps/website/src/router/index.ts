@@ -50,19 +50,15 @@ function exploreRoute(language: Language, suffix: string): RouteRecordRaw {
         path: '',
         redirect: (to) => ({ name: `explore-${getLastExploreTab()}${suffix}`, query: to.query }),
       },
-      ...EXPLORE_TABS.map(
-        (tab): RouteRecordRaw => ({
-          path: exploreChildPath(pagePath(tab)),
-          name: `explore-${tab}${suffix}`,
-          component: tabViews[tab],
-        }),
-      ),
-      ...legacyPages.map(
-        (page): RouteRecordRaw => ({
-          path: exploreChildPath(page.path),
-          redirect: (to) => ({ name: `explore-${page.id}${suffix}`, query: to.query }),
-        }),
-      ),
+      ...EXPLORE_TABS.map((tab): RouteRecordRaw => ({
+        path: exploreChildPath(pagePath(tab)),
+        name: `explore-${tab}${suffix}`,
+        component: tabViews[tab],
+      })),
+      ...legacyPages.map((page): RouteRecordRaw => ({
+        path: exploreChildPath(page.path),
+        redirect: (to) => ({ name: `explore-${page.id}${suffix}`, query: to.query }),
+      })),
     ],
   }
 }
