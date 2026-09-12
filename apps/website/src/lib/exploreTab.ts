@@ -1,4 +1,4 @@
-import { readStored, writeStored } from '@/lib/storage'
+import { readStored, writeStored } from '@shared/storage'
 
 const STORAGE_KEY = 'explore-last-tab'
 

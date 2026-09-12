@@ -3,12 +3,21 @@
 // preferences stay readable and writable for the session, just not durable.
 const memory = new Map<string, string>()
 
-const store: Storage | null = (() => {
+/** Structural, so `shared/` still type-checks against the Worker's DOM-less lib. */
+interface KeyValueStore {
+  getItem(key: string): string | null
+  setItem(key: string, value: string): void
+  removeItem(key: string): void
+}
+
+const store: KeyValueStore | null = (() => {
+  const candidate = (globalThis as { localStorage?: KeyValueStore }).localStorage
+  if (!candidate) return null
   try {
     const probe = '__storage_probe__'
-    localStorage.setItem(probe, probe)
-    localStorage.removeItem(probe)
-    return localStorage
+    candidate.setItem(probe, probe)
+    candidate.removeItem(probe)
+    return candidate
   } catch {
     return null
   }

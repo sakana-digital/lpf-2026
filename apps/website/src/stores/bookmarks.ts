@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { readStored, writeStored } from '@/lib/storage'
+import { readStored, writeStored } from '@shared/storage'
 
 const STORAGE_KEY = 'bookmarks'
 
