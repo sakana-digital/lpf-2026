@@ -90,6 +90,11 @@ const control = defineRecipe({
     '@media (pointer: coarse)': { fontSize: '16px' },
     transition: 'border-color token(durations.base) ease',
     _hover: { borderColor: 'borderStrong' },
+    // iOS sizes a native date control wider than its CSS box, so it is drawn as a plain field.
+    '&[type=datetime-local]': {
+      appearance: 'none',
+      '&::-webkit-date-and-time-value': { minHeight: '1.4em', textAlign: 'start' },
+    },
   },
 })
 

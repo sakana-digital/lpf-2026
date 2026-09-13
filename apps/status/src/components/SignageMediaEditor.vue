@@ -181,7 +181,7 @@ const styles = {
   }),
   error: css({ marginTop: '8px' }),
   start: css({ display: 'flex', alignItems: 'end', gap: '8px', marginTop: '12px' }),
-  startField: css({ display: 'grid', flex: 1, gap: '5px' }),
+  startField: css({ display: 'grid', flex: 1, minWidth: 0, gap: '5px' }),
   list: css({ display: 'grid', gap: '5px', marginTop: '10px' }),
   item: css({
     display: 'grid',

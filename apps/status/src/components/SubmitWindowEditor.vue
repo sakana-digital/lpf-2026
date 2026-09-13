@@ -59,11 +59,13 @@ async function save() {
 const styles = {
   root: css({ display: 'flex', flexDirection: 'column' }),
   heading: cx(sectionLabel(), css({ marginBottom: '6px' })),
-  day: css({ border: 'none', padding: 0, margin: '12px 0 0' }),
+  // WebKit floors fieldsets at min-content.
+  day: css({ minWidth: 0, border: 'none', padding: 0, margin: '12px 0 0' }),
   legend: css({ padding: 0, marginBottom: '6px', fontSize: '13px', fontWeight: 'bold' }),
+  // A 16px date value with AM/PM runs about 180px, so portrait phones stack the two.
   fields: css({
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
     gap: '8px',
   }),
   field: cx(hint(), css({ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 })),
