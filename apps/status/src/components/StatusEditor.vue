@@ -207,7 +207,13 @@ const styles = {
   congestion: css({ gridArea: 'congestion' }),
   legend: cx(
     sectionLabel(),
-    css({ padding: '0 2px', marginBottom: '10px', fontSize: '14px', textAlign: 'center' }),
+    css({
+      padding: '0 2px',
+      marginBottom: '10px',
+      color: 'text',
+      fontSize: '14px',
+      textAlign: 'center',
+    }),
   ),
   // The button sits in the same column as the chips so the two grids line up.
   choices: css({ display: 'flex', flex: 1, flexDirection: 'column', gap: '6px' }),

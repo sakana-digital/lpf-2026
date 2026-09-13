@@ -36,8 +36,8 @@ export const semanticTokens = defineSemanticTokens({
     },
     chip: {
       ink: { value: '{colors.surface}' },
-      label: { value: 'oklch(100% 0 0 / 0.6)' },
-      // The chip hues stay as vivid in light mode as in dark, so only the ink text needs a per-theme value.
+      label: { value: '{colors.textStrong}' },
+      // The chip hues and their inks stay as vivid in light mode as in dark; only the label and the disabled greys follow the theme.
       good: { value: '{colors.hue.good}' },
       warn: { value: '{colors.hue.warn}' },
       bad: { value: '{colors.hue.bad}' },
@@ -46,7 +46,7 @@ export const semanticTokens = defineSemanticTokens({
       onGood: { value: 'oklch(15% 0.02 260)' },
       onWarn: { value: 'oklch(25% 0.06 75)' },
       disabled: { value: { base: 'oklch(60% 0 0 / 0.5)', _osLight: 'oklch(40% 0 0 / 0.4)' } },
-      onDisabled: { value: { base: 'oklch(100% 0 0 / 0.35)', _osLight: 'oklch(0% 0 0 / 0.35)' } },
+      onDisabled: { value: '{colors.textMute}' },
     },
     scrim: { value: { base: 'oklch(0% 0 0 / 0.6)', _osLight: 'oklch(0% 0 0 / 0.45)' } },
     // Two series on one time axis; both pairs pass the CVD and contrast checks on their surface.
