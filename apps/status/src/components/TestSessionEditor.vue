@@ -60,7 +60,7 @@ const styles = {
     <p v-if="failed" :class="resultBadge({ tone: 'error' })" role="status">操作に失敗しました。</p>
     <button
       type="button"
-      :class="button({ variant: running ? 'primary' : 'outline', size: 'sm' })"
+      :class="button({ variant: running ? 'primary' : 'outline' })"
       :disabled="saving"
       @click="confirming = true"
     >

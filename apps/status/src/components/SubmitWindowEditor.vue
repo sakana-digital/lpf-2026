@@ -69,13 +69,15 @@ const styles = {
   field: cx(hint(), css({ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 })),
   actions: css({
     display: 'flex',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'flex-end',
     gap: '8px',
     marginTop: 'auto',
     paddingTop: '14px',
   }),
-  result: css({ marginRight: 'auto' }),
+  leading: css({ marginRight: 'auto' }),
+  buttons: css({ display: 'flex', gap: '8px' }),
 }
 </script>
 
@@ -99,28 +101,31 @@ const styles = {
       </div>
     </fieldset>
     <div :class="styles.actions">
-      <p v-if="failed" :class="cx(resultBadge({ tone: 'error' }), styles.result)" role="status">
+      <div :class="styles.leading">
+        <slot name="leading" />
+      </div>
+      <p v-if="failed" :class="resultBadge({ tone: 'error' })" role="status">
         保存に失敗しました。
       </p>
-      <p v-else-if="saved" :class="cx(resultBadge(), styles.result)" role="status">
-        保存しました。
-      </p>
-      <button
-        type="button"
-        :class="button({ variant: 'ghost' })"
-        :disabled="saving"
-        @click="resetToDefault"
-      >
-        開場時間に戻す
-      </button>
-      <button
-        type="button"
-        :class="button({ variant: 'primary' })"
-        :disabled="saving || !parsed"
-        @click="save"
-      >
-        {{ saving ? '保存中…' : '時間を保存' }}
-      </button>
+      <p v-else-if="saved" :class="resultBadge()" role="status">保存しました。</p>
+      <div :class="styles.buttons">
+        <button
+          type="button"
+          :class="button({ variant: 'ghost' })"
+          :disabled="saving"
+          @click="resetToDefault"
+        >
+          開場時間に戻す
+        </button>
+        <button
+          type="button"
+          :class="button({ variant: 'primary' })"
+          :disabled="saving || !parsed"
+          @click="save"
+        >
+          {{ saving ? '保存中…' : '時間を保存' }}
+        </button>
+      </div>
     </div>
   </section>
 </template>
