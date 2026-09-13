@@ -13,8 +13,10 @@ export const semanticTokens = defineSemanticTokens({
     borderStrong: { value: { base: 'oklch(100% 0 0 / 0.32)', _osLight: 'oklch(0% 0 0 / 0.3)' } },
     text: { value: { base: 'oklch(96% 0 0)', _osLight: 'oklch(16% 0 0)' } },
     textMute: { value: { base: 'oklch(100% 0 0 / 0.55)', _osLight: 'oklch(0% 0 0 / 0.55)' } },
+    textStrong: { value: { base: '#fff', _osLight: '#000' } },
     accent: { value: { base: '#fff', _osLight: 'oklch(18% 0 0)' } },
-    accentStrong: { value: { base: 'oklch(100% 0 0 / 0.85)', _osLight: 'oklch(30% 0 0)' } },
+    // Panda's color-mix transform drops the light value when only the base carries a `/` alpha.
+    accentStrong: { value: { base: 'oklch(88% 0 0)', _osLight: 'oklch(30% 0 0)' } },
     onAccent: { value: { base: '#000', _osLight: '#fff' } },
     status: {
       good: { value: { base: '{colors.hue.good}', _osLight: 'oklch(52% 0.14 158.84)' } },
@@ -34,8 +36,8 @@ export const semanticTokens = defineSemanticTokens({
     },
     chip: {
       ink: { value: '{colors.surface}' },
-      label: { value: 'oklch(100% 0 0 / 0.6)' },
-      // The chip hues stay as vivid in light mode as in dark, so only the ink text needs a per-theme value.
+      label: { value: '{colors.textStrong}' },
+      // The chip hues and their inks stay as vivid in light mode as in dark; only the label and the disabled greys follow the theme.
       good: { value: '{colors.hue.good}' },
       warn: { value: '{colors.hue.warn}' },
       bad: { value: '{colors.hue.bad}' },
@@ -44,7 +46,7 @@ export const semanticTokens = defineSemanticTokens({
       onGood: { value: 'oklch(15% 0.02 260)' },
       onWarn: { value: 'oklch(25% 0.06 75)' },
       disabled: { value: { base: 'oklch(60% 0 0 / 0.5)', _osLight: 'oklch(40% 0 0 / 0.4)' } },
-      onDisabled: { value: { base: 'oklch(100% 0 0 / 0.35)', _osLight: 'oklch(0% 0 0 / 0.35)' } },
+      onDisabled: { value: '{colors.textMute}' },
     },
     scrim: { value: { base: 'oklch(0% 0 0 / 0.6)', _osLight: 'oklch(0% 0 0 / 0.45)' } },
     // Two series on one time axis; both pairs pass the CVD and contrast checks on their surface.

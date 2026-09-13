@@ -107,10 +107,6 @@ const styles = {
   grid: paneGrid({ columns: 'two' }),
   cell: paneCell(),
   title: paneTitle(),
-  half: css({
-    gridColumn: 'span 1',
-    '@container workspace (max-width: 820px)': { gridColumn: 'span 2' },
-  }),
   field: css({ display: 'grid', gap: '5px', marginTop: '12px' }),
   control: cx(control(), css({ resize: 'vertical' })),
   switchField: css({
@@ -139,13 +135,11 @@ const styles = {
     '& small': { color: 'textMute', fontSize: '10px', letterSpacing: '0.08em' },
   }),
   saveBar: css({
-    gridColumn: 'span 2',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'flex-end',
     gap: '12px',
-    padding: '14px 16px',
-    background: 'surface',
+    padding: '14px 16px 0',
   }),
 }
 </script>
@@ -154,10 +148,9 @@ const styles = {
   <section>
     <p v-if="loading" :class="styles.loading">サイネージ設定を読み込み中…</p>
     <template v-else>
+      <h2 :class="styles.title">サイネージ</h2>
       <div :class="styles.grid">
-        <h2 :class="styles.title">サイネージ</h2>
-
-        <section :class="[styles.cell, styles.half]">
+        <section :class="styles.cell">
           <h2 :class="blockHeading()">フッター情報</h2>
           <label :class="cx(hint(), styles.field)">
             <span>固定案内（{{ config.footerText.length }}/120）</span>
@@ -173,7 +166,7 @@ const styles = {
           </label>
         </section>
 
-        <section :class="[styles.cell, styles.half]">
+        <section :class="styles.cell">
           <h2 :class="blockHeading()">閲覧 URL</h2>
           <p :class="cx(hint(), styles.issueHint)">
             再発行すると、以前の URL と表示端末は無効になります。
@@ -192,7 +185,7 @@ const styles = {
           </button>
         </section>
 
-        <div :class="[styles.cell, styles.half]">
+        <div :class="styles.cell">
           <SignageMediaEditor
             v-model:active-key="config.activeVideoKey"
             v-model:start-at="videoStart"
@@ -201,7 +194,7 @@ const styles = {
           />
         </div>
 
-        <div :class="[styles.cell, styles.half]">
+        <div :class="styles.cell">
           <SignageMediaEditor
             v-model:active-key="config.activeAudioKey"
             v-model:start-at="audioStart"
@@ -209,20 +202,18 @@ const styles = {
             kind="audio"
           />
         </div>
-        <div :class="styles.saveBar">
-          <p v-if="failed" :class="resultBadge({ tone: 'error' })">
-            保存または取得に失敗しました。
-          </p>
-          <p v-else-if="saved" :class="resultBadge()">保存しました。</p>
-          <button
-            type="button"
-            :class="button({ variant: 'primary' })"
-            :disabled="saving"
-            @click="save"
-          >
-            {{ saving ? '保存中…' : 'サイネージ設定を保存' }}
-          </button>
-        </div>
+      </div>
+      <div :class="styles.saveBar">
+        <p v-if="failed" :class="resultBadge({ tone: 'error' })">保存または取得に失敗しました。</p>
+        <p v-else-if="saved" :class="resultBadge()">保存しました。</p>
+        <button
+          type="button"
+          :class="button({ variant: 'primary' })"
+          :disabled="saving"
+          @click="save"
+        >
+          {{ saving ? '保存中…' : 'サイネージ設定を保存' }}
+        </button>
       </div>
     </template>
   </section>

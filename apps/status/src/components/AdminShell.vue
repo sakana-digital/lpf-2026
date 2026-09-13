@@ -12,7 +12,7 @@ import SubmitWindowEditor from '@/components/SubmitWindowEditor.vue'
 import TestSessionEditor from '@/components/TestSessionEditor.vue'
 import SignageAdminEditor from '@/components/SignageAdminEditor.vue'
 import { css, cx } from '@styled/css'
-import { control, hint, paneCell, paneGrid, paneTitle, sectionLabel } from '@styled/recipes'
+import { control, paneCell, paneGrid, paneTitle, sectionLabel } from '@styled/recipes'
 
 const props = defineProps<{
   token: string
@@ -73,18 +73,10 @@ const styles = {
   statusPane: css({ display: 'flex', flexDirection: 'column', gap: '16px' }),
   orgField: css({ display: 'grid', gap: '6px' }),
   orgLabel: sectionLabel(),
-  // Two sections, each a divider grid of its own, separated by the same 1px line.
-  settings: paneGrid(),
-  statusSettings: paneGrid({ columns: 'two' }),
+  // Only windows get dividing lines, so the sections are set apart by space and their headings.
+  settings: css({ display: 'flex', flexDirection: 'column', gap: '28px' }),
   settingsTitle: paneTitle(),
   cell: paneCell(),
-  testCell: css({
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-    alignItems: 'flex-start',
-  }),
-  testHeading: cx(sectionLabel(), css({ marginBottom: '6px' })),
 }
 </script>
 
@@ -142,21 +134,20 @@ const styles = {
     <div v-if="visited.signage" v-show="page.view === 'signage'" :class="styles.settings">
       <SignageAdminEditor :token="token" />
 
-      <div :class="styles.statusSettings">
+      <section>
         <h2 :class="styles.settingsTitle">ステータス</h2>
         <div :class="styles.cell">
-          <SubmitWindowEditor
-            :token="token"
-            :windows="windows"
-            @updated="emit('windows', $event)"
-          />
+          <SubmitWindowEditor :token="token" :windows="windows" @updated="emit('windows', $event)">
+            <template #leading>
+              <TestSessionEditor
+                :token="token"
+                :test-since="testSince"
+                @test="emit('test', $event)"
+              />
+            </template>
+          </SubmitWindowEditor>
         </div>
-        <div :class="[styles.cell, styles.testCell]">
-          <h3 :class="styles.testHeading">テスト受付</h3>
-          <p :class="hint()">準備日に団体が送信を試すための機能です。押すと説明が出ます。</p>
-          <TestSessionEditor :token="token" :test-since="testSince" @test="emit('test', $event)" />
-        </div>
-      </div>
+      </section>
     </div>
   </AppShell>
 </template>

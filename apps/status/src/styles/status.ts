@@ -61,8 +61,6 @@ export const statusChip = cva({
     border: '1px solid var(--chip)',
     background: 'chip.ink',
     color: 'chip.label',
-    // Muted white on the dark chip; on the light surface the label reads best in plain black.
-    _osLight: { color: '#000' },
     fontSize: '16px',
     fontWeight: 'black',
     whiteSpace: 'nowrap',
