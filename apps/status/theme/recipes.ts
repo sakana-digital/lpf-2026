@@ -134,18 +134,17 @@ const paneCell = defineRecipe({
   base: { minWidth: 0, padding: '18px 16px 16px', background: 'surface' },
 })
 
-/** The 40px bar a pane or window is titled by. */
+/** The heading a settings section opens with; it stands in for a dividing line. */
 const paneTitle = defineRecipe({
   className: 'pane-title',
   base: {
-    gridColumn: '1 / -1',
-    height: '40px',
-    padding: '0 14px',
-    lineHeight: '40px',
-    background: 'surface',
-    fontSize: '13px',
+    marginBottom: '6px',
+    padding: '0 16px',
+    color: 'textStrong',
+    fontSize: '18px',
     fontWeight: 'bold',
-    letterSpacing: '0.06em',
+    lineHeight: 1.3,
+    letterSpacing: '0.04em',
   },
 })
 

@@ -73,9 +73,8 @@ const styles = {
   statusPane: css({ display: 'flex', flexDirection: 'column', gap: '16px' }),
   orgField: css({ display: 'grid', gap: '6px' }),
   orgLabel: sectionLabel(),
-  // Two sections, each a divider grid of its own, separated by the same 1px line.
-  settings: paneGrid(),
-  statusSettings: paneGrid(),
+  // Only windows get dividing lines, so the sections are set apart by space and their headings.
+  settings: css({ display: 'flex', flexDirection: 'column', gap: '28px' }),
   settingsTitle: paneTitle(),
   cell: paneCell(),
 }
@@ -135,7 +134,7 @@ const styles = {
     <div v-if="visited.signage" v-show="page.view === 'signage'" :class="styles.settings">
       <SignageAdminEditor :token="token" />
 
-      <div :class="styles.statusSettings">
+      <section>
         <h2 :class="styles.settingsTitle">ステータス</h2>
         <div :class="styles.cell">
           <SubmitWindowEditor :token="token" :windows="windows" @updated="emit('windows', $event)">
@@ -148,7 +147,7 @@ const styles = {
             </template>
           </SubmitWindowEditor>
         </div>
-      </div>
+      </section>
     </div>
   </AppShell>
 </template>

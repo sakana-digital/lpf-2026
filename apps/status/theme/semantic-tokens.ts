@@ -13,6 +13,7 @@ export const semanticTokens = defineSemanticTokens({
     borderStrong: { value: { base: 'oklch(100% 0 0 / 0.32)', _osLight: 'oklch(0% 0 0 / 0.3)' } },
     text: { value: { base: 'oklch(96% 0 0)', _osLight: 'oklch(16% 0 0)' } },
     textMute: { value: { base: 'oklch(100% 0 0 / 0.55)', _osLight: 'oklch(0% 0 0 / 0.55)' } },
+    textStrong: { value: { base: '#fff', _osLight: '#000' } },
     accent: { value: { base: '#fff', _osLight: 'oklch(18% 0 0)' } },
     // Panda's color-mix transform drops the light value when only the base carries a `/` alpha.
     accentStrong: { value: { base: 'oklch(88% 0 0)', _osLight: 'oklch(30% 0 0)' } },
