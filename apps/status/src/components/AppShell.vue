@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import SiteLogo from '@/components/SiteLogo.vue'
+import SiteFooter from '@/components/SiteFooter.vue'
 import { css, cva } from '@styled/css'
 
 withDefaults(defineProps<{ narrow?: boolean; header?: boolean }>(), {
@@ -58,5 +59,6 @@ const styles = {
         <slot />
       </div>
     </main>
+    <SiteFooter />
   </div>
 </template>
