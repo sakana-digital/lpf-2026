@@ -37,7 +37,7 @@ export const globalCss = defineGlobalStyles({
     _disabled: { cursor: 'not-allowed' },
   },
   // Checkboxes and radios are wrapped by their label, so the browser default is left alone.
-  ':is(button, select, textarea, input:not([type=checkbox], [type=radio])):focus-visible': {
+  ':is(a, button, select, textarea, input:not([type=checkbox], [type=radio])):focus-visible': {
     outline: '2px solid token(colors.accent)',
     outlineOffset: '2px',
   },
