@@ -60,7 +60,7 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
     <PageHeader v-if="pageTitleKey" :title-key="pageTitleKey" />
     <nav class="global-nav">
       <div class="header-brand">
-        <RouterLink :to="homePath" class="logo"><IconLogo /></RouterLink>
+        <RouterLink :to="homePath" class="header-logo"><IconLogo /></RouterLink>
       </div>
       <div class="header-actions">
         <DayBadge />
@@ -164,12 +164,6 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .header.is-entrance .global-nav {
-    animation: none;
-  }
-}
-
 .global-nav {
   display: flex;
   align-items: center;
@@ -199,56 +193,52 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
   align-items: center;
   min-width: 0;
 
-  .logo {
+  .header-logo {
+    display: flex;
+    align-items: center;
     flex-shrink: 0;
     margin-left: 16px;
+
+    &:deep(svg) {
+      transition: transform 0.25s;
+    }
   }
 
   @media (max-height: 500px) {
     html[data-orientation^='landscape'] & {
       flex-direction: column;
 
-      .logo {
+      .header-logo {
         display: flex;
         align-items: center;
         justify-content: center;
         width: var(--header-height);
         height: 67px;
         margin: 0;
+
+        :deep(svg) {
+          /* Wider than the rail before the rotation, but it fits after it. Shrinking
+            changes the plate's aspect ratio and shrinks the mark inside with it */
+          flex-shrink: 0;
+        }
       }
     }
 
-    html[data-orientation='landscape-left'] & .logo {
+    html[data-orientation='landscape-left'] & .header-logo {
       margin-bottom: 8px;
+
+      :deep(svg) {
+        transform: rotate(-90deg);
+      }
     }
 
-    html[data-orientation='landscape-right'] & .logo {
+    html[data-orientation='landscape-right'] & .header-logo {
       margin-top: 8px;
+
+      :deep(svg) {
+        transform: rotate(90deg);
+      }
     }
-  }
-}
-
-.header-brand .logo :deep(svg) {
-  transition: transform 0.25s;
-}
-
-html[data-orientation^='landscape'] .header-brand .logo :deep(svg) {
-  @media (max-height: 500px) {
-    /* Wider than the rail before the rotation, but it fits after it. Shrinking
-       changes the plate's aspect ratio and shrinks the mark inside with it */
-    flex-shrink: 0;
-  }
-}
-
-html[data-orientation='landscape-left'] .header-brand .logo :deep(svg) {
-  @media (max-height: 500px) {
-    transform: rotate(-90deg);
-  }
-}
-
-html[data-orientation='landscape-right'] .header-brand .logo :deep(svg) {
-  @media (max-height: 500px) {
-    transform: rotate(90deg);
   }
 }
 
