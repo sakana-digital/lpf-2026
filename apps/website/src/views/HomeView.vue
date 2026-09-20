@@ -166,7 +166,7 @@ onMounted(() => {
 
 <style scoped>
 .home {
-  row-gap: 128px;
+  row-gap: 92px;
   padding-top: 0;
 
   & > *:not(.key-visual) {
@@ -273,14 +273,17 @@ onMounted(() => {
     align-items: center;
     gap: 8px;
     margin-top: 28px;
-    color: var(--color-text);
+    padding: 8px 18px;
+    color: var(--vt-c-white);
+    background-color: var(--color-accent);
+    border-radius: 100vh;
     font-size: clamp(0.875rem, 2.5vw, 1rem);
     letter-spacing: 0.02em;
     text-decoration: none;
-    transition: color 0.15s;
+    transition: all 0.15s;
 
     &:hover {
-      color: var(--color-heading);
+      background-color: color-mix(in oklab, var(--color-accent) 95%, black);
     }
   }
 }
