@@ -160,16 +160,16 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
   .name {
     font-size: 12px;
     font-variant-numeric: tabular-nums;
-  }
-
-  .name {
-    margin-top: 2px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
 
-  /* Laid out at the final width from the start, so the name wraps the same while the column widens */
+  .name {
+    margin-top: 2px;
+  }
+
+  /* Laid out at the final width from the start, so the names truncate the same while the column widens */
   &.expanded .head-row,
   &.wide .head-row {
     width: var(--expanded-content);
