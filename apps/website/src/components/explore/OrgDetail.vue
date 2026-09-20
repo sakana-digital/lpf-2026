@@ -68,6 +68,11 @@ const menus = computed(() =>
   flex: 1;
   min-height: 0;
 
+  /* Rows open the detail through a button whose hit area covers the row; the controls sit above it */
+  :is(a, button) {
+    position: relative;
+  }
+
   .description {
     margin: 0;
     color: var(--color-text);

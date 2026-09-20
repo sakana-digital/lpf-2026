@@ -31,6 +31,7 @@ const NotFoundView = () => import('@/views/NotFoundView.vue')
 const tabViews = {
   events: () => import('@/components/explore/ExploreEventsTab.vue'),
   timetable: () => import('@/components/explore/ExploreTimetableTab.vue'),
+  map: () => import('@/components/explore/ExploreMapTab.vue'),
 } satisfies Record<ExploreTab, unknown>
 
 const explorePath = pagePath('explore')

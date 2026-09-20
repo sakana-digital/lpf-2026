@@ -12,6 +12,7 @@ import type { CellPreview, SweepPhase } from '@/lib/eventsGrid'
 import type { OrgStatus } from '@shared/status'
 import OrgBackdrop from './OrgBackdrop.vue'
 import OrgDetail from './OrgDetail.vue'
+import OrgHead from './OrgHead.vue'
 import OrgMeta from './OrgMeta.vue'
 import OrgStatusBadges from './OrgStatusBadges.vue'
 
@@ -48,26 +49,26 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
     class="cell"
     :class="{ expanded, wide: preview === 'wide', tall: preview === 'tall' }"
   >
-    <div class="head-row">
-      <button type="button" class="cell-head" :aria-expanded="expanded" @click="$emit('select')">
-        <span class="label">{{ groupName }}</span>
-        <span v-if="projectName" class="name">{{ projectName }}</span>
-      </button>
-      <OrgStatusBadges v-if="!expanded && status" :status="status" class="cell-status" />
-      <OrgMeta v-if="expanded" :place="org.place">
-        <slot name="actions"></slot>
-      </OrgMeta>
-      <Transition name="preview-fade">
-        <img
-          v-if="preview === 'wide' && thumbSrc"
-          class="preview wide"
-          :src="thumbSrc"
-          alt=""
-          loading="lazy"
-          decoding="async"
-        />
-      </Transition>
-    </div>
+    <OrgHead class="head-row" :expanded="expanded" @toggle="$emit('select')">
+      <span class="label">{{ groupName }}</span>
+      <span v-if="projectName" class="name">{{ projectName }}</span>
+      <template #meta>
+        <OrgStatusBadges v-if="!expanded && status" :status="status" class="cell-status" />
+        <OrgMeta v-if="expanded" :place="org.place">
+          <slot name="actions"></slot>
+        </OrgMeta>
+        <Transition name="preview-fade">
+          <img
+            v-if="preview === 'wide' && thumbSrc"
+            class="preview wide"
+            :src="thumbSrc"
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
+        </Transition>
+      </template>
+    </OrgHead>
     <Transition name="preview-fade">
       <img
         v-if="preview === 'tall' && previewSrc"
@@ -141,11 +142,6 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
   }
 
   .head-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-
     .preview.wide {
       flex-shrink: 0;
       width: auto;
@@ -160,36 +156,17 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
     }
   }
 
-  .cell-head {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-    padding: 0;
-    color: inherit;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
+  .label,
+  .name {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
 
-    /* Stretch the hit area over the whole cell */
-    &::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-    }
-
-    .label,
-    .name {
-      font-size: 12px;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .name {
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
+  .name {
+    margin-top: 2px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   /* Laid out at the final width from the start, so the name wraps the same while the column widens */
@@ -234,11 +211,6 @@ const previewSrc = computed(() => (props.org ? organizationImageSrc(props.org, 4
 .cell-status :deep(.badge) {
   padding: 1px 6px;
   line-height: 1.2;
-}
-
-/* Only the controls in the detail sit above that hit area */
-.cell :deep(.org-detail :is(a, button)) {
-  position: relative;
 }
 
 /*

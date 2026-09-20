@@ -2,7 +2,7 @@ import { readStored, writeStored } from '@shared/storage'
 
 const STORAGE_KEY = 'explore-last-tab'
 
-export const EXPLORE_TABS = ['events', 'timetable'] as const
+export const EXPLORE_TABS = ['events', 'timetable', 'map'] as const
 
 export type ExploreTab = (typeof EXPLORE_TABS)[number]
 

@@ -21,6 +21,7 @@ import BookmarkToggle from '@/components/layout/BookmarkToggle.vue'
 import SegmentedSwitch from './SegmentedSwitch.vue'
 import OrgBackdrop from './OrgBackdrop.vue'
 import OrgDetail from './OrgDetail.vue'
+import OrgHead from './OrgHead.vue'
 import OrgMeta from './OrgMeta.vue'
 
 const route = useRoute()
@@ -144,20 +145,15 @@ function slotStyle(slot: TimetableSlot) {
             :class="{ active: isExpanded(slot) || closingId === org.id }"
             :style="slotStyle(slot)"
           >
-            <div class="slot-head">
-              <button
-                type="button"
-                class="slot-trigger"
-                :aria-expanded="isExpanded(slot)"
-                @click="onSlotClick(slot)"
-              >
-                <span class="slot-title">{{ slotHead(slot, org) }}</span>
-                <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
-              </button>
-              <OrgMeta>
-                <BookmarkToggle :org-id="org.id" />
-              </OrgMeta>
-            </div>
+            <OrgHead :expanded="isExpanded(slot)" @toggle="onSlotClick(slot)">
+              <span class="slot-title">{{ slotHead(slot, org) }}</span>
+              <span class="slot-time">{{ slot.start }}–{{ slot.end }}</span>
+              <template #meta>
+                <OrgMeta>
+                  <BookmarkToggle :org-id="org.id" />
+                </OrgMeta>
+              </template>
+            </OrgHead>
             <Transition
               name="detail"
               @before-leave="closingId = org.id"
@@ -258,33 +254,6 @@ function slotStyle(slot: TimetableSlot) {
       &.linked {
         transition: border-color 0.15s;
 
-        .slot-head {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          min-width: 0;
-        }
-
-        .slot-trigger {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: stretch;
-          min-width: 0;
-          padding: 0;
-          color: inherit;
-          font: inherit;
-          text-align: left;
-          cursor: pointer;
-
-          /* Stretch the hit area over the whole slot */
-          &::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-          }
-        }
-
         &:hover {
           border-color: var(--color-heading);
         }
@@ -346,11 +315,6 @@ function slotStyle(slot: TimetableSlot) {
           opacity: 0;
         }
       }
-    }
-
-    /* Only the controls in the detail sit above that hit area */
-    .slot :deep(.org-detail :is(a, button)) {
-      position: relative;
     }
   }
 }

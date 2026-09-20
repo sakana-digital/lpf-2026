@@ -82,7 +82,7 @@ const explorePath = computed(() => localePath('/explore/', locale.value))
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
+  z-index: var(--z-header);
   display: flex;
   justify-content: center;
   min-width: 320px;

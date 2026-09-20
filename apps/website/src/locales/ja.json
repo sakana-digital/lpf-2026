@@ -27,6 +27,10 @@
       "timetable": {
         "title": "タイムテーブル",
         "description": "八宝祭 2026 の中庭ステージ・視聴覚室のタイムテーブルです。"
+      },
+      "map": {
+        "title": "マップ",
+        "description": "八宝祭 2026 の校内マップです。各団体の場所を階ごとに確認できます。"
       }
     }
   },
@@ -50,7 +54,8 @@
   "explore": {
     "tabs": {
       "events": "イベント",
-      "timetable": "タイムテーブル"
+      "timetable": "タイムテーブル",
+      "map": "マップ"
     },
     "events": {
       "gridLabel": "企画一覧",
@@ -78,6 +83,21 @@
       "dayLabel": "Day {day} · {date}",
       "slotHead": "{group}: {project}",
       "empty": "タイムテーブルはまだありません"
+    },
+    "map": {
+      "mapLabel": "校内マップ",
+      "floorSwitch": "階の切り替え",
+      "floor": "{level}F",
+      "allFloors": "全体",
+      "compass": "方位",
+      "noEntry": "立ち入り禁止",
+      "zoom": "地図の拡大縮小",
+      "zoomIn": "拡大",
+      "zoomOut": "縮小",
+      "zoomReset": "表示を戻す",
+      "close": "閉じる",
+      "roomName": "{room} · {name}",
+      "noGroups": "この場所に団体はありません"
     },
     "menu": {
       "title": "メニュー",
@@ -197,10 +217,13 @@
         "イベント",
         "タイムテーブル",
         "スケジュール",
+        "マップ",
+        "地図",
         "explore",
         "events",
         "timetable",
-        "schedule"
+        "schedule",
+        "map"
       ]
     }
   },
