@@ -24,6 +24,10 @@
         "title": "Events",
         "description": "All class projects, club exhibits and independent events at Happo-sai 2026."
       },
+      "map": {
+        "title": "Map",
+        "description": "Floor-by-floor map of the Happo-sai 2026 venue, showing where every group is."
+      },
       "timetable": {
         "title": "Timetable",
         "description": "Timetable for the courtyard stage and AV room at Happo-sai 2026."
@@ -50,7 +54,8 @@
   "explore": {
     "tabs": {
       "events": "Events",
-      "timetable": "Timetable"
+      "timetable": "Timetable",
+      "map": "Map"
     },
     "events": {
       "gridLabel": "Event list",
@@ -78,6 +83,21 @@
       "dayLabel": "Day {day} · {date}",
       "slotHead": "{group}: {project}",
       "empty": "No timetable has been announced yet."
+    },
+    "map": {
+      "mapLabel": "Venue map",
+      "floorSwitch": "Switch floor",
+      "floor": "{level}F",
+      "allFloors": "Overview",
+      "compass": "Compass",
+      "noEntry": "No entry",
+      "zoom": "Map zoom",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "zoomReset": "Reset the view",
+      "close": "Close",
+      "roomName": "{room} · {name}",
+      "noGroups": "No group is placed here"
     },
     "menu": {
       "title": "Menu",
@@ -193,7 +213,7 @@
     "keywords": {
       "home": ["/", "home", "top"],
       "news": ["news", "updates", "announcements"],
-      "explore": ["explore", "projects", "events", "timetable", "schedule"]
+      "explore": ["explore", "projects", "events", "timetable", "schedule", "map"]
     }
   },
   "status": {

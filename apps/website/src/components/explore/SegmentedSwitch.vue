@@ -28,6 +28,14 @@ defineEmits<{ 'update:modelValue': [value: T] }>()
   display: flex;
   gap: 8px;
 
+  @media (max-width: 600px) {
+    gap: 6px;
+
+    button {
+      padding-inline: 11px;
+    }
+  }
+
   .hint {
     margin-right: auto;
     align-self: center;

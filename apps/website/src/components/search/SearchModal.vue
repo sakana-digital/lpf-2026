@@ -216,7 +216,7 @@ watch(isOpen, (open) => {
 .search-modal {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: var(--z-modal);
   display: flex;
   justify-content: center;
   align-items: flex-start;
