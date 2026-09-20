@@ -14,6 +14,8 @@ export const EVENT_COLUMNS = classNumbers.length
 export const GUTTER = 32
 export const GAP = 8
 export const INLINE_PADDING = 16
+/** Height of the bar parting two sections, thinner than the heads around it */
+export const DIVIDER = 8
 
 /** Shape a cell takes from sharing the open row (tall) or the open column (wide). */
 export type CellPreview = 'tall' | 'wide'
@@ -138,7 +140,7 @@ export function rowTracks(
 ): string {
   return rows
     .map((row, i) =>
-      i === selected ? `${expandedHeight}px` : row.spacer ? `${GUTTER}px` : `${BASE_ROW}px`,
+      i === selected ? `${expandedHeight}px` : row.spacer ? `${DIVIDER}px` : `${BASE_ROW}px`,
     )
     .join(' ')
 }
