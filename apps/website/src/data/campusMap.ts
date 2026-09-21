@@ -5,10 +5,11 @@ import type { MapIconName } from '@/lib/mapIcons'
 
 /**
  * The school seen from above, north up, in metres from the north-west corner
- * of the west wing. Everything is an axis-aligned box read off the evacuation
- * plans, so a room is four numbers; the isometric projection happens at
- * render time. Room ids are the numbers printed on the plans, which is what
- * OrgPlace rooms and the festival programme use.
+ * of the west wing. Everything is an axis-aligned box read off the floor guide
+ * boards (one photo per floor, rectified onto the plate's outer walls), so a
+ * room is four numbers; the isometric projection happens at render time. Room
+ * ids are the numbers printed on the boards, which is what OrgPlace rooms and
+ * the festival programme use.
  */
 export interface MapBox {
   x: number
@@ -24,7 +25,8 @@ export interface RoomKindSpec {
   linkable: boolean
   /** A roof on walls, a tinted patch, an outlined patch with a symbol, or a dashed hole */
   surface: 'roof' | 'flat' | 'outline' | 'void'
-  icon?: MapIconName
+  /** Symbols drawn on the box, side by side */
+  icon?: readonly MapIconName[]
 }
 
 export type MapRoomKind = 'room' | 'hall' | 'yard' | 'stairs' | 'wc' | 'elevator' | 'void' | 'tent'
@@ -33,9 +35,9 @@ export const ROOM_KINDS: Record<MapRoomKind, RoomKindSpec> = {
   room: { height: 3, linkable: true, surface: 'roof' },
   hall: { height: 0, linkable: true, surface: 'flat' },
   yard: { height: 0, linkable: true, surface: 'flat' },
-  stairs: { height: 0, linkable: false, surface: 'outline', icon: 'stairs' },
-  wc: { height: 0, linkable: false, surface: 'outline', icon: 'wc' },
-  elevator: { height: 0, linkable: false, surface: 'outline', icon: 'elevator' },
+  stairs: { height: 0, linkable: false, surface: 'outline', icon: ['stairs'] },
+  wc: { height: 0, linkable: false, surface: 'outline', icon: ['wc'] },
+  elevator: { height: 0, linkable: false, surface: 'outline', icon: ['elevator', 'stairs'] },
   void: { height: 0, linkable: false, surface: 'void' },
   tent: { height: 2.5, linkable: true, surface: 'roof' },
 }
@@ -48,6 +50,8 @@ export interface MapRoom extends MapBox {
   label?: string
   /** Coloured like a place with a group, without being one */
   featured?: boolean
+  /** Further boxes of the same room, for one that is not a rectangle */
+  parts?: MapBox[]
   /**
    * Places the programme puts here under another name: the festival's zone
    * codes, the timetable venues, spelled-out spots. A room answers to its own
@@ -76,20 +80,22 @@ export interface MapFloor {
   omitted?: { from: MapPoint; to: MapPoint }[]
 }
 
-// Each wing is two rows of rooms along a corridor: outer rows face the street, inner rows the courtyard
-type Column = Pick<MapBox, 'x' | 'w'>
-const WO: Column = { x: 0, w: 9 }
-const WI: Column = { x: 11, w: 9 }
-const WI4: Column = { x: 11, w: 6 }
-const EI: Column = { x: 46, w: 9 }
-const EO: Column = { x: 57, w: 9 }
-
-const WING_W: MapBox = { x: 0, y: 0, w: 22, h: 95 }
-const WING_E: MapBox = { x: 44, y: 0, w: 22, h: 95 }
-const SOUTH_BAR: MapBox = { x: 0, y: 83, w: 66, h: 12 }
-const BRIDGE: MapBox = { x: 22, y: 26, w: 22, h: 2 }
-const NORTH_STAIR: MapBox = { x: 28, y: 11, w: 3.5, h: 15 }
-const ANNEX: MapBox = { x: 44, y: 95, w: 26, h: 22 }
+// The plate: two wings joined by a bar of classrooms along the south, a
+// corridor bridging the courtyard, and an annex hanging off the south-east
+const PLATE_H = 94.5
+const WING_W: MapBox = { x: 0, y: 0, w: 19.3, h: PLATE_H }
+const WING_E: MapBox = { x: 46.8, y: 0, w: 19.2, h: PLATE_H }
+const SOUTH_BAR: MapBox = { x: 0, y: 80.5, w: 66, h: 14 }
+const BRIDGE: MapBox = { x: 19.3, y: 20.6, w: 27.5, h: 2.3 }
+const NORTH_STAIR: MapBox = { x: 27.5, y: 8, w: 2.5, h: 3.2 }
+const ANNEX: MapBox = { x: 48.5, y: PLATE_H, w: 23.5, h: 28.5 }
+// The block off the bridge that holds the machine shops on the ground floor;
+// its roof is an open deck on the floor above, jutting a little past 118
+const NORTH_BLOCK: MapBox[] = [
+  { x: 27.5, y: 11, w: 19.5, h: 12 },
+  { x: 27.5, y: 23, w: 14.5, h: 7.7 },
+]
+const NORTH_DECK: MapBox[] = [NORTH_BLOCK[0]!, { ...NORTH_BLOCK[1]!, h: 9.4 }]
 
 function feature(
   kind: MapRoomKind,
@@ -116,10 +122,6 @@ function box(
   return feature('room', id, x, y, w, h, ja ? { ja } : undefined, places)
 }
 
-function room(id: string, col: Column, y: number, h: number, ja?: string, places?: OrgPlace[]) {
-  return box(id, col.x, y, col.w, h, ja, places)
-}
-
 function hall(
   id: string,
   x: number,
@@ -140,18 +142,8 @@ function wc(x: number, y: number, w: number, h: number): MapRoom {
   return feature('wc', 'wc', x, y, w, h)
 }
 
-function elevators(): MapRoom[] {
-  return [
-    feature('elevator', 'elevator', 0, 89, 7, 6),
-    feature('elevator', 'elevator', 59, 89, 7, 6),
-  ]
-}
-
-/** 一般学習室 1–6 sit on 2F, 7–12 on 3F, 13–18 on 4F, numbered from the east end. */
-function classroomRow(level: FloorLevel): MapRoom[] {
-  return [6, 5, 4, 3, 2, 1].map((n, i) =>
-    box(`${level}0${n}`, 10 + i * 8, 89, 8, 6, `一般学習室 ${(level - 2) * 6 + n}`),
-  )
+function elevator(x: number, y: number, w: number, h: number): MapRoom {
+  return feature('elevator', 'elevator', x, y, w, h)
 }
 
 function tent(letter: TentLetter, x: number, y: number, w: number, h: number): MapRoom {
@@ -164,204 +156,201 @@ function zone(code: string): OrgPlace {
   return placeInRoom(code)
 }
 
+// The ground floor stops short of the classrooms above it: its south wall is
+// the entrance halls, with the annex reached from the main entrance
 const floor1: MapFloor = {
   level: 1,
   slab: [
-    { x: 0, y: 0, w: 22, h: 89 },
-    { x: 44, y: 0, w: 22, h: 89 },
-    { x: 0, y: 89, w: 20, h: 6 },
-    { x: 40, y: 89, w: 26, h: 6 },
-    { x: 28, y: 11, w: 22, h: 24 },
-    { x: 20, y: 24, w: 26, h: 2.5 },
-    ANNEX,
+    { ...WING_W, h: 92.5 },
+    { ...WING_E, h: 92.5 },
+    { x: 38.5, y: 87.7, w: 21.5, h: 4.8 },
+    ...NORTH_BLOCK,
+    { ...BRIDGE, w: 8.5 },
+    { x: 50, y: 92.5, w: 22, h: 27.5 },
+    { x: 45.5, y: 111.5, w: 5, h: 9 },
   ],
   ground: [
-    { x: 22, y: 27, w: 22, h: 62 },
-    { x: -30, y: 10, w: 30, h: 82 },
+    { x: 19.3, y: 23, w: 27.5, h: 63.5 },
+    { x: -30, y: 10, w: 30, h: 85 },
   ],
   rooms: [
-    box('138', 0, 0, 9, 15, 'プラント'),
-    box('139', 3.5, 1.5, 5, 5, 'プラント計器室'),
-    room('140', WO, 15, 4.5, '廃液処理室'),
-    stairs(2, 19.5, 7, 5),
-    room('141', WO, 28, 5.5, '機器分析実習室'),
-    room('142', WO, 34.5, 6, '分析化学実験室・分析化学準備室'),
-    room('143', WO, 41.5, 6, '生物工学実験準備室'),
-    room('144', WO, 48, 5.5, '生物工学実験室'),
-    box('culture', 3, 54, 6, 3, '培養室 1〜3'),
-    wc(0, 60.5, 5, 4.5),
-    box('club-rooms-1', 0, 68, 4, 5.5, '文化部部室 1〜3'),
-    box('club-rooms-2', 0, 78.5, 4, 5, '文化部部室 4〜6'),
-    box('153', 0, 84.5, 4, 4.5, '売店'),
-    hall('entrance-hall', 7, 89, 13, 6, { ja: 'エントランスホール', en: 'Entrance Hall' }),
-
-    room('136', WI, 0, 9, '工作室・資材室'),
-    room('135', WI, 10, 5, '資材倉庫'),
-    wc(11, 19.5, 5, 4.5),
-    room('134', WI, 28, 4, '資料閲覧室'),
-    room('133', WI, 32.5, 4, '微生物観察室・画像解析室'),
-    room('132', WI, 37.5, 4, '微生物実験準備室・菌株保存室'),
-    room('131', WI, 42, 6, '微生物実験室'),
-    room('130', WI, 49, 4.5, '薬品室'),
-    stairs(11, 54, 6, 4),
-    { ...room('128', WI, 63, 20.5), name: { ja: '食堂', en: 'Cafeteria' }, featured: true },
-    hall('cafeteria-front', 11, 83.5, 9, 5.5, { ja: '食堂前', en: 'Outside the Cafeteria' }),
-    stairs(20.5, 64, 3.5, 5),
-
-    stairs(28, 11, 3.5, 12),
-    box('117', 30, 14, 20, 10, '数値制御工作機械実習室・CAM実習室'),
-    box('118', 30, 26.5, 10, 8, '課題実習室'),
-
-    box('116', 46, 0, 20, 14, '旋盤実習室・精密加工実習室・汎用機実習室', [zone('10C')]),
-    box('115', 55, 15, 8, 4, '工具室（機械）'),
-    wc(50, 20, 5, 4),
-    stairs(60, 20, 5, 4.5),
-    room('119', EI, 33, 8.5, '材料試験室'),
-    box('119-prep', 47, 42, 8, 3.5, '材料準備室'),
-    room('121', EI, 46, 7.5, '流体力学自習室・流体準備室・原動機実習室'),
-    stairs(48.5, 54, 5, 4),
-    box('122', 47, 58, 7, 15.5, '会議室'),
-    box('125', 41, 74.5, 6, 4, '応接室'),
-    box('126', 41, 79, 6, 4, '校長室'),
-    box('123', 49, 76, 5.5, 4, '書庫'),
-    wc(49.5, 82, 4, 3.5),
-    wc(49.5, 85.5, 4, 3.5),
-    box('127', 38, 84, 7, 5, '事務室'),
-    hall('office-front', 38, 89, 7, 6, { ja: '事務室前', en: 'Outside the Office' }, [
+    box('138', 0.4, 0, 7.8, 12.2, 'プラント'),
+    box('139', 3.8, 3.4, 4.3, 3, 'プラント計器室'),
+    box('140', 0.3, 12.3, 7.9, 4, '廃液処理室'),
+    stairs(0.1, 16.5, 5.8, 4),
+    box('141', 0.3, 24.4, 8, 4.2, '機器分析実習室'),
+    box('142', 0.3, 28.7, 8, 8.1, '分析化学実験室・分析化学準備室'),
+    box('143', 0.3, 36.8, 8.1, 4, '生物工学実験準備室'),
+    box('144', 0.4, 40.8, 8.1, 7.8, '生物工学実験室'),
+    box('culture', 0.4, 48.7, 8, 4, '培養室 1〜3'),
+    wc(2.4, 56.7, 6, 4),
+    box('club-rooms-1', 2.2, 61, 5, 7.2, '文化部部室 1〜3'),
+    box('club-rooms-2', 2.2, 72.4, 3.1, 4.2, '文化部部室 4〜6'),
+    box('153', 2.2, 76.6, 5.2, 10.2, '売店'),
+    elevator(0.9, 88, 7, 4.5),
+    box('136', 10.6, 0, 8.2, 8, '工作室・資材室'),
+    box('135', 11.7, 8, 6.9, 4.4, '資材倉庫'),
+    box('wi-store-1f', 10.5, 12.6, 6, 3.8),
+    wc(11.1, 16.5, 5.3, 4.2),
+    box('134', 10.6, 24.8, 8.2, 4, '資料閲覧室'),
+    box('133', 10.6, 28.8, 8.2, 4, '微生物観察室・画像解析室'),
+    box('132', 10.5, 32.9, 8.2, 4, '微生物実験準備室・菌株保存室'),
+    box('131', 10.6, 37, 8.1, 7.8, '微生物実験室'),
+    box('130', 10.7, 44.9, 8.1, 4, '薬品室'),
+    stairs(10.6, 49, 6.6, 3.2),
+    { ...box('128', 10.2, 56.8, 8, 22.8), name: { ja: '食堂', en: 'Cafeteria' }, featured: true },
+    hall('cafeteria-front', 10.2, 79.6, 8, 12.9, { ja: '食堂前', en: 'Outside the Cafeteria' }),
+    stairs(27.5, 11.5, 2.2, 9),
+    box('117', 30, 12.6, 16.6, 8, '数値制御工作機械実習室・CAM実習室'),
+    box('118', 29.7, 23.3, 10.9, 6.9, '課題実習室'),
+    box('116', 46.9, 0, 18.6, 12.6, '旋盤実習室・精密加工実習室・汎用機実習室', [zone('10C')]),
+    box('ei-north-1f', 46.6, 12.6, 4.8, 8),
+    wc(51.3, 16.5, 6, 4),
+    box('115', 57.8, 12.7, 5.8, 4.2, '工具室（機械）'),
+    stairs(57.7, 17, 5.5, 4),
+    box('114', 57.7, 21.1, 8.2, 3.6, '材料倉庫'),
+    box('113', 57.6, 24.9, 8.3, 4, 'ガス溶接実習室・アーク溶接実習室'),
+    box('112', 57.5, 29.1, 8.3, 8.1, '手仕上げ実習室・板金加工実習室'),
+    box('111', 57.4, 37.3, 8.3, 4, '溶接工具室・手仕上げ工具室'),
+    box('110', 57.3, 41.3, 8.4, 8.2, '鋳造実習室'),
+    box('darkroom', 59.2, 49.7, 4, 3.2, '写真暗室'),
+    box('108', 57.9, 53.2, 7.8, 5.8, '職員更衣休養室（女）'),
+    box('107', 57.7, 59, 7.8, 6, '職員更衣休養室（男）'),
+    box('106', 57.2, 65.3, 5.9, 4, '技能員室'),
+    box('105', 57.4, 71.8, 8.2, 5.2, 'カウンセリングルーム'),
+    box('104', 57.3, 77, 8.2, 5.4, '保健室'),
+    wc(57.2, 82.4, 6, 4),
+    elevator(57.5, 88.3, 7, 4.5),
+    box('119', 46.8, 28.9, 8.3, 8.5, '材料試験室'),
+    box('119-prep', 47.6, 37.4, 7.5, 3.6, '材料準備室'),
+    box('121', 46.6, 41, 8.3, 8.4, '流体力学自習室・流体準備室・原動機実習室'),
+    stairs(48.1, 49.6, 5.6, 3.2),
+    box('122', 46.1, 52.8, 8.7, 16.4, '会議室'),
+    box('125', 41.3, 71.3, 6.5, 4.4, '応接室'),
+    box('126', 41.1, 75.7, 6.5, 4.7, '校長室'),
+    box('127', 40.9, 80.4, 6.6, 7.3, '事務室'),
+    box('123', 49.7, 71.3, 5.1, 5, '書庫'),
+    wc(49.4, 79.5, 5.1, 4),
+    wc(49.3, 83.5, 5.1, 4.2),
+    hall('office-front', 40.9, 87.7, 6.6, 4.8, { ja: '事務室前', en: 'Outside the Office' }, [
       named({ ja: '校庭・10E' }),
     ]),
-    hall('genkan-hall', 45, 89, 10, 6, { ja: '玄関ホール', en: 'Main Entrance Hall' }),
-    hall('reception', 25, 112, 10, 5, { ja: '受付', en: 'Reception' }, [
+    hall('reception', 25, 108, 10, 5, { ja: '受付', en: 'Reception' }, [
       named({ ja: '受付の後ろの柱前' }),
     ]),
-
-    room('114', EO, 26, 3, '材料倉庫'),
-    room('113', EO, 29.5, 4.5, 'ガス溶接実習室・アーク溶接実習室'),
-    room('112', EO, 34, 7, '手仕上げ実習室・板金加工実習室'),
-    room('111', EO, 41.5, 5, '溶接工具室・手仕上げ工具室'),
-    room('110', EO, 47, 6.5, '鋳造実習室'),
-    box('darkroom', 58.5, 54, 5, 3.5, '写真暗室'),
-    box('108', 57, 58, 8, 5, '職員更衣休養室（女）'),
-    box('107', 57, 63.5, 8, 5.5, '職員更衣休養室（男）'),
-    box('106', 57, 69.5, 5, 4, '技能員室'),
-    box('105', 58, 75.5, 6, 4.5, 'カウンセリングルーム'),
-    box('104', 58, 80.5, 6, 4.5, '保健室'),
-    wc(58, 85.5, 4, 3.5),
-    ...elevators(),
-
-    box('103', 56, 97, 14, 16, '視聴覚教室', [venue('avRoom')]),
-    box('102', 47.5, 113.5, 7, 3.5, '記念室'),
-    box('101', 56.5, 113, 9.5, 4, '多目的室'),
-    stairs(66, 113, 4, 4),
-
-    // Courtyard layout from the programme's floor map: the stage along the bridge, the
-    // 3rd-year tents in two rows, the east row numbered from the entrance end
-    // The stage lines up with 118 behind it and stops short of tent D
-    feature('yard', 'stage', 30, 36, 10, 5, { ja: 'ステージ', en: 'Stage' }, [
+    box('103', 57.3, 92.6, 11.8, 19.6, '視聴覚教室', [venue('avRoom')]),
+    box('102', 46.8, 113.2, 6.5, 6.2, '記念室'),
+    box('101', 56.8, 113, 9.9, 6.5, '多目的室'),
+    stairs(66.6, 115.5, 2.1, 4),
+    feature('yard', 'stage', 30.5, 32, 10, 5, { ja: 'ステージ', en: 'Stage' }, [
       venue('courtyard'),
       named({ ja: '中庭ステージ・20B（鵜の森亭）' }),
     ]),
-    hall('eating-area', 29, 50, 6, 16, { ja: '食事場所', en: 'Eating Area' }),
-    tent('A', 35, 76, 6, 7),
-    tent('B', 40, 66, 6, 7),
-    tent('C', 40, 57, 6, 6.5),
-    tent('D', 40, 45, 6, 7),
-    tent('E', 22.5, 76, 6, 7.5),
-    tent('F', 22.5, 67, 6, 6.5),
-    tent('G', 22.5, 50, 6, 6.5),
-    tent('H', 22.5, 43, 6, 6.5),
-
-    // The kyudo hall stands well beyond the drawn ground; the dashed line from
-    // the corridor beside the north stairs says so
+    hall('eating-area', 28, 46.5, 9.8, 16, { ja: '食事場所', en: 'Eating Area' }),
+    tent('A', 35, 72.5, 6, 7),
+    tent('B', 40, 62.5, 6, 7),
+    tent('C', 40, 53.5, 6, 6.5),
+    tent('D', 40, 41.5, 6, 7),
+    tent('E', 19.8, 72.5, 6, 7.5),
+    tent('F', 19.8, 63.5, 6, 6.5),
+    tent('G', 19.8, 46.5, 6, 6.5),
+    tent('H', 19.8, 39.5, 6, 6.5),
     feature('room', 'kyudo', -26, 21, 10, 12, { ja: '弓道場', en: 'Kyudo Hall' }),
-    feature('yard', 'schoolyard', -22, 44, 14, 26, { ja: '校庭', en: 'Schoolyard' }, [
+    feature('yard', 'schoolyard', -29, 44, 21, 50.5, { ja: '校庭', en: 'Schoolyard' }, [
       named({ ja: '校庭・10E' }),
     ]),
   ],
   omitted: [{ from: { x: -16, y: 27 }, to: { x: 0, y: 27 } }],
   noEntry: [
-    { x: 10, y: 21 },
-    { x: 10, y: 30 },
-    { x: 10, y: 51 },
-    { x: 56, y: 23 },
-    { x: 56, y: 55 },
-    { x: 48, y: 25 },
-    { x: 26, y: 25 },
+    { x: 10.3, y: 19.5 },
+    { x: 10.3, y: 24.5 },
+    { x: 10.3, y: 47.5 },
+    { x: 57.5, y: 21.5 },
+    { x: 57.5, y: 50.5 },
+    { x: 48.5, y: 22 },
+    { x: 24, y: 21.7 },
   ],
 }
 
 const floor2: MapFloor = {
   level: 2,
-  slab: [WING_W, WING_E, SOUTH_BAR, BRIDGE, NORTH_STAIR, ANNEX],
+  slab: [WING_W, WING_E, SOUTH_BAR, BRIDGE, NORTH_STAIR, ...NORTH_DECK, ANNEX],
   rooms: [
-    feature('void', 'void', 0, 0, 9, 4.5),
-    room('232', WO, 5, 5, '生活環境制御ルーム'),
-    room('233', WO, 10.5, 9, '化学計測実習室・化学計測準備室'),
-    stairs(2, 19.5, 7, 5),
-    box('234', 0, 31, 8, 5, '西棟職員室'),
-    box('235', 4, 37.5, 5, 4.5, 'NMR室'),
-    room('236', WO, 42.5, 5, '機器分析実習室'),
-    room('237', WO, 48, 6, '環境工学実習室・環境工学準備室', [zone('20C')]),
-    box('238', 2.5, 54.5, 5.5, 4, '生徒会室（全日制）'),
-    box('239', 1, 59.5, 7, 4, '生徒更衣室（男）'),
-    box('locker-day', 0, 67, 11, 15.5, 'ロッカースペース（全日制）'),
-
-    room('231', WI, 0, 10, '物理計測実習室・物理計測準備室'),
-    room('230', WI, 11, 5, '薬品庫'),
-    wc(11, 20, 5, 4),
-    room('229', WI, 33, 7.5, '環境計測実習室', [zone('20D')]),
-    room('228', WI, 41, 4.5, '基礎分析準備室'),
-    room('227', WI, 46.5, 7, '基礎分析実習室', [zone('20C')]),
-    stairs(11, 54, 6, 4),
-    room('226', WI, 58.5, 5, '生徒更衣室（女）'),
-    feature('void', 'void', 11, 66, 9, 11),
-    wc(14, 79, 4, 4),
-    stairs(20.5, 64, 3.5, 5),
-    stairs(28, 14, 3.5, 7),
-
-    room('221', EI, 5, 10.5, '電気機器室'),
-    wc(51, 20, 4, 4),
-    room('222', EI, 33, 12.5, '自動制御実習室・ロボット・FA実習室'),
-    room('223', EI, 46, 4, '計測準備室'),
-    room('224', EI, 51, 4, '計測実習室'),
-    stairs(48, 55, 6, 4),
-    room('locker-evening', EI, 60, 9.5, 'ロッカースペース（定時制）'),
-    hall('unomori-tei', 46, 70, 9, 6, { ja: '鵜の森亭', en: 'Unomori-tei' }, [
+    feature('void', 'void', 0.5, 0, 7.9, 3.6),
+    box('232', 0.4, 3.7, 8, 3.9, '生活環境制御ルーム'),
+    box('233', 0.5, 7.7, 7.8, 8.4, '化学計測実習室・化学計測準備室'),
+    stairs(0.5, 16.2, 7.9, 4),
+    box('234', 2.4, 25.7, 6, 6.4, '西棟職員室'),
+    box('235', 4.5, 32.2, 4.1, 3.9, 'NMR室'),
+    box('236', 0.5, 36.2, 8, 3.9, '機器分析実習室'),
+    box('237', 0.6, 40.2, 8, 7.8, '環境工学実習室・環境工学準備室', [zone('20C')]),
+    box('238', 2.6, 48.2, 5.9, 3.6, '生徒会室（全日制）'),
+    box('239', 0.7, 52, 7.9, 6.1, '生徒更衣室（男）'),
+    box('locker-day', 0.7, 58.3, 7.8, 22.1, 'ロッカースペース（全日制）'),
+    elevator(0.7, 88.1, 6.9, 5.7),
+    stairs(27.5, 8.2, 2.2, 9),
+    box('231', 10.6, 0, 8.1, 7.8, '物理計測実習室・物理計測準備室'),
+    box('230', 10.6, 8, 5.9, 3, '薬品庫'),
+    box('wi-store-2f', 10.6, 11.1, 5.9, 4.9),
+    wc(10.6, 16.2, 6, 4.1),
+    box('229', 10.7, 28.1, 8.2, 8.2, '環境計測実習室', [zone('20D')]),
+    box('228', 10.8, 36.4, 8.2, 3.8, '基礎分析準備室'),
+    box('227', 10.8, 40.4, 8.2, 8.1, '基礎分析実習室', [zone('20C')]),
+    stairs(10.8, 48.6, 8.1, 3.2),
+    box('226', 10.9, 52, 8.1, 6.1, '生徒更衣室（女）'),
+    feature('void', 'void', 10.9, 61, 7.4, 11.2),
+    box('wi-south-2f', 10.9, 72.5, 5.8, 3.5),
+    wc(11.1, 76.3, 5.5, 4.3),
+    box('208', 17.8, 81.3, 7.4, 4.1, '選択学習室 2'),
+    box('207', 40.5, 81.9, 7.4, 4, '選択学習室 1'),
+    box('206', 10.8, 88.4, 6.9, 6, '一般学習室 6'),
+    box('205', 18.1, 88.4, 6.9, 6, '一般学習室 5'),
+    box('204', 25.6, 88.4, 6.9, 6, '一般学習室 4'),
+    box('203', 33.1, 88.4, 6.9, 6, '一般学習室 3'),
+    box('202', 40.5, 88.4, 6.9, 6, '一般学習室 2'),
+    box('201', 48.1, 88.4, 6.6, 6, '一般学習室 1'),
+    elevator(57.8, 88.5, 7.7, 5.9),
+    box('221', 47, 3.9, 8.1, 8.5, '電気機器室'),
+    box('ei-store-2f', 49, 12.4, 6.1, 3.7),
+    wc(49, 16.3, 6.1, 4.4),
+    box('222', 46.7, 28.4, 8.2, 12.2, '自動制御実習室・ロボット・FA実習室'),
+    box('223', 46.7, 40.8, 8.2, 3.8, '計測準備室'),
+    box('224', 46.7, 44.8, 8.2, 4.1, '計測実習室'),
+    stairs(46.8, 49.1, 8.2, 3.1),
+    box('locker-evening', 49.2, 52.6, 5.6, 9, 'ロッカースペース（定時制）'),
+    hall('unomori-tei', 49, 62.5, 6.4, 9.5, { ja: '鵜の森亭', en: 'Unomori-tei' }, [
       named({ ja: '中庭ステージ・20B（鵜の森亭）' }),
     ]),
-    box('225', 49, 76, 6, 4.5, '生徒会室（定時制）'),
-    wc(49, 80.5, 4, 3),
-
-    room('220', EO, 5, 10.5, '高圧実習室・受電設備実習室・模擬送電設備実習室'),
-    room('219', EO, 16, 3.5, '高圧実習準備室'),
-    stairs(60, 20, 5, 4.5),
-    box('218', 59, 29, 7, 4, '工学系課題研究室'),
-    room('217', EO, 33.5, 10, 'CAD室 2'),
-    room('216', EO, 44, 5.5, 'CAD室 1'),
-    room('215', EO, 50.5, 4, '製図教材室'),
-    room('214', EO, 55, 6, '製図室'),
-    room('213', EO, 62, 9.5, '定時制職員室'),
-    room('212', EO, 72, 4.5, '小会議室'),
-    room('211', EO, 77.5, 5.5, '職員室 1'),
-
-    box('208', 18, 83.5, 7, 4, '選択学習室 2'),
-    box('207', 41, 83.5, 7.5, 4, '選択学習室 1'),
-    ...classroomRow(2),
-    ...elevators(),
-
-    feature('void', 'void', 56, 96, 14, 14),
-    box('209', 47, 111, 11, 6, '図書室'),
-    box('storage', 58, 111, 6, 3, '倉庫'),
-    stairs(66, 113, 4, 4),
+    box('225', 48.5, 72.5, 5.9, 5.5, '生徒会室（定時制）'),
+    wc(50.9, 78.5, 4, 4),
+    box('220', 57.5, 4, 8.1, 8.3, '高圧実習室・受電設備実習室・模擬送電設備実習室'),
+    box('219', 57.5, 12.6, 8.1, 3.9, '高圧実習準備室'),
+    stairs(57.5, 16.7, 8.3, 3.8),
+    box('218', 57.6, 24.5, 8.1, 4, '工学系課題研究室'),
+    box('217', 57.5, 28.7, 8.1, 7.9, 'CAD室 2'),
+    box('216', 57.5, 36.9, 7.4, 7.8, 'CAD室 1'),
+    box('215', 57.5, 44.9, 6.8, 4.1, '製図教材室'),
+    box('214', 57.5, 49.3, 6.4, 7.6, '製図室'),
+    box('213', 57.5, 57.1, 6.1, 11.9, '定時制職員室'),
+    box('212', 57.9, 69.3, 5.4, 2.9, '小会議室'),
+    box('211', 57.9, 72.4, 5.6, 4.6, '職員室 1'),
+    feature('void', 'void', 57.7, 96, 12.8, 19.3),
+    stairs(48.7, 107, 2.5, 8.3),
+    // The library wraps around the store room
+    {
+      ...box('209', 48.5, 115.5, 12.3, 7.3, '図書室'),
+      parts: [{ x: 60.8, y: 118.8, w: 6.5, h: 4 }],
+    },
+    box('storage', 60.8, 115.5, 5, 2.8, '倉庫'),
   ],
   noEntry: [
-    { x: 62.5, y: 22 },
-    { x: 56, y: 18 },
-    { x: 56, y: 31 },
-    { x: 56, y: 84 },
-    { x: 10, y: 22 },
-    { x: 5.5, y: 22 },
-    { x: 14, y: 56 },
+    { x: 62.5, y: 21.5 },
+    { x: 57.3, y: 15.8 },
+    { x: 57.3, y: 27.5 },
+    { x: 57.3, y: 80 },
+    { x: 10, y: 22.5 },
+    { x: 4.5, y: 21.5 },
+    { x: 14, y: 52.5 },
   ],
 }
 
@@ -369,113 +358,125 @@ const floor3: MapFloor = {
   level: 3,
   slab: [WING_W, WING_E, SOUTH_BAR, BRIDGE, ANNEX],
   rooms: [
-    box('331', 1, 5, 7, 4.5, '地球科学準備室'),
-    room('332', WO, 10, 8.5, '地球科学実験室'),
-    stairs(2, 19.5, 7, 5),
-    room('333', WO, 35, 10.5, '宇宙工学実習室・宇宙工学準備室'),
-    room('334', WO, 46, 8, '化学基礎実験室'),
-    box('335', 3, 54.5, 6, 4.5, '化学基礎準備室'),
-    room('336', WO, 59.5, 4.5, '生命基礎実験室'),
-    box('337', 3, 64.5, 6, 4.5, '生命基礎準備室'),
-    room('338', WO, 72.5, 6.5, '美術室', [zone('30A')]),
-    room('338-prep', WO, 79.5, 3.5, '美術準備室'),
-
-    room('330', WI, 5, 11.5, '宇宙通信実習室'),
-    wc(11, 19.5, 5, 4.5),
-    room('329', WI, 33, 9, '力学実験実習室'),
-    room('328', WI, 42.5, 4.5, '力学実習準備室'),
-    room('327', WI, 47.5, 7, '物理基礎実験室'),
-    stairs(11, 55, 6, 4),
-    room('326', WI, 60, 4.5, '社会科学習室'),
-    box('325', 11, 65, 5, 4, '社会科準備室'),
-    wc(14, 79, 4, 4),
-
-    room('319', EI, 6.5, 12, '電気工作室'),
-    wc(51, 19.5, 4, 4.5),
-    room('320', EI, 33, 9, '電気工事室'),
-    room('321', EI, 42, 6, '電気工事用資材室'),
-    room('322', EI, 48.5, 6.5, '電子工作室'),
-    stairs(48, 55, 6, 4),
-    room('323', EI, 60, 4, '印刷室'),
-    room('324', EI, 64, 4, '放送室'),
-    feature('void', 'void', 46, 70, 9, 7),
-    wc(49, 79, 4, 4),
-    hall('east-lounge-3f', 49, 83, 8, 5.5, { ja: 'ラウンジ', en: 'Lounge' }, [
+    box('331', 2.3, 3.3, 6.1, 4, '地球科学準備室'),
+    box('332', 0.4, 7.4, 8, 8.7, '地球科学実験室'),
+    stairs(0.4, 16.1, 8.1, 4.1),
+    box('333', 0.4, 32.4, 8.2, 7.9, '宇宙工学実習室・宇宙工学準備室'),
+    box('334', 0.6, 40.4, 8, 7.8, '化学基礎実験室'),
+    box('335', 2.5, 48.4, 6.1, 3.5, '化学基礎準備室'),
+    box('336', 0.5, 52.1, 8.2, 7.9, '生命基礎実験室'),
+    box('337', 2.4, 60.3, 6.2, 3.9, '生命基礎準備室'),
+    box('338', 0.5, 67.8, 8, 8, '美術室', [zone('30A')]),
+    box('338-prep', 0.4, 76, 8, 3.9, '美術準備室'),
+    elevator(0.3, 87, 7.2, 6),
+    box('330', 10.5, 3.4, 8.1, 8.8, '宇宙通信実習室'),
+    box('wi-store-3f', 10.6, 12.2, 6.1, 3.9),
+    wc(10.5, 16.2, 6.1, 4.3),
+    box('329', 10.6, 28.3, 8.2, 8.3, '力学実験実習室'),
+    box('328', 10.8, 36.7, 8.1, 3.9, '力学実習準備室'),
+    box('327', 10.7, 40.6, 8.3, 8.1, '物理基礎実験室'),
+    stairs(10.7, 48.8, 8.3, 3.2),
+    box('326', 10.7, 52.2, 7, 8.1, '社会科学習室'),
+    box('325', 11.7, 60.4, 5.1, 3.9, '社会科準備室'),
+    box('wi-south-3f', 10.7, 72.2, 6, 3.5),
+    wc(10.7, 75.8, 6, 4.3),
+    box('308', 17.8, 80.5, 7.7, 4.3, '選択学習室 4'),
+    box('307', 40.5, 80.9, 7.6, 4.3, '選択学習室 3'),
+    box('306', 10.5, 87.4, 7.2, 6, '一般学習室 12'),
+    box('305', 18.1, 87.4, 7.2, 6, '一般学習室 11'),
+    box('304', 25.6, 87.4, 7.2, 6, '一般学習室 10'),
+    box('303', 33, 87.4, 7.2, 6, '一般学習室 9'),
+    box('302', 40.6, 87.4, 7.2, 6, '一般学習室 8'),
+    box('301', 48, 87.4, 7.2, 6, '一般学習室 7'),
+    elevator(57.8, 88, 8.2, 6.3),
+    box('319', 46.8, 3.9, 8, 8.7, '電気工作室'),
+    box('ei-store-3f', 48.8, 12.6, 6.1, 3.9),
+    wc(48.7, 16.6, 6.2, 4.5),
+    box('320', 46.8, 28.8, 8.1, 8.3, '電気工事室'),
+    box('321', 46.7, 37.2, 8.1, 3.9, '電気工事用資材室'),
+    box('322', 46.8, 41.2, 8, 8.1, '電子工作室'),
+    stairs(46.9, 49.4, 8.2, 3.2),
+    box('323', 49.1, 52.8, 5.8, 4.1, '印刷室'),
+    box('324', 49.2, 57.1, 5.8, 3.9, '放送室'),
+    feature('void', 'void', 49.4, 65.2, 5.7, 7.4),
+    box('ei-south-3f', 48.2, 72.8, 6.9, 3.5),
+    wc(48.3, 76.5, 7, 4.4),
+    hall('east-lounge-3f', 47.5, 81, 9.8, 5.5, { ja: 'ラウンジ', en: 'Lounge' }, [
       named({ ja: '東棟3階ラウンジ' }),
     ]),
-
-    feature('void', 'void', 57, 6.5, 9, 12),
-    stairs(60, 20, 5, 4.5),
-    box('318', 59, 29, 7, 7.5, '科学系課題研究室'),
-    room('317', EO, 37, 11.5, 'プリント基板加工室'),
-    room('316', EO, 49, 7, '電気計測室'),
-    box('315', 59.5, 56.5, 4, 2, '校正室'),
-    room('career-1', EO, 59, 3.5, '進路相談室 1'),
-    room('314', EO, 63, 4, 'ガイダンスルーム'),
-    room('career-2', EO, 67.5, 2.5, '進路相談室 2'),
-    room('313', EO, 70.5, 5, '情報管理室'),
-    room('312', EO, 76, 6, '職員室 2'),
-
-    box('308', 18, 83.5, 7, 4, '選択学習室 4'),
-    box('307', 41, 83.5, 7.5, 4, '選択学習室 3'),
-    ...classroomRow(3),
-    ...elevators(),
-
-    box('311', 56, 97, 9, 8, '情報基礎コンピューター室'),
-    box('310', 56, 105, 9, 7, 'CALL学習室'),
-    box('309', 56, 112, 9, 4.5, '国際交流室'),
-    stairs(66, 113, 4, 4),
+    feature('void', 'void', 57.3, 4.3, 8.1, 8.3),
+    box('eo-store-3f', 57.2, 12.8, 8.2, 4.1),
+    stairs(57.1, 17, 8.3, 3.9),
+    box('318', 57.2, 26.7, 6, 6, '科学系課題研究室'),
+    box('317', 57.3, 32.9, 8.1, 8.3, 'プリント基板加工室'),
+    box('316', 57.4, 41.3, 8.1, 8.1, '電気計測室'),
+    box('315', 57.3, 49.5, 5.9, 3.5, '校正室'),
+    box('career-1', 57.4, 53.2, 8.2, 3.9, '進路相談室 1'),
+    box('314', 57.4, 57.3, 8.1, 6, 'ガイダンスルーム'),
+    box('career-2', 57.5, 63.4, 8.1, 3.8, '進路相談室 2'),
+    box('313', 57.5, 67.3, 8.2, 5.5, '情報管理室'),
+    box('312', 57.7, 73, 8.1, 7.9, '職員室 2'),
+    box('311', 58, 94.5, 8.2, 9.3, '情報基礎コンピューター室'),
+    box('310', 58.1, 104, 8.2, 8.5, 'CALL学習室'),
+    box('309', 58.1, 112.8, 8.2, 3.4, '国際交流室'),
+    stairs(68.7, 116, 2.6, 4.5),
   ],
   noEntry: [
-    { x: 56, y: 81.5 },
+    { x: 57.3, y: 79.5 },
     { x: 53, y: 96 },
-    { x: 10, y: 67 },
+    { x: 10.3, y: 63 },
   ],
 }
 
 const floor4: MapFloor = {
   level: 4,
-  slab: [WING_W, WING_E, SOUTH_BAR, BRIDGE],
+  slab: [WING_W, WING_E, SOUTH_BAR, BRIDGE, { x: 57.5, y: PLATE_H, w: 10.5, h: 20 }],
   rooms: [
-    room('427', WO, 42.5, 11, '調理室'),
-    room('428', WO, 54, 4, '家庭科準備室'),
-    room('429', WO, 58.5, 6, '被服室'),
-    room('430', WO, 72.5, 6, '音楽室'),
-    room('431', WO, 78.5, 4, '音楽準備室'),
-
-    room('426', WI4, 45, 5, '作法室'),
-    room('425', WI4, 50, 4.5, '気象大気観測室'),
-    stairs(11, 55, 6, 4),
-    room('424', WI4, 59.5, 6, '書道室'),
-    wc(13, 79, 4, 4),
-
-    wc(49, 19.5, 6, 4.5),
-    room('418', EI, 33.5, 4, '電子回路実習室'),
-    room('419', EI, 38, 4, '論理回路実習室'),
-    room('420', EI, 42.5, 6, '情報システム工学第1実験室'),
-    room('421', EI, 49, 6, '情報システム工学第2実験室'),
-    stairs(48, 55, 6, 4),
-    room('422', EI, 59.5, 5.5, '情報システム工学第3実験室'),
-    room('423', EI, 65.5, 4, '自習室'),
-    wc(49, 79.5, 4, 3.5),
-
-    box('415', 58, 9.5, 8, 10, '電波暗室講義室'),
-    stairs(60, 20, 5, 4.5),
-    box('414', 59, 31.5, 7, 9.5, '情報系課題研究室'),
-    room('413', EO, 41.5, 9.5, 'プログラム実習室'),
-    room('412', EO, 52, 9.5, 'ネットワーク通信実習室'),
-    room('411', EO, 62, 7.5, 'マルチメディア実習室'),
-    room('410', EO, 70, 6.5, '外国語学習室'),
-    room('409', EO, 77, 6, '職員室 3'),
-
-    box('408', 18, 83.5, 7, 4, '選択学習室 6'),
-    box('407', 41, 83.5, 7.5, 4, '選択学習室 5'),
-    ...classroomRow(4),
-    ...elevators(),
+    box('427', 0.4, 36.5, 8, 11.8, '調理室'),
+    box('428', 0.3, 48.4, 8.1, 3.6, '家庭科準備室'),
+    box('429', 0.3, 52.1, 7.9, 8.1, '被服室'),
+    box('430', 0.4, 68.3, 7.9, 8, '音楽室'),
+    box('431', 0.5, 76.6, 7.1, 3.8, '音楽準備室'),
+    elevator(0.5, 88, 6.8, 6),
+    box('426', 10.7, 40.5, 8.1, 3.7, '作法室'),
+    box('425', 10.7, 44.3, 8.1, 4.3, '気象大気観測室'),
+    stairs(10.6, 48.7, 8.2, 3.3),
+    box('424', 10.7, 52.1, 6.8, 8, '書道室'),
+    box('wi-south-4f', 11.1, 72.8, 4.8, 3.2),
+    wc(11, 76.5, 5.2, 4.1),
+    box('408', 17.8, 81.3, 7.5, 4.1, '選択学習室 6'),
+    box('407', 40.4, 81.3, 7.6, 4.2, '選択学習室 5'),
+    box('406', 10.8, 88.2, 7, 6, '一般学習室 18'),
+    box('405', 18.1, 88.2, 7.2, 6, '一般学習室 17'),
+    box('404', 25.5, 88.2, 7.3, 6, '一般学習室 16'),
+    box('403', 33, 88.2, 7.3, 6, '一般学習室 15'),
+    box('402', 40.6, 88.2, 7.2, 6, '一般学習室 14'),
+    box('401', 48.1, 88.2, 6.7, 6, '一般学習室 13'),
+    elevator(58, 88.6, 7.8, 5.8),
+    wc(49.1, 15.5, 5.7, 5.2),
+    box('418', 46.7, 33, 8, 3.8, '電子回路実習室'),
+    box('419', 46.8, 36.9, 8, 3.6, '論理回路実習室'),
+    box('420', 46.8, 40.5, 8, 4.2, '情報システム工学第1実験室'),
+    box('421', 46.7, 44.7, 8, 4.2, '情報システム工学第2実験室'),
+    stairs(46.7, 48.9, 8.1, 3.3),
+    box('422', 46.8, 52.4, 8, 8.4, '情報システム工学第3実験室'),
+    box('423', 46.9, 60.9, 7.3, 3.7, '自習室'),
+    box('ei-south-4f', 48.3, 76.8, 3, 8.7),
+    wc(51.3, 77.5, 4.1, 4.5),
+    box('415', 57.9, 5.5, 7.7, 11, '電波暗室講義室'),
+    stairs(57.4, 16.7, 8.2, 3.8),
+    box('414', 57.4, 30.6, 6.1, 6, '情報系課題研究室'),
+    box('413', 57.3, 36.9, 8.2, 5, 'プログラム実習室'),
+    box('eo-mid-4f', 57.4, 42.9, 8.2, 2.7),
+    box('412', 57.4, 45.9, 8.2, 9.9, 'ネットワーク通信実習室'),
+    box('411', 57.4, 56, 8.1, 8.8, 'マルチメディア実習室'),
+    box('410', 57.6, 65.1, 6.8, 4, '外国語学習室'),
+    box('409', 57.8, 70, 8, 7.8, '職員室 3'),
+    box('eo-south-4f', 58.1, 78.1, 7.7, 2.8),
   ],
   noEntry: [
-    { x: 56, y: 83.5 },
-    { x: 14, y: 57 },
+    { x: 57.3, y: 79.5 },
+    { x: 14, y: 52.5 },
   ],
 }
 

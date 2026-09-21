@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, onScopeDispose, ref } from 'vue'
 import type { Ref } from 'vue'
 
 interface Point {
@@ -22,14 +22,19 @@ const MAX_SCALE = 8
 const MIN_SCALE = 0.5
 const DRAG_PX = 4
 const WHEEL_RATE = 0.005
+// A fling keeps the last 100 ms of movement and coasts to a stop over about a third of a second
+const FLING_SAMPLE_MS = 100
+const FLING_MIN_SPEED = 0.05
+const FLING_DECAY_MS = 325
 
 /**
  * Pan and pinch-zoom inside an SVG, kept in the viewBox's own units so the
  * result goes straight onto a group's transform. `view` is the part of the
  * viewBox actually on screen and `content` what may be scrolled into it, so
- * a cropped map pans at scale 1 too. One pointer drags, two pinch, and ctrl
- * or ⌘ with the wheel zooms about the cursor; the page keeps the plain wheel
- * and, until the map is zoomed in, single-finger vertical scrolling.
+ * a cropped map pans at scale 1 too. One pointer drags and flings, two pinch,
+ * and ctrl or ⌘ with the wheel zooms about the cursor; the page keeps the plain
+ * wheel, and a finger's pull the map has no room for scrolls the page instead,
+ * momentum included.
  */
 export function usePanZoom(
   svg: Ref<SVGSVGElement | null>,
@@ -47,15 +52,13 @@ export function usePanZoom(
   let pinchDistance = 0
   let origin: Point | undefined
   let dragged = false
+  // The svg is scaled uniformly and only by its size, so one reading per gesture serves every move
+  let pixelsPerUnit = 1
+  let samples: { t: number; x: number; y: number }[] = []
+  let fling: number | undefined
 
   const transform = computed(() => `translate(${tx.value} ${ty.value}) scale(${scale.value})`)
   const zoomed = computed(() => scale.value > defaultScale() + 0.001)
-  const pannable = computed(
-    () =>
-      zoomed.value ||
-      content.value.w * scale.value > view.value.w + 0.01 ||
-      content.value.h * scale.value > view.value.h + 0.01,
-  )
 
   /** The scale, up to 1, at which the whole content sits inside the view */
   function fitScale(): number {
@@ -167,13 +170,57 @@ export function usePanZoom(
     }
   }
 
+  // Moves the map by a screen-pixel delta, handing the page the vertical part
+  // the map has no room for. Touch-action is off so a pinch is never mistaken
+  // for a scroll, which leaves that scroll to do by hand
+  function drag(dx: number, dy: number, scrollsPage: boolean) {
+    const from = { x: tx.value, y: ty.value }
+    tx.value += dx / pixelsPerUnit
+    ty.value += dy / pixelsPerUnit
+    clamp()
+    if (tx.value !== from.x || ty.value !== from.y) touched.value = true
+    const spare = dy - (ty.value - from.y) * pixelsPerUnit
+    if (scrollsPage && Math.abs(spare) >= 0.5) window.scrollBy(0, -spare)
+  }
+
+  function stopFling() {
+    if (fling !== undefined) cancelAnimationFrame(fling)
+    fling = undefined
+  }
+
+  // Coasts on at the speed the pointer left with, slowing exponentially
+  function startFling(scrollsPage: boolean) {
+    const last = samples[samples.length - 1]
+    const first = samples.find((sample) => last && last.t - sample.t <= FLING_SAMPLE_MS)
+    if (!first || !last || last.t - first.t < 16) return
+    let vx = (last.x - first.x) / (last.t - first.t)
+    let vy = (last.y - first.y) / (last.t - first.t)
+    if (Math.hypot(vx, vy) < FLING_MIN_SPEED) return
+    let then = performance.now()
+    const step = (now: number) => {
+      const dt = now - then
+      then = now
+      drag(vx * dt, vy * dt, scrollsPage)
+      const decay = Math.exp(-dt / FLING_DECAY_MS)
+      vx *= decay
+      vy *= decay
+      fling = Math.hypot(vx, vy) < FLING_MIN_SPEED / 2 ? undefined : requestAnimationFrame(step)
+    }
+    fling = requestAnimationFrame(step)
+  }
+
+  onScopeDispose(stopFling)
+
   function pointerdown(event: PointerEvent) {
     if (event.button !== 0) return
+    stopFling()
     const point = { x: event.clientX, y: event.clientY }
     pointers.set(event.pointerId, point)
     if (pointers.size === 1) {
       origin = point
       dragged = false
+      pixelsPerUnit = screenMatrix()?.a ?? 1
+      samples = [{ t: event.timeStamp, ...point }]
     } else if (pointers.size === 2) {
       const [a, b] = [...pointers.values()] as [Point, Point]
       pinchDistance = Math.hypot(a.x - b.x, a.y - b.y)
@@ -192,13 +239,9 @@ export function usePanZoom(
         dragged = true
         capture(event.pointerId)
       }
-      if (!pannable.value) return
-      // The svg is scaled uniformly, so a pixel delta divides straight into user units
-      const pixelsPerUnit = screenMatrix()?.a ?? 1
-      tx.value += (current.x - previous.x) / pixelsPerUnit
-      ty.value += (current.y - previous.y) / pixelsPerUnit
-      touched.value = true
-      clamp()
+      drag(current.x - previous.x, current.y - previous.y, event.pointerType !== 'mouse')
+      samples.push({ t: event.timeStamp, ...current })
+      samples = samples.filter((sample) => event.timeStamp - sample.t <= FLING_SAMPLE_MS)
     } else if (pointers.size === 2) {
       const [a, b] = [...pointers.values()] as [Point, Point]
       const distance = Math.hypot(a.x - b.x, a.y - b.y)
@@ -211,13 +254,17 @@ export function usePanZoom(
   }
 
   function pointerup(event: PointerEvent) {
+    const flung = pointers.size === 1 && dragged && event.type === 'pointerup'
     pointers.delete(event.pointerId)
     pinchDistance = 0
+    if (flung) startFling(event.pointerType !== 'mouse')
+    samples = []
   }
 
   function wheel(event: WheelEvent) {
     if (!event.ctrlKey && !event.metaKey) return
     event.preventDefault()
+    stopFling()
     zoomAt(toUser({ x: event.clientX, y: event.clientY }), Math.exp(-event.deltaY * WHEEL_RATE))
   }
 
@@ -229,7 +276,6 @@ export function usePanZoom(
   return {
     transform,
     zoomed,
-    pannable,
     atDefault,
     touched,
     zoomBy,
