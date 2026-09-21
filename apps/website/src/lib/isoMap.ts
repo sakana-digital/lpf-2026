@@ -64,7 +64,7 @@ function behind(a: MapBox, b: MapBox): boolean {
 export function paintOrder<T extends MapBox>(boxes: T[]): T[] {
   const count = boxes.length
   const later: number[][] = boxes.map(() => [])
-  const waiting = new Array<number>(count).fill(0)
+  const waiting = Array.from({ length: count }, () => 0)
   for (let i = 0; i < count; i++) {
     for (let j = i + 1; j < count; j++) {
       const a = boxes[i]!
@@ -85,7 +85,7 @@ export function paintOrder<T extends MapBox>(boxes: T[]): T[] {
     const box = boxes[index]!
     return box.x + box.w + box.y + box.h
   }
-  const done = new Array<boolean>(count).fill(false)
+  const done = Array.from({ length: count }, () => false)
   const ready = boxes.map((_, index) => index).filter((index) => waiting[index] === 0)
   const order: T[] = []
   while (order.length < count) {
