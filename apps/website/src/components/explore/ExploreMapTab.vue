@@ -223,7 +223,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', placePopover))
   /* Zero height, so it floats over the map and keeps its place while the stack scrolls */
   .toolbar {
     position: sticky;
-    top: calc(var(--content-top) + 12px);
+    top: calc(var(--content-top) + var(--tab-gap));
     z-index: 2;
     display: flex;
     align-items: flex-start;

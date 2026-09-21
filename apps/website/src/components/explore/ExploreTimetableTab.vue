@@ -95,11 +95,14 @@ function slotHead(slot: TimetableSlot, org: Organization): string {
   return project && project !== group ? t('explore.timetable.slotHead', { group, project }) : group
 }
 
-function slotStyle(slot: TimetableSlot) {
+// An open slot runs on into the spare last row, which grows to fit it, so
+// the grid gets taller instead of the wrapper clipping and scrolling it
+function slotStyle(slot: TimetableSlot, open = false) {
   const rows = slotRows(slot, axis.value)
   return {
     gridColumn: venues.indexOf(slot.venue) + 2,
-    gridRow: `${rows.start + 1} / ${rows.end + 1}`,
+    gridRow: `${rows.start + 1} / ${open ? -1 : rows.end + 1}`,
+    ...(open ? { minHeight: `${(rows.end - rows.start) * ROW_HEIGHT - 2}px` } : {}),
   }
 }
 </script>
@@ -120,7 +123,7 @@ function slotStyle(slot: TimetableSlot) {
       <div
         ref="gridRef"
         class="grid"
-        :style="{ gridTemplateRows: `auto repeat(${axis.rowCount}, ${ROW_HEIGHT}px)` }"
+        :style="{ gridTemplateRows: `auto repeat(${axis.rowCount}, ${ROW_HEIGHT}px) auto` }"
         role="group"
         :aria-label="t('explore.tabs.timetable')"
       >
@@ -143,7 +146,7 @@ function slotStyle(slot: TimetableSlot) {
             v-if="org"
             class="slot linked"
             :class="{ active: isExpanded(slot) || closingId === org.id }"
-            :style="slotStyle(slot)"
+            :style="slotStyle(slot, isExpanded(slot) || closingId === org.id)"
           >
             <OrgHead :expanded="isExpanded(slot)" @toggle="onSlotClick(slot)">
               <span class="slot-title">{{ slotHead(slot, org) }}</span>
@@ -184,7 +187,7 @@ function slotStyle(slot: TimetableSlot) {
 
   width: min(1024px, 100%);
   margin-inline: auto;
-  padding: 24px 0 48px;
+  padding: var(--tab-gap) 0 48px;
 
   .day-switch {
     justify-content: flex-end;
@@ -263,7 +266,6 @@ function slotStyle(slot: TimetableSlot) {
 
           align-self: start;
           height: max-content;
-          min-height: calc(100% - 2px);
           z-index: 2;
           border-color: var(--color-heading);
         }

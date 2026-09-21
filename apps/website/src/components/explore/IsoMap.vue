@@ -54,6 +54,9 @@ const SEAM = 0.05
 // A tall box, a phone held upright, starts pulled back a little
 const PORTRAIT_SCALE = 0.7
 
+const ICON_SPAN = 2.6
+const ICON_STEP = ICON_SPAN * 1.15
+
 const ROOF_HEIGHT = ROOM_KINDS.room.height
 
 const rotatedFloors = computed(() =>
@@ -61,7 +64,10 @@ const rotatedFloors = computed(() =>
     ...floor,
     slab: floor.slab.map((box) => rotateBox(box)),
     ground: (floor.ground ?? []).map((box) => rotateBox(box)),
-    rooms: floor.rooms.map((room) => rotateBox(room)),
+    rooms: floor.rooms.map((room) => ({
+      ...rotateBox(room),
+      ...(room.parts ? { parts: room.parts.map((part) => rotateBox(part)) } : {}),
+    })),
     noEntry: (floor.noEntry ?? []).map((point) => rotatePoint(point)),
     omitted: (floor.omitted ?? []).map(({ from, to }) => ({
       from: rotatePoint(from),
@@ -164,14 +170,20 @@ interface Label {
   size: number
 }
 
+interface DrawnIcon {
+  d: string
+  transform: string
+}
+
 interface DrawnRoom {
   room: MapRoom
   key: string
   top: string
   south?: string
   east?: string
-  icon?: { d: string; transform: string }
   linked: boolean
+  /** The room's own box rather than one of its further parts, which gets the label and the tab stop */
+  primary: boolean
   tooltip: string
   label?: Label
 }
@@ -199,16 +211,18 @@ function labelFor(room: MapRoom, height: number, linked: boolean): Label | undef
   return { text, x, y, size }
 }
 
-// The symbol is a square a bit over half the shorter side, centred on the box
-function iconFor(room: MapRoom): DrawnRoom['icon'] {
-  const name = ROOM_KINDS[room.kind].icon
-  if (!name) return undefined
-  const size = Math.min(room.w, room.h) * 0.6
-  const { x, y } = boxCenter(room, 0)
-  return {
-    d: mapIcons[name],
-    transform: `translate(${x - size / 2} ${y + size / 2}) scale(${size / ICON_SIZE})`,
-  }
+// Every symbol is the same size whatever its box; several sit in a row across
+// the screen, centred on the box
+function iconsFor(room: MapRoom): DrawnIcon[] {
+  const names = ROOM_KINDS[room.kind].icon ?? []
+  const centre = boxCenter(room, 0)
+  return names.map((name, i) => {
+    const x = centre.x + (i - (names.length - 1) / 2) * ICON_STEP
+    return {
+      d: mapIcons[name],
+      transform: `translate(${x - ICON_SPAN / 2} ${centre.y + ICON_SPAN / 2}) scale(${ICON_SPAN / ICON_SIZE})`,
+    }
+  })
 }
 
 function tooltipFor(room: MapRoom): string {
@@ -218,9 +232,14 @@ function tooltipFor(room: MapRoom): string {
 // Flat areas lie on the plate and can hide nothing, so they go down first and
 // the boxes standing on the plate paint over them from the back forwards
 function drawnRooms(floor: MapFloor): DrawnRoom[] {
-  const flat = floor.rooms.filter((room) => ROOM_KINDS[room.kind].height === 0)
-  const raised = paintOrder(floor.rooms.filter((room) => ROOM_KINDS[room.kind].height > 0))
-  return [...flat, ...raised].map((room, index) => {
+  // A room's further parts paint as boxes of their own, each in its own place in the order
+  const boxes = floor.rooms.flatMap((room) => [
+    { ...room, primary: true },
+    ...(room.parts ?? []).map((part) => ({ ...room, ...part, primary: false })),
+  ])
+  const flat = boxes.filter((room) => ROOM_KINDS[room.kind].height === 0)
+  const raised = paintOrder(boxes.filter((room) => ROOM_KINDS[room.kind].height > 0))
+  return [...flat, ...raised].map(({ primary, ...room }, index) => {
     const height = ROOM_KINDS[room.kind].height
     const linked = props.linked.has(room.id)
     return {
@@ -228,10 +247,10 @@ function drawnRooms(floor: MapFloor): DrawnRoom[] {
       key: `${room.id}-${index}`,
       top: boxTop(room, height),
       ...(height > 0 ? boxFaces(room, 0, height) : {}),
-      icon: iconFor(room),
       linked,
+      primary,
       tooltip: tooltipFor(room),
-      label: labelFor(room, height, linked),
+      label: primary ? labelFor(room, height, linked) : undefined,
     }
   })
 }
@@ -257,6 +276,9 @@ const drawnFloors = computed(() =>
       slabTops: floor.slab.map((box) => boxTop(grow(box), 0)),
       rooms,
       labels: rooms.filter((entry) => entry.label),
+      icons: floor.rooms.flatMap((room, i) =>
+        iconsFor(room).map((icon, j) => ({ ...icon, key: `${room.id}-${i}-${j}` })),
+      ),
       noEntry: floor.noEntry.map((point) => project(point.x, point.y, 0)),
       omitted: floor.omitted.map(({ from, to }) => ({
         from: project(from.x, from.y, 0),
@@ -272,6 +294,34 @@ const shown = computed(() =>
     ? drawnFloors.value
     : drawnFloors.value.filter((entry) => entry.floor.level === props.level),
 )
+
+// A room drawn as several boxes lights up whole: hover and focus are applied
+// by id to every box, by hand, so a pointer move never re-renders the map.
+// An attribute Vue does not bind survives its patches
+let lit: string | undefined
+
+function boxesOf(id: string): NodeListOf<Element> | never[] {
+  return svgRef.value?.querySelectorAll(`.room[data-id="${CSS.escape(id)}"]`) ?? []
+}
+
+function light(id: string | undefined) {
+  if (id === lit) return
+  if (lit) for (const box of boxesOf(lit)) box.removeAttribute('data-lit')
+  if (id) for (const box of boxesOf(id)) box.setAttribute('data-lit', '')
+  lit = id
+}
+
+function linkedRoomId(target: EventTarget | null): string | undefined {
+  return (target as Element | null)?.closest?.('.room.linked')?.getAttribute('data-id') ?? undefined
+}
+
+function onRoomOver(event: Event) {
+  light(linkedRoomId(event.target))
+}
+
+function onRoomOut(event: PointerEvent | FocusEvent) {
+  if (!linkedRoomId(event.relatedTarget)) light(undefined)
+}
 
 const noEntryLabel = computed(() => t('explore.map.noEntry'))
 
@@ -306,7 +356,22 @@ function onBackgroundClick() {
 
 /** Where a room is drawn on screen, for anchoring things to it */
 function roomRect(id: string): DOMRect | undefined {
-  return svgRef.value?.querySelector(`.room[data-id="${CSS.escape(id)}"]`)?.getBoundingClientRect()
+  let rect: DOMRect | undefined
+  for (const box of boxesOf(id)) {
+    const r = box.getBoundingClientRect()
+    if (!rect) rect = r
+    else {
+      const left = Math.min(rect.left, r.left)
+      const top = Math.min(rect.top, r.top)
+      rect = new DOMRect(
+        left,
+        top,
+        Math.max(rect.right, r.right) - left,
+        Math.max(rect.bottom, r.bottom) - top,
+      )
+    }
+  }
+  return rect
 }
 
 defineExpose({
@@ -331,6 +396,10 @@ defineExpose({
     :aria-label="t('explore.map.mapLabel')"
     v-on="stacked ? {} : panZoom.handlers"
     @click="onBackgroundClick"
+    @pointerover="onRoomOver"
+    @pointerout="onRoomOut"
+    @focusin="onRoomOver"
+    @focusout="onRoomOut"
   >
     <g ref="viewportRef" class="viewport">
       <TransitionGroup :name="`floor-${slide}`" :css="!stacked" @after-enter="emit('settled')">
@@ -342,6 +411,7 @@ defineExpose({
             slabTops,
             rooms,
             labels,
+            icons,
             noEntry,
             omitted,
             label,
@@ -389,9 +459,9 @@ defineExpose({
               },
             ]"
             :data-id="entry.room.id"
-            :role="entry.linked ? 'button' : undefined"
-            :tabindex="entry.linked ? 0 : undefined"
-            :aria-label="entry.linked ? entry.tooltip : undefined"
+            :role="entry.linked && entry.primary ? 'button' : undefined"
+            :tabindex="entry.linked && entry.primary ? 0 : undefined"
+            :aria-label="entry.linked && entry.primary ? entry.tooltip : undefined"
             @click="onRoomClick($event, entry)"
             @keydown.enter.space.prevent="emit('select', entry.room.id)"
           >
@@ -401,13 +471,16 @@ defineExpose({
               <polygon class="face east" :points="entry.east" />
             </template>
             <polygon class="top" :points="entry.top" />
-            <path
-              v-if="entry.icon"
-              class="icon"
-              :d="entry.icon.d"
-              :transform="entry.icon.transform"
-            />
           </g>
+
+          <!-- Drawn after every box so no roof hides a symbol -->
+          <path
+            v-for="icon in icons"
+            :key="`icon-${icon.key}`"
+            class="icon"
+            :d="icon.d"
+            :transform="icon.transform"
+          />
 
           <text
             v-for="entry in labels"
@@ -461,11 +534,10 @@ defineExpose({
 
   &:not(.stacked) {
     height: 100svh;
-    touch-action: pan-y;
+    touch-action: none;
   }
 
   &.zoomed {
-    touch-action: none;
     cursor: grab;
   }
 
@@ -553,11 +625,6 @@ defineExpose({
       transition: fill 0.15s;
     }
 
-    .icon {
-      fill: var(--color-text-mute);
-      pointer-events: none;
-    }
-
     &.flat .top {
       fill: color-mix(in oklab, var(--color-heading) 6%, var(--map-slab));
     }
@@ -593,7 +660,7 @@ defineExpose({
       cursor: pointer;
       outline: none;
 
-      &:not(.selected):is(:hover, :focus-visible) {
+      &:not(.selected):is([data-lit], :focus-visible) {
         .top {
           fill: var(--map-linked-roof-hover);
           stroke: var(--map-linked-roof-hover);
@@ -620,6 +687,11 @@ defineExpose({
       stroke: var(--color-heading);
       stroke-width: 0.45;
     }
+  }
+
+  .icon {
+    fill: var(--color-text-mute);
+    pointer-events: none;
   }
 
   .label {

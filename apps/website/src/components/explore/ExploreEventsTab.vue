@@ -63,6 +63,6 @@ function onSelect(id: string | null) {
 <style scoped>
 .events .grouping-switch {
   justify-content: flex-end;
-  margin: 24px 16px 0;
+  margin: var(--tab-gap) 16px 0;
 }
 </style>

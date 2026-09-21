@@ -38,7 +38,7 @@ export function useMasonryLayout(
   const { laneWidth: minLaneWidth, gap, maxLanes, itemSelector } = options
   const maxLaneWidth = options.maxLaneWidth ?? options.laneWidth
   const containerWidth = ref(0)
-  const heights = ref<number[]>(new Array(itemCount).fill(ESTIMATED_HEIGHT))
+  const heights = ref<number[]>(Array.from({ length: itemCount }, () => ESTIMATED_HEIGHT))
 
   let widthObserver: ResizeObserver | undefined
   let itemObserver: ResizeObserver | undefined
@@ -83,7 +83,7 @@ export function useMasonryLayout(
   // Each item goes to the shortest column so lanes stay level; ties take the
   // leftmost, which keeps the initial (equal-height) pass in source order.
   const layout = computed(() => {
-    const columnHeights: number[] = new Array(count.value).fill(0)
+    const columnHeights: number[] = Array.from({ length: count.value }, () => 0)
     const positions: Position[] = []
     for (let i = 0; i < itemCount; i++) {
       let col = 0

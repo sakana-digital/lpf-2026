@@ -31,7 +31,7 @@ export async function processInstagramEmbeds() {
 
 export function processInstagramEmbedsNear(el: Element, rootMargin = '400px') {
   if (!('IntersectionObserver' in window)) {
-    processInstagramEmbeds()
+    void processInstagramEmbeds()
     return () => {}
   }
 
@@ -39,7 +39,7 @@ export function processInstagramEmbedsNear(el: Element, rootMargin = '400px') {
     (entries) => {
       if (entries.some((entry) => entry.isIntersecting)) {
         observer.disconnect()
-        processInstagramEmbeds()
+        void processInstagramEmbeds()
       }
     },
     { rootMargin },
