@@ -1,91 +1,29 @@
-import { onMounted, onUnmounted, ref } from 'vue'
+import { ref } from 'vue'
 import type { OrgStatus } from '@shared/status'
 import { isFestivalDay } from '@/lib/festival'
 
-const POLL_INTERVAL_MS = 45_000
-
 const statuses = ref<ReadonlyMap<string, OrgStatus>>(new Map())
+let request: Promise<void> | undefined
 
-let subscribers = 0
-let timer: ReturnType<typeof setTimeout> | undefined
-let lastRequestAt: number | undefined
-let requestInFlight: Promise<void> | undefined
+/** Read once, when the first tab that shows it mounts; nothing asks the API again */
+export function initOrgStatus(): Promise<void> {
+  return (request ??= load())
+}
 
-async function requestStatuses() {
+async function load() {
+  // Outside the festival days the API always answers with an empty list
+  if (!import.meta.env.DEV && !isFestivalDay()) return
   try {
     const res = await fetch('/api/status')
     if (!res.ok) return
     const list = (await res.json()) as OrgStatus[]
     statuses.value = new Map(list.map((status) => [status.orgId, status]))
   } catch {
-    // Keep the previous values when the fetch fails
+    // Nothing to show when the fetch fails
   }
-}
-
-function fetchStatuses(): Promise<void> {
-  if (requestInFlight !== undefined) return requestInFlight
-
-  const now = Date.now()
-  if (lastRequestAt !== undefined && now - lastRequestAt < POLL_INTERVAL_MS) {
-    return Promise.resolve()
-  }
-  lastRequestAt = now
-  // Outside the festival days the API always answers with an empty list
-  if (!import.meta.env.DEV && !isFestivalDay()) return Promise.resolve()
-  requestInFlight = requestStatuses().finally(() => {
-    requestInFlight = undefined
-  })
-  return requestInFlight
-}
-
-function scheduleNextFetch() {
-  if (timer !== undefined || subscribers === 0 || document.visibilityState !== 'visible') return
-
-  const delay =
-    lastRequestAt === undefined
-      ? 0
-      : Math.max(0, Math.min(POLL_INTERVAL_MS, lastRequestAt + POLL_INTERVAL_MS - Date.now()))
-  timer = setTimeout(refreshAndSchedule, delay)
-}
-
-async function refreshAndSchedule() {
-  timer = undefined
-  await fetchStatuses()
-  scheduleNextFetch()
-}
-
-function startPolling() {
-  if (timer !== undefined) return
-  void refreshAndSchedule()
-}
-
-function stopPolling() {
-  clearTimeout(timer)
-  timer = undefined
-}
-
-function onVisibilityChange() {
-  if (document.visibilityState === 'visible') {
-    if (subscribers > 0 && timer === undefined) startPolling()
-  } else {
-    stopPolling()
-  }
-}
-
-function subscribe() {
-  if (subscribers++ > 0) return
-  if (document.visibilityState === 'visible') startPolling()
-  document.addEventListener('visibilitychange', onVisibilityChange)
-}
-
-function unsubscribe() {
-  if (--subscribers > 0) return
-  stopPolling()
-  document.removeEventListener('visibilitychange', onVisibilityChange)
 }
 
 export function useOrgStatus() {
-  onMounted(subscribe)
-  onUnmounted(unsubscribe)
+  void initOrgStatus()
   return { statuses }
 }

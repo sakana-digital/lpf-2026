@@ -5,30 +5,24 @@ const BEFORE_FESTIVAL = '2026-09-01T03:00:00Z'
 
 const fetchSpy = vi.fn()
 
-// Reset the modules so the composable's polling state does not leak between tests
-async function mountSubscriber(now: string) {
+// Reset the modules so the store's once-only request does not leak between tests
+async function start(now: string) {
   vi.setSystemTime(new Date(now))
   vi.resetModules()
-  const { createApp, defineComponent, h } = await import('vue')
   const { useOrgStatus } = await import('./orgStatus')
-  const app = createApp(
-    defineComponent({
-      setup() {
-        useOrgStatus()
-        return () => h('div')
-      },
-    }),
-  )
-  app.mount(document.createElement('div'))
+  const { statuses } = useOrgStatus()
   await vi.advanceTimersByTimeAsync(0)
-  return app
+  return { useOrgStatus, statuses }
 }
 
 beforeEach(() => {
   vi.useFakeTimers()
   vi.stubEnv('DEV', false)
   fetchSpy.mockReset()
-  fetchSpy.mockResolvedValue({ ok: true, json: () => Promise.resolve([]) })
+  fetchSpy.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve([{ orgId: 'c1-3', status: 'open' }]),
+  })
   vi.stubGlobal('fetch', fetchSpy)
 })
 
@@ -39,30 +33,26 @@ afterEach(() => {
 })
 
 describe('useOrgStatus', () => {
-  it('fetches every 45 seconds on festival days, only while subscribed', async () => {
-    const app = await mountSubscriber(DURING_FESTIVAL)
+  it('fetches once on festival days, however many tabs use it', async () => {
+    const { useOrgStatus, statuses } = await start(DURING_FESTIVAL)
     expect(fetchSpy).toHaveBeenCalledTimes(1)
     expect(fetchSpy).toHaveBeenCalledWith('/api/status')
+    expect(statuses.value.get('c1-3')).toMatchObject({ status: 'open' })
 
-    await vi.advanceTimersByTimeAsync(45_000)
-    expect(fetchSpy).toHaveBeenCalledTimes(2)
-
-    app.unmount()
+    useOrgStatus()
     await vi.advanceTimersByTimeAsync(180_000)
-    expect(fetchSpy).toHaveBeenCalledTimes(2)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
   })
 
-  it('never fetches outside the festival, even with a subscriber', async () => {
-    const app = await mountSubscriber(BEFORE_FESTIVAL)
+  it('never fetches outside the festival', async () => {
+    await start(BEFORE_FESTIVAL)
     await vi.advanceTimersByTimeAsync(180_000)
     expect(fetchSpy).not.toHaveBeenCalled()
-    app.unmount()
   })
 
   it('fetches outside the festival on the dev server', async () => {
     vi.stubEnv('DEV', true)
-    const app = await mountSubscriber(BEFORE_FESTIVAL)
+    await start(BEFORE_FESTIVAL)
     expect(fetchSpy).toHaveBeenCalledTimes(1)
-    app.unmount()
   })
 })
