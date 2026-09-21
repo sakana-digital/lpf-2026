@@ -13,6 +13,9 @@ import ExploreTabBar from '@/components/explore/ExploreTabBar.vue'
 
 <style scoped>
 .explore {
+  /* Room between the tab strip and each tab's controls */
+  --tab-gap: 12px;
+
   min-height: 100svh;
 
   .content {
