@@ -65,17 +65,6 @@ bun run status:dev
 
 `migrations/` に SQL を追加したときだけ、push の前に `bun run status:migrate -- --remote` を実行します。
 
-### 既存環境への token hash migration
-
-`0007_hash_access_tokens.sql` は既存の平文トークンを削除します。以下を続けて実行する間アプリは一時的に利用できません。  
-更新後は URL を配布し直す必要があります。
-
-```sh
-bun run status:migrate -- --remote
-bun run status:token -- --remote
-bun run status:token -- --remote --admin
-```
-
 ### デプロイ後の確認
 
 - `https://happo-sai.pages.dev/api/status` が JSON を返すか。
@@ -133,15 +122,6 @@ bun run status:token -- --remote --admin  # 管理者トークン
 - 自動再生は消音でしか始まらないため、端末で「音声を有効にする」を一度押しておく必要があります。動画と音声の両方に効きます。
 - 設定とステータスは 60 秒間隔で更新され、取得失敗時は最後に成功した表示を維持します。
 
-## スタイル
-
-[Panda CSS](https://panda-css.com/) を使います。`.vue` から静的に抽出するので、`css()` / `cva()` にはリテラルを渡します。
-
-- トークンとレシピは [theme/](theme/) にあり、[panda.config.ts](panda.config.ts) が読み込みます。生成物 `styled-system/` は `@styled/*` で参照し、gitignore 済みです（`bun run status:build` などが `panda codegen` を先に走らせます）。
-- 条件付きのスタイルは `:class="[a, cond && b]"` ではなく `cva` の variant にします。並べても打ち消せず、勝つのは配列の順ではなく生成 CSS の順だからです。
-- ダークが base で、`_osLight` が端末の設定に追従します。CSS だけで完結するのでスクリプトは要りません。サイネージが端末の設定に関わらずダークなのは、意味論トークンではなく `signage.*` で描いているからです。
-- サイネージは表示専用のため、テーマに追従しない `signage.*` トークンを別に持ちます。
-
 ## アーキテクチャ
 
 ```mermaid
@@ -196,7 +176,6 @@ flowchart LR
 `POST /api/status` は `org_status` の UPSERT と `org_status_log` への INSERT を同じ `batch()` で書きます。`org_status` は団体ごとに 1 行しか持たないので、過去の値は `org_status_log` にだけ残ります。
 
 - `source` は `org`（団体自身）か `admin`（管理者の代理更新）です。
-- `0011_status_history.sql` は過去分を復元できないため、ログは空から始まります。
 - 削除や期限切れはしません。
 - テスト受付中は `test = 1` の行に書き、読み出しも同じ行だけを見ます。終了時に `test = 1` を削除するだけなので、本番の行には影響しません。
 
