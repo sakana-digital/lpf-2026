@@ -19,6 +19,7 @@ interface Options {
 }
 
 const MAX_SCALE = 8
+const FOCUS_SCALE = 2
 const MIN_SCALE = 0.5
 const DRAG_PX = 4
 const WHEEL_RATE = 0.005
@@ -121,6 +122,17 @@ export function usePanZoom(
   function zoomBy(factor: number) {
     const { x, y, w, h } = view.value
     zoomAt({ x: x + w / 2, y: y + h / 2 }, factor)
+  }
+
+  /** Brings a content point to the middle of the view, zooming in to at least `k` */
+  function centerOn(point: Point, k = FOCUS_SCALE) {
+    stopFling()
+    const { x, y, w, h } = view.value
+    scale.value = Math.min(MAX_SCALE, Math.max(scale.value, k))
+    tx.value = x + w / 2 - point.x * scale.value
+    ty.value = y + h / 2 - point.y * scale.value
+    touched.value = true
+    clamp()
   }
 
   /** The starting view: the default scale, centred where the box is wider than the content */
@@ -279,6 +291,7 @@ export function usePanZoom(
     atDefault,
     touched,
     zoomBy,
+    centerOn,
     reset,
     clamp,
     wasDragged,

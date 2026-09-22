@@ -62,6 +62,7 @@ const floorOptions = computed<{ value: FloorChoice; label: string }[]>(() => [
 // the only thing left to do; the floor is written too, so the overview stays
 // the overview and a single floor stays once the group is cleared
 function selectRoom(id: string) {
+  pickedHere = true
   const next = id === roomId.value ? undefined : id
   const orgs = next ? (roomOrganizations.get(next) ?? []) : []
   const keep = orgs.some((org) => org.id === selectedOrgId.value) ? selectedOrgId.value : undefined
@@ -77,8 +78,51 @@ function selectRoom(id: string) {
 
 function clearRoom() {
   if (roomId.value || selectedOrgId.value) {
+    pickedHere = true
     router.replace({ query: { ...route.query, room: undefined, org: undefined } })
   }
+}
+
+function toggleOrg(id: string) {
+  pickedHere = true
+  void toggle(id)
+}
+
+// A group picked elsewhere, on another tab or before the map opened, is
+// brought into view: its room opens on its floor and the map moves onto it.
+// Picks made on the map itself leave the view where the user has it
+let pickedHere = false
+const pendingFocus = ref<string>()
+
+function focusPending() {
+  if (pendingFocus.value && mapRef.value?.focusRoom(pendingFocus.value)) {
+    pendingFocus.value = undefined
+  }
+}
+
+watch(
+  selectedOrgId,
+  (id) => {
+    if (pickedHere) {
+      pickedHere = false
+      return
+    }
+    const target = id ? emphasized.value[0] : undefined
+    if (!target) return
+    if (roomId.value !== target || floor.value === 'all') {
+      router.replace({
+        query: { ...route.query, floor: String(floorOfRoom(target)), room: target, org: id },
+      })
+    }
+    pendingFocus.value = target
+    void nextTick(focusPending)
+  },
+  { immediate: true },
+)
+
+function onSettled() {
+  focusPending()
+  placePopover()
 }
 
 function roomTitle({ floor, room }: MapRoomRef): string {
@@ -158,7 +202,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', placePopover))
         :emphasized="emphasized"
         @select="selectRoom"
         @deselect="clearRoom"
-        @settled="placePopover"
+        @settled="onSettled"
       />
 
       <div
@@ -197,7 +241,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', placePopover))
         :orgs="roomOrgs"
         :statuses="statuses"
         :selected-org-id="selectedOrgId"
-        @toggle="toggle"
+        @toggle="toggleOrg"
         @close="clearRoom"
       />
     </div>
