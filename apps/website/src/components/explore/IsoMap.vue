@@ -16,6 +16,7 @@ import {
   rotateBox,
   rotatePoint,
   textWidth,
+  unionOutline,
 } from '@/lib/isoMap'
 import type { Point } from '@/lib/isoMap'
 import { ICON_SIZE, mapIcons } from '@/lib/mapIcons'
@@ -279,6 +280,13 @@ const drawnFloors = computed(() =>
       icons: floor.rooms.flatMap((room, i) =>
         iconsFor(room).map((icon, j) => ({ ...icon, key: `${room.id}-${i}-${j}` })),
       ),
+      // The called-out rooms get one outline round all their boxes
+      outlines: floor.rooms
+        .filter((room) => isEmphasized(room))
+        .map((room) => ({
+          key: room.id,
+          d: unionOutline([room, ...(room.parts ?? [])], ROOM_KINDS[room.kind].height),
+        })),
       noEntry: floor.noEntry.map((point) => project(point.x, point.y, 0)),
       omitted: floor.omitted.map(({ from, to }) => ({
         from: project(from.x, from.y, 0),
@@ -374,8 +382,20 @@ function roomRect(id: string): DOMRect | undefined {
   return rect
 }
 
+/** Moves the view onto a room of the shown floor; false while the stack or another floor is up */
+function focusRoom(id: string): boolean {
+  if (stacked.value) return false
+  const room = rotatedFloors.value
+    .find((floor) => floor.level === props.level)
+    ?.rooms.find((entry) => entry.id === id)
+  if (!room) return false
+  panZoom.centerOn(boxCenter(room, ROOM_KINDS[room.kind].height))
+  return true
+}
+
 defineExpose({
   roomRect,
+  focusRoom,
   zoomBy: panZoom.zoomBy,
   reset: panZoom.reset,
   view: panZoom.transform,
@@ -412,12 +432,14 @@ defineExpose({
             rooms,
             labels,
             icons,
+            outlines,
             noEntry,
             omitted,
             label,
           } in shown"
           :key="floor.level"
           class="floor"
+          :class="`level-${floor.level}`"
           :transform="`translate(0 ${floorOffset(floor.level)})`"
         >
           <polygon
@@ -473,6 +495,13 @@ defineExpose({
             <polygon class="top" :points="entry.top" />
           </g>
 
+          <path
+            v-for="outline in outlines"
+            :key="`outline-${outline.key}`"
+            class="outline-ring"
+            :d="outline.d"
+          />
+
           <!-- Drawn after every box so no roof hides a symbol -->
           <path
             v-for="icon in icons"
@@ -518,12 +547,6 @@ defineExpose({
   --map-slab: var(--color-background-soft);
   --map-wall: var(--color-border);
   --map-roof: color-mix(in oklab, var(--color-heading) 16%, var(--color-background));
-  --map-linked-wall: color-mix(in oklab, var(--color-accent) 45%, var(--color-background));
-  --map-linked-wall-hover: color-mix(in oklab, var(--color-accent) 65%, var(--color-background));
-  --map-linked-roof: color-mix(in oklab, var(--color-accent) 60%, var(--map-roof));
-  --map-linked-roof-hover: color-mix(in oklab, var(--color-accent) 80%, var(--map-roof));
-  --map-selected-wall: var(--color-accent);
-  --map-selected-roof: color-mix(in oklab, var(--color-accent) 75%, black);
   --map-no-entry: oklch(58% 0.2 25);
 
   display: block;
@@ -544,6 +567,53 @@ defineExpose({
   &.stacked {
     max-width: 1024px;
     margin-inline: auto;
+  }
+
+  /* The rooms a group runs in wear the colour of the floor's guide board */
+  .floor {
+    --map-linked-wall: color-mix(in oklab, var(--floor-color) 70%, var(--color-background));
+    --map-linked-wall-hover: color-mix(in oklab, var(--floor-color) 85%, var(--color-background));
+    --map-linked-roof: color-mix(in oklab, var(--floor-color) 88%, var(--color-background));
+    --map-linked-roof-hover: var(--floor-color);
+    --map-selected-wall: var(--floor-color);
+    --map-selected-roof: color-mix(in oklab, var(--floor-color) 75%, black);
+
+    &.level-1 {
+      --floor-color: oklch(66% 0.22 42);
+    }
+
+    &.level-2 {
+      --floor-color: oklch(50% 0.2 278);
+    }
+
+    &.level-3 {
+      --floor-color: oklch(60% 0.15 182);
+    }
+
+    &.level-4 {
+      --floor-color: oklch(54% 0.22 12);
+    }
+
+    html[data-theme='dark'] & {
+      --map-selected-wall: color-mix(in oklab, var(--floor-color) 80%, white);
+      --map-selected-roof: var(--floor-color);
+
+      &.level-1 {
+        --floor-color: oklch(74% 0.19 42);
+      }
+
+      &.level-2 {
+        --floor-color: oklch(72% 0.16 278);
+      }
+
+      &.level-3 {
+        --floor-color: oklch(74% 0.14 182);
+      }
+
+      &.level-4 {
+        --floor-color: oklch(72% 0.19 12);
+      }
+    }
   }
 
   .floor-up-enter-active,
@@ -682,11 +752,14 @@ defineExpose({
         fill: var(--map-selected-wall);
       }
     }
+  }
 
-    &.emphasized .top {
-      stroke: var(--color-heading);
-      stroke-width: 0.45;
-    }
+  .outline-ring {
+    fill: none;
+    stroke: var(--color-heading);
+    stroke-width: 0.45;
+    stroke-linecap: round;
+    pointer-events: none;
   }
 
   .icon {

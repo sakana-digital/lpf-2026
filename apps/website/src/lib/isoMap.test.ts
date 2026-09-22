@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vite-plus/test'
-import { paintOrder, project, rotateBox, rotatePoint, textWidth } from './isoMap'
+import { paintOrder, project, rotateBox, rotatePoint, textWidth, unionOutline } from './isoMap'
 
 describe('project', () => {
   it('maps plan axes onto the 2:1 diagonals and z straight up', () => {
@@ -27,6 +27,25 @@ describe('paintOrder', () => {
     const northEast = { id: 'ne', x: 12, y: 0, w: 5, h: 5 }
     const southWest = { id: 'sw', x: 0, y: 10, w: 5, h: 5 }
     expect(paintOrder([northEast, southWest]).map((box) => box.id)).toEqual(['sw', 'ne'])
+  })
+})
+
+describe('unionOutline', () => {
+  it('draws a lone box as its four edges', () => {
+    const d = unionOutline([{ x: 0, y: 0, w: 2, h: 1 }], 0)
+    expect(d.match(/M/g)).toHaveLength(4)
+  })
+
+  it('leaves out the edge two boxes share', () => {
+    const boxes = [
+      { x: 0, y: 0, w: 2, h: 2 },
+      { x: 2, y: 1, w: 1, h: 1 },
+    ]
+    const d = unionOutline(boxes, 0)
+    // an L of six corners, its long west edge cut in two where the boxes meet
+    expect(d.match(/M/g)).toHaveLength(8)
+    const shared = `M${project(2, 1, 0).x},${project(2, 1, 0).y}L${project(2, 2, 0).x},${project(2, 2, 0).y}`
+    expect(d).not.toContain(shared)
   })
 })
 

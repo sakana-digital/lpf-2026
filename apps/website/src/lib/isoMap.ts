@@ -135,6 +135,41 @@ export function boxBounds(boxes: MapBox[], z0: number, z1: number): Bounds {
   return bounds
 }
 
+/**
+ * The outer edge of boxes lying side by side, as one path at height z. Every
+ * edge is cut at every box boundary, and a piece two boxes share is inside.
+ */
+export function unionOutline(boxes: MapBox[], z: number): string {
+  const xs = [...new Set(boxes.flatMap((b) => [b.x, b.x + b.w]))].sort((a, b) => a - b)
+  const ys = [...new Set(boxes.flatMap((b) => [b.y, b.y + b.h]))].sort((a, b) => a - b)
+  const seen = new Map<string, number>()
+  const add = (x1: number, y1: number, x2: number, y2: number) => {
+    const key = `${x1},${y1},${x2},${y2}`
+    seen.set(key, (seen.get(key) ?? 0) + 1)
+  }
+  for (const { x, y, w, h } of boxes) {
+    for (const [a, b] of xs.slice(0, -1).map((v, i) => [v, xs[i + 1]!] as const)) {
+      if (a < x || b > x + w) continue
+      add(a, y, b, y)
+      add(a, y + h, b, y + h)
+    }
+    for (const [a, b] of ys.slice(0, -1).map((v, i) => [v, ys[i + 1]!] as const)) {
+      if (a < y || b > y + h) continue
+      add(x, a, x, b)
+      add(x + w, a, x + w, b)
+    }
+  }
+  return [...seen]
+    .filter(([, count]) => count === 1)
+    .map(([key]) => {
+      const [x1, y1, x2, y2] = key.split(',').map(Number) as [number, number, number, number]
+      const from = project(x1, y1, z)
+      const to = project(x2, y2, z)
+      return `M${round(from.x)},${round(from.y)}L${round(to.x)},${round(to.y)}`
+    })
+    .join('')
+}
+
 /** Width of a label in font-size units, treating CJK as full width */
 export function textWidth(text: string): number {
   let width = 0
