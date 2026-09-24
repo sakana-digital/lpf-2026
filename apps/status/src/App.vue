@@ -77,6 +77,7 @@ const styles = {
     :windows="windows"
     :test-since="testSince"
     @status="orgStatuses.set($event.orgId, $event)"
+    @statuses="orgStatuses = new Map($event.map((status) => [status.orgId, status]))"
     @windows="windows = $event"
     @test="onTest"
   />

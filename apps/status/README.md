@@ -97,7 +97,7 @@ bun run status:token -- --remote --admin  # 管理者トークン
 
 管理者 URL でアクセスすると管理画面になります。ヘッダー右のタブで「ステータス」と「設定」を切り替えます。
 
-- 「ステータス」は固定の grid で、ステータス送信（団体のセレクト付き）と更新履歴が横並びです。「設定」は見出しで区切った「サイネージ」（フッター・閲覧 URL・動画・音声）と「ステータス」（受付時間・テスト受付）が縦に並び、区切り線はウィンドウ同士の間にだけ引きます。テスト受付は受付時間の左下から確認モーダルで開始・終了します。
+- 「ステータス」は固定の grid で、1 段目にステータス送信（団体のセレクト付き）と更新履歴が横並び、2 段目に全団体の最終更新時刻のグラフがあります。「設定」は見出しで区切った「サイネージ」（フッター・閲覧 URL・動画・音声）と「ステータス」（受付時間・テスト受付）が縦に並び、区切り線はウィンドウ同士の間にだけ引きます。テスト受付は受付時間の左下から確認モーダルで開始・終了します。
 - 表示中のページ（`admin-page`）を localStorage に持ちます。
 - ウィンドウは `container-type: inline-size` のコンテナで、中身は自分の幅だけを見てレイアウトを変えます（ビューポート幅ではありません）。
 - 団体向けの送信画面も同じシェルを使います。ヘッダーは無く、ウィンドウはステータスだけです。
@@ -105,6 +105,7 @@ bun run status:token -- --remote --admin  # 管理者トークン
 できることは次のとおりです。
 
 - セレクトで団体を選んで、その団体のステータスを代理更新できます。
+- 「最終更新」で、全団体が最後に送信した時刻（内容は問わない）と経過時間を横棒で見られます。行を押すとその団体を選びます。`GET /api/statuses` 1 回で全団体を取るので、開いている管理画面 1 つにつき 60 秒に 1 リクエストです。「ステータス」タブを開いていないときとタブが非表示のときは止まります。計算は [updatesChart.ts](src/lib/updatesChart.ts)、ポーリングは [useStatusPolling.ts](src/composables/useStatusPolling.ts) にあります。
 - 「更新履歴」で、その団体の販売状況・混雑状況の推移（新しい順に最大 200 件）を折れ線グラフで見られます。ドラッグで移動、ホイールで拡大、`Day 1` / `Day 2` でその日に絞り、ダブルクリックで全期間に戻ります。グラフの計算は [historyChart.ts](src/lib/historyChart.ts) にあります。
 - ステータスを受け付ける団体は [shared/status.ts](../../shared/status.ts) の `STATUS_ORG_IDS`（`category` が `foodSales` / `cooking` の団体）で決め打ちです。他の団体は `POST /api/status` が 403 になり、公開サイトとサイネージにも出ません。サイネージはこの一覧を `org_id` 順で出します。
 - サイネージの固定案内・速報、R2 の動画・音声、閲覧 URL を管理できます。
@@ -158,16 +159,17 @@ flowchart LR
 
 ### API
 
-| エンドポイント     | 認証                     | 内容                                       |
-| ------------------ | ------------------------ | ------------------------------------------ |
-| `GET /api/status`  | なし（本体ドメインのみ） | 全団体のステータス一覧                     |
-| `GET /api/me`      | Bearer                   | トークンに対応する団体と現在値             |
-| `POST /api/status` | Bearer                   | 自団体の `{ sales, congestion }` を UPSERT |
-| `GET /api/history` | Admin Bearer             | 更新履歴（`?orgId=` で団体を絞る）         |
-| `GET /api/signage` | Cookie / Admin Bearer    | サイネージ設定・対象団体・その最新値       |
-| `PUT /api/window`  | Admin Bearer             | Day 1 / Day 2 の送信可能時間を保存         |
-| `POST /api/test`   | Admin Bearer             | テスト受付を開始                           |
-| `DELETE /api/test` | Admin Bearer             | テスト受付を終了し、テスト分を消す         |
+| エンドポイント      | 認証                     | 内容                                       |
+| ------------------- | ------------------------ | ------------------------------------------ |
+| `GET /api/status`   | なし（本体ドメインのみ） | 全団体のステータス一覧                     |
+| `GET /api/me`       | Bearer                   | トークンに対応する団体と現在値             |
+| `POST /api/status`  | Bearer                   | 自団体の `{ sales, congestion }` を UPSERT |
+| `GET /api/statuses` | Admin Bearer             | 全団体の現在値（管理画面のポーリング用）   |
+| `GET /api/history`  | Admin Bearer             | 更新履歴（`?orgId=` で団体を絞る）         |
+| `GET /api/signage`  | Cookie / Admin Bearer    | サイネージ設定・対象団体・その最新値       |
+| `PUT /api/window`   | Admin Bearer             | Day 1 / Day 2 の送信可能時間を保存         |
+| `POST /api/test`    | Admin Bearer             | テスト受付を開始                           |
+| `DELETE /api/test`  | Admin Bearer             | テスト受付を終了し、テスト分を消す         |
 
 管理者用の `/api/signage/*` では設定保存、閲覧 URL 発行、R2 Multipart Upload、動画・音声の選択と削除を行います。
 

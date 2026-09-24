@@ -75,6 +75,11 @@ export function updateStatus(
   })
 }
 
+/** Every group's latest status in one request; the admin screen polls this. */
+export function getStatuses(token: string): Promise<OrgStatus[]> {
+  return request('/api/statuses', token)
+}
+
 export function getStatusHistory(token: string, orgId: string): Promise<StatusHistoryEntry[]> {
   return request(`/api/history?orgId=${encodeURIComponent(orgId)}`, token)
 }
