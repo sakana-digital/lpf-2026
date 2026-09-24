@@ -555,6 +555,7 @@ defineExpose({
   height: auto;
   font-family: var(--font-display);
   user-select: none;
+  outline: none;
 
   &:not(.stacked) {
     height: 100svh;
