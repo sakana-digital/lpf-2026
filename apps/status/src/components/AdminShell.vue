@@ -8,6 +8,7 @@ import AppShell from '@/components/AppShell.vue'
 import WindowFrame from '@/components/WindowFrame.vue'
 import StatusEditor from '@/components/StatusEditor.vue'
 import StatusHistory from '@/components/StatusHistory.vue'
+import StatusUpdates from '@/components/StatusUpdates.vue'
 import SubmitWindowEditor from '@/components/SubmitWindowEditor.vue'
 import TestSessionEditor from '@/components/TestSessionEditor.vue'
 import SignageAdminEditor from '@/components/SignageAdminEditor.vue'
@@ -23,6 +24,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   status: [OrgStatus]
+  statuses: [OrgStatus[]]
   windows: [SubmitWindows]
   test: [TestSince]
 }>()
@@ -61,15 +63,16 @@ const styles = {
     paneGrid(),
     css({
       gridTemplateColumns: 'minmax(340px, 1fr) minmax(0, 2fr)',
-      gridTemplateAreas: '"status history"',
+      gridTemplateAreas: '"status history" "updates updates"',
       '@container workspace (max-width: 900px)': {
         gridTemplateColumns: 'minmax(0, 1fr)',
-        gridTemplateAreas: '"status" "history"',
+        gridTemplateAreas: '"status" "history" "updates"',
       },
     }),
   ),
   status: css({ gridArea: 'status' }),
   history: css({ gridArea: 'history' }),
+  updates: css({ gridArea: 'updates' }),
   statusPane: css({ display: 'flex', flexDirection: 'column', gap: '16px' }),
   orgField: css({ display: 'grid', gap: '6px' }),
   orgLabel: sectionLabel(),
@@ -128,6 +131,17 @@ const styles = {
 
       <WindowFrame :bordered="false" :class="styles.history">
         <StatusHistory :token="token" :org-id="page.orgId" :status="currentStatus" />
+      </WindowFrame>
+
+      <WindowFrame :bordered="false" :class="styles.updates">
+        <StatusUpdates
+          :token="token"
+          :statuses="statuses"
+          :org-id="page.orgId"
+          :active="page.view === 'status'"
+          @statuses="emit('statuses', $event)"
+          @select="select({ orgId: $event })"
+        />
       </WindowFrame>
     </div>
 
