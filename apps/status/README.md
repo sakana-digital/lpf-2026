@@ -105,7 +105,7 @@ bun run status:token -- --remote --admin  # 管理者トークン
 できることは次のとおりです。
 
 - セレクトで団体を選んで、その団体のステータスを代理更新できます。
-- 「最終更新」で、全団体が最後に送信した時刻（内容は問わない）と経過時間を横棒で見られます。行を押すとその団体を選びます。`GET /api/statuses` 1 回で全団体を取るので、開いている管理画面 1 つにつき 60 秒に 1 リクエストです。「ステータス」タブを開いていないときとタブが非表示のときは止まります。計算は [updatesChart.ts](src/lib/updatesChart.ts)、ポーリングは [useStatusPolling.ts](src/composables/useStatusPolling.ts) にあります。
+- 「最終更新」で、全団体が最後に送信した時刻（内容は問わない）を、軸の左端からその時刻まで伸びる横棒で見られます。右端が現在で、6 時間より前の送信は棒を出さず時刻だけ出します。行を押すとその団体を選びます。`GET /api/statuses` 1 回で全団体を取るので、開いている管理画面 1 つにつき 60 秒に 1 リクエストです。「ステータス」タブを開いていないときとタブが非表示のときは止まります。計算は [updatesChart.ts](src/lib/updatesChart.ts)、ポーリングは [useStatusPolling.ts](src/composables/useStatusPolling.ts) にあります。
 - 「更新履歴」で、その団体の販売状況・混雑状況の推移（新しい順に最大 200 件）を折れ線グラフで見られます。ドラッグで移動、ホイールで拡大、`Day 1` / `Day 2` でその日に絞り、ダブルクリックで全期間に戻ります。グラフの計算は [historyChart.ts](src/lib/historyChart.ts) にあります。
 - ステータスを受け付ける団体は [shared/status.ts](../../shared/status.ts) の `STATUS_ORG_IDS`（`category` が `foodSales` / `cooking` の団体）で決め打ちです。他の団体は `POST /api/status` が 403 になり、公開サイトとサイネージにも出ません。サイネージはこの一覧を `org_id` 順で出します。
 - サイネージの固定案内・速報、R2 の動画・音声、閲覧 URL を管理できます。

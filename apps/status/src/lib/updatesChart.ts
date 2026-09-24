@@ -2,7 +2,7 @@ import type { OrgStatus } from '@shared/status'
 import { formatTime, type Domain } from '@/lib/historyChart'
 
 const MIN_SPAN = 3600
-/** A group quieter than this runs off the left edge instead of squeezing everyone else. */
+/** A group quieter than this drops off the axis instead of squeezing everyone else. */
 const MAX_SPAN = 6 * 3600
 const SPAN_STEP = 1800
 
@@ -19,12 +19,13 @@ export function updateRows(orgIds: readonly string[], statuses: OrgStatus[]): Up
 }
 
 /**
- * Ends now and reaches back to the stalest update, rounded up to a half hour and kept
+ * Ends now and reaches back past the stalest update to the next half hour, kept
  * between one and six hours.
  */
 export function updatesDomain(rows: UpdateRow[], now: number): Domain {
   const oldest = rows.reduce((min, row) => Math.min(min, row.updatedAt ?? now), now)
-  const span = Math.ceil((now - oldest) / SPAN_STEP) * SPAN_STEP
+  // Always a step past the stalest save, so its bar never shrinks to nothing at the edge.
+  const span = (Math.floor((now - oldest) / SPAN_STEP) + 1) * SPAN_STEP
   return { from: now - Math.min(Math.max(span, MIN_SPAN), MAX_SPAN), to: now }
 }
 

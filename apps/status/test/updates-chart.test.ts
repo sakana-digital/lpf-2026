@@ -22,7 +22,7 @@ describe('updateRows', () => {
 })
 
 describe('updatesDomain', () => {
-  it('reaches back to the stalest update in half hours, between one and six hours', () => {
+  it('reaches back past the stalest update in half hours, between one and six hours', () => {
     const rows = (...ago: Array<number | null>) =>
       ago.map((value, index) => ({
         orgId: `c3-${index + 1}`,
@@ -32,6 +32,7 @@ describe('updatesDomain', () => {
     expect(updatesDomain(rows(null), now)).toEqual({ from: now - HOUR, to: now })
     expect(updatesDomain(rows(600, null), now)).toEqual({ from: now - HOUR, to: now })
     expect(updatesDomain(rows(600, 2.2 * HOUR), now)).toEqual({ from: now - 2.5 * HOUR, to: now })
+    expect(updatesDomain(rows(2.5 * HOUR), now)).toEqual({ from: now - 3 * HOUR, to: now })
     expect(updatesDomain(rows(30 * HOUR), now)).toEqual({ from: now - 6 * HOUR, to: now })
   })
 })

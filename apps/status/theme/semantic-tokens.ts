@@ -53,8 +53,8 @@ export const semanticTokens = defineSemanticTokens({
     chart: {
       sales: { value: { base: '#4f8ff7', _osLight: '#2563eb' } },
       congestion: { value: { base: '#c9780c', _osLight: '#d97706' } },
-      // Time since a save is not a series, so it stays grey and the picked group takes the accent.
-      elapsed: { value: { base: 'oklch(100% 0 0 / 0.34)', _osLight: 'oklch(0% 0 0 / 0.28)' } },
+      // The last saves are not a series, so they stay grey and the picked group takes the accent.
+      updated: { value: { base: 'oklch(100% 0 0 / 0.34)', _osLight: 'oklch(0% 0 0 / 0.28)' } },
     },
   },
 })

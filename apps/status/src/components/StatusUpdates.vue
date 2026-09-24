@@ -48,13 +48,9 @@ function percent(ratio: number) {
   return `${(ratio * 100).toFixed(3)}%`
 }
 
-// A save older than the axis starts at its left edge, square, to show it runs on past it.
-function bar(updatedAt: number) {
-  const start = domainRatio(updatedAt, domain.value)
-  return {
-    style: { width: percent(1 - start) },
-    clipped: updatedAt < domain.value.from,
-  }
+// The bar runs from the left edge and stops at the save; one older than the axis draws none.
+function barStyle(updatedAt: number) {
+  return { width: percent(domainRatio(updatedAt, domain.value)) }
 }
 
 // A label near either end of the axis keeps inside it instead of centring on the edge.
@@ -139,14 +135,13 @@ const styles = {
   bar: css({
     position: 'absolute',
     top: '50%',
-    right: 0,
+    left: 0,
     minWidth: '4px',
     height: '10px',
-    borderRadius: '4px 0 0 4px',
-    background: 'chart.elapsed',
+    borderRadius: '0 4px 4px 0',
+    background: 'chart.updated',
     translate: '0 -50%',
     transition: 'width token(durations.base) ease',
-    '&[data-clipped]': { borderRadius: 0 },
   }),
   when: css({
     display: 'flex',
@@ -209,10 +204,9 @@ const styles = {
               :style="{ left: tick.left }"
             />
             <span
-              v-if="row.updatedAt !== null"
+              v-if="row.updatedAt !== null && row.updatedAt >= domain.from"
               :class="styles.bar"
-              :style="bar(row.updatedAt).style"
-              :data-clipped="bar(row.updatedAt).clipped ? '' : undefined"
+              :style="barStyle(row.updatedAt)"
               data-bar
             />
           </span>
