@@ -219,7 +219,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     category: 'experience',
     place: room('403'),
     description: {
-      ja: '縁結びの神社　幸せをくれると噂の場所…\nしかし突然と闇に包まれ、入ってしまったら2度と出てこれないという噂…\nそしていつの間にか忘れられた場所となった。\n真の幸せを見つけたい人はまだ通うと言うが、見つけられなかった人はまださ迷ってる噂\n1年3組でシアワセを見つけてね',
+      ja: '縁結びの神社　幸せをくれると噂の場所…\nしかし突然と闇に包まれ、入ってしまったら2度と出てこれないという噂…\nそしていつの間にか忘れられた場所となった。\n真の幸せを見つけたい人はまだ通うと言うが、見つけられなかった人はまだ彷徨ってる噂\n1年3組でシアワセを見つけてね',
     },
     image: 'c1-3.webp',
   },
@@ -401,6 +401,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     description: {
       ja: '私たち3-5はホイップサンドを中庭テントにて販売しております！自由にカスタムできますのでみなさん甘くて美味しいホイップサンドをぜひ食べにきてください！！',
     },
+    image: 'c3-5.webp',
   },
   'c3-6': {
     project: { ja: 'グランメゾンMISAKI' },
