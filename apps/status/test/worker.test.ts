@@ -374,6 +374,43 @@ describe('status history', () => {
   })
 })
 
+describe('admin status list', () => {
+  it('answers every group at once on the Worker domain, even while closed', async () => {
+    await env.DB.batch(
+      ['c2-3', 'c3-1'].map((orgId, index) =>
+        env.DB.prepare(
+          `INSERT INTO org_status (org_id, test, sales, congestion, updated_at)
+           VALUES (?1, 0, 'available', 'low', ?2)`,
+        ).bind(orgId, 1_790_000_000 + index),
+      ),
+    )
+    vi.setSystemTime(new Date('2026-09-26T20:00:00+09:00'))
+
+    const response = await SELF.fetch(`${origin}/api/statuses`, { headers: adminHeaders })
+    expect(response.status).toBe(200)
+    expect(response.headers.get('Cache-Control')).toBe('no-store')
+    const statuses = (await response.json()) as Array<{ orgId: string; updatedAt: number }>
+    const byOrg = statuses
+      .map(({ orgId, updatedAt }) => [orgId, updatedAt])
+      .sort(([a], [b]) => String(a).localeCompare(String(b)))
+    expect(byOrg).toEqual([
+      ['c2-3', 1_790_000_000],
+      ['c3-1', 1_790_000_001],
+    ])
+  })
+
+  it('is admin only', async () => {
+    expect((await SELF.fetch(`${origin}/api/statuses`)).status).toBe(401)
+    expect(
+      (
+        await SELF.fetch(`${origin}/api/statuses`, {
+          headers: { Authorization: 'Bearer test-org' },
+        })
+      ).status,
+    ).toBe(403)
+  })
+})
+
 describe('public list domain', () => {
   it('answers on the site domain only, while writes stay on the Worker domain', async () => {
     expect((await SELF.fetch(`${origin}/api/status`)).status).toBe(404)

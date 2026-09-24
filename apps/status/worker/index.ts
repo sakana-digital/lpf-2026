@@ -342,6 +342,13 @@ async function postStatus(request: Request, env: Env): Promise<Response> {
   return json(toOrgStatus(row))
 }
 
+/** Every group's latest row in one read, so the admin screen polls with a single request. */
+async function getStatuses(request: Request, env: Env): Promise<Response> {
+  const auth = await requireAdmin(request, env)
+  if (auth instanceof Response) return auth
+  return json(await fetchStatuses(env))
+}
+
 async function getHistory(request: Request, env: Env): Promise<Response> {
   const auth = await requireAdmin(request, env)
   if (auth instanceof Response) return auth
@@ -791,6 +798,10 @@ export default {
     }
     if (pathname === '/api/me') {
       if (request.method === 'GET') return getMe(request, env)
+      return json({ error: 'method_not_allowed' }, 405)
+    }
+    if (pathname === '/api/statuses') {
+      if (request.method === 'GET') return getStatuses(request, env)
       return json({ error: 'method_not_allowed' }, 405)
     }
     if (pathname === '/api/history') {
