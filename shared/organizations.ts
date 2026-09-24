@@ -244,7 +244,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     image: 'c1-5.webp',
   },
   'c1-6': {
-    project: { ja: 'ボールターガイスド' },
+    project: { ja: 'ボールターガイスト' },
     division: 'variety',
     category: 'experience',
     place: room('406'),
@@ -470,7 +470,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     project: { ja: 'Liサーキット' },
     division: 'variety',
     category: 'experience',
-    place: named({ ja: '校庭・10E' }),
+    place: named({ ja: '校庭・事務室前' }),
     description: {
       ja: '私たちは日々の活動で修理、整備したマイクロカーを実際に乗って走行できる、走行体験を校庭で実施しています！！1日目限定なので、ぜひお気軽に校庭へお立ち寄りください！',
     },
@@ -536,7 +536,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     project: { ja: '真鍮に夢中' },
     division: 'market',
     category: 'otherSales',
-    place: room('10C'),
+    place: room('116'),
     description: {
       ja: '工業機械を用いて作った真鍮製品や、はんだで作ったステンドグラスアクセサリーを販売します！工業機械を見に来るだけでも結構なので、ぜひ気軽に来てください！',
     },
@@ -547,7 +547,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     project: { ja: 'unplugged live' },
     division: 'performance',
     category: 'presentation',
-    place: named({ ja: '中庭ステージ・20B（鵜の森亭）' }),
+    place: named({ ja: '中庭ステージ・鵜の森亭' }),
     description: {
       ja: '私たちアコギ部は中庭ステージと鵜の森亭でライブを行います！中庭ステージでは部員全員で演奏します！ほかの部活には無い魅力があるので、是非見に来てください！',
     },
@@ -560,7 +560,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     category: 'presentation',
     place: venue('avRoom'),
     description: {
-      ja: '天使の世界で片翼しかない主人公、リベルタが森の中で出会った少女と関わる中で自分らしさと向き合い進んでいく物語。視聴覚室にて公演します。ぜひお越しください。',
+      ja: '天使の世界で片翼しかない主人公、リベルタが森の中で出会った少女と関わる中で自分らしさと向き合い進んでいく物語。視聴覚教室にて公演します。ぜひお越しください。',
     },
     image: 'drama.webp',
   },
@@ -569,7 +569,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     project: { ja: 'LiScience' },
     division: 'variety',
     category: 'experience',
-    place: room('20C'),
+    place: named({ ja: '基礎分析実習室・環境工学実習室' }),
     description: {
       ja: '化学工学部では実験器具やポスターの展示から、蛍石など身近な物の展示を行っています。午前と午後には実験ショーや体験も出来ます！227、237でお待ちしてます。',
     },
@@ -668,7 +668,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     project: { ja: '「リサクエ」勇者達よ、くじを引かないか' },
     division: 'market',
     category: 'otherSales',
-    place: room('20D'),
+    place: room('229'),
     description: {
       ja: '229教室にて、くじ引きとクイズ大会を開催しております！！是非お立ち寄りください！！',
     },
@@ -692,7 +692,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     category: 'experience',
     place: venue('avRoom'),
     description: {
-      ja: '両日とも13:00～　視聴覚室にて、本校の学校説明会を行います。中学生の皆さん、まだ学校説明会に参加したことがない人は、この機会にぜひお越しください！',
+      ja: '両日とも13:00～　視聴覚教室にて、本校の学校説明会を行います。中学生の皆さん、まだ学校説明会に参加したことがない人は、この機会にぜひお越しください！',
     },
     image: 'pr-group.webp',
   },
@@ -770,7 +770,7 @@ export const organizationProfiles: Partial<Record<OrgId, OrganizationProfile>> =
     project: { ja: '緊急！子供の読解力低下！！〜漫画を読書の入り口に〜' },
     division: 'variety',
     category: 'experience',
-    place: room('30A'),
+    place: room('338'),
     description: {
       ja: '私達は課題研究の一環として漫画を研究しそれをもとに実際に描いてみました！皆さんに配布しようと思います！！場所は美術室です！！お待ちしています！',
     },

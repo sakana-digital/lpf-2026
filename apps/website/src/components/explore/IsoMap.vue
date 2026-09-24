@@ -193,6 +193,7 @@ interface DrawnRoom {
 function labelText(room: MapRoom, linked: boolean): string {
   if (room.kind === 'tent') return organizationPlaceLabel(roomPlace(room), locale.value, t)
   if (room.label) return room.label
+  if (room.byName) return localized(room.name, locale.value)
   if (ROOM_KINDS[room.kind].icon) return ''
   if (room.kind === 'room' && !linked) {
     return room.featured ? localized(room.name, locale.value) : ''

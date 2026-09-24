@@ -6,9 +6,12 @@ import { organizations } from '@/data/organizations'
 import { findRoom, isLinkable, organizationsByRoom, placeRoomIds } from './campusMap'
 
 describe('placeRoomIds', () => {
-  it('finds rooms by plan number, festival code, tent, venue and name', () => {
+  it('finds rooms by plan number, tent, venue and name', () => {
     expect(placeRoomIds(room('401'))).toEqual(['401'])
-    expect(placeRoomIds(room('20C')).sort()).toEqual(['227', '237'])
+    expect(placeRoomIds(named({ ja: '基礎分析実習室・環境工学実習室' })).sort()).toEqual([
+      '227',
+      '237',
+    ])
     expect(placeRoomIds(tent('C'))).toEqual(['tent-C'])
     expect(placeRoomIds(venue('courtyard'))).toEqual(['stage'])
     expect(placeRoomIds(named({ ja: '図書室' }))).toEqual(['209'])

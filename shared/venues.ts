@@ -6,5 +6,5 @@ export type Venue = (typeof venues)[number]
 
 export const venueLabels: Record<Venue, LocalizedText> = {
   courtyard: { ja: '中庭ステージ', en: 'Courtyard Stage' },
-  avRoom: { ja: '視聴覚室', en: 'AV Room' },
+  avRoom: { ja: '視聴覚教室', en: 'AV Room' },
 }

@@ -1,5 +1,5 @@
 import type { LocalizedText } from '@shared/locale'
-import { named, room as placeInRoom, tent as placeInTent, venue } from '@shared/organizations'
+import { named, tent as placeInTent, venue } from '@shared/organizations'
 import type { OrgPlace, TentLetter } from '@shared/organizations'
 import type { MapIconName } from '@/lib/mapIcons'
 
@@ -50,12 +50,14 @@ export interface MapRoom extends MapBox {
   label?: string
   /** Coloured like a place with a group, without being one */
   featured?: boolean
+  /** Printed on the box by name rather than number, for a room visitors know by name */
+  byName?: boolean
   /** Further boxes of the same room, for one that is not a rectangle */
   parts?: MapBox[]
   /**
-   * Places the programme puts here under another name: the festival's zone
-   * codes, the timetable venues, spelled-out spots. A room answers to its own
-   * number and name without being told.
+   * Places the programme puts here under another name: the timetable venues,
+   * spelled-out spots. A room answers to its own number and name without being
+   * told.
    */
   places?: OrgPlace[]
 }
@@ -175,11 +177,6 @@ function tent(letter: TentLetter, x: number, y: number, w: number, h: number): M
   return { ...feature('tent', id, x, y, w, h, undefined, [placeInTent(letter)]), label: letter }
 }
 
-/** Where the programme's zone codes, which its listings file under `room`, point */
-function zone(code: string): OrgPlace {
-  return placeInRoom(code)
-}
-
 // The ground floor stops short of the classrooms above it: its south wall is
 // the entrance halls, with the annex reached from the main entrance
 const floor1: MapFloor = {
@@ -226,7 +223,7 @@ const floor1: MapFloor = {
     stairs(27.5, 11.5, 2.2, 9),
     box('117', 30, 12.6, 16.6, 8, '数値制御工作機械実習室・CAM実習室'),
     box('118', 29.7, 23.3, 10.9, 6.9, '課題実習室'),
-    box('116', 46.9, 0, 18.6, 12.6, '旋盤実習室・精密加工実習室・汎用機実習室', [zone('10C')]),
+    box('116', 46.9, 0, 18.6, 12.6, '旋盤実習室・精密加工実習室・汎用機実習室'),
     box('ei-north-1f', 46.6, 12.6, 4.8, 8),
     wc(51.3, 16.5, 6, 4),
     box('115', 57.8, 12.7, 5.8, 4.2, '工具室（機械）'),
@@ -256,19 +253,23 @@ const floor1: MapFloor = {
     wc(49.4, 79.5, 5.1, 4),
     wc(49.3, 83.5, 5.1, 4.2),
     hall('office-front', 40.9, 87.7, 6.6, 4.8, { ja: '事務室前', en: 'Outside the Office' }, [
-      named({ ja: '校庭・10E' }),
+      named({ ja: '校庭・事務室前' }),
     ]),
     hall('reception', 25, 108, 10, 5, { ja: '受付', en: 'Reception' }, [
       named({ ja: '受付の後ろの柱前' }),
     ]),
-    box('103', 57.3, 92.6, 11.8, 19.6, '視聴覚教室', [venue('avRoom')]),
+    {
+      ...box('103', 57.3, 92.6, 11.8, 19.6, undefined, [venue('avRoom')]),
+      name: { ja: '視聴覚教室', en: 'AV Room' },
+      byName: true,
+    },
     stairs(46.7, 105, 2.5, 8),
     box('102', 46.8, 113.2, 6.5, 6.2, '記念室'),
     box('101', 56.8, 113, 9.9, 6.5, '多目的室'),
     stairs(67.5, 115.5, 2.5, 4),
     feature('yard', 'stage', 30.5, 32, 10, 5, { ja: 'ステージ', en: 'Stage' }, [
       venue('courtyard'),
-      named({ ja: '中庭ステージ・20B（鵜の森亭）' }),
+      named({ ja: '中庭ステージ・鵜の森亭' }),
     ]),
     hall('eating-area', 28, 46.5, 9.8, 16, { ja: '食事場所', en: 'Eating Area' }),
     tent('A', 35, 72.5, 6, 7),
@@ -281,7 +282,7 @@ const floor1: MapFloor = {
     tent('H', 19.8, 39.5, 6, 6.5),
     feature('room', 'kyudo', -26, 21, 10, 12, { ja: '弓道場', en: 'Kyudo Hall' }),
     feature('yard', 'schoolyard', -29, 44, 21, 50.5, { ja: '校庭', en: 'Schoolyard' }, [
-      named({ ja: '校庭・10E' }),
+      named({ ja: '校庭・事務室前' }),
     ]),
   ],
   omitted: [{ from: { x: -16, y: 27 }, to: { x: 0, y: 27 } }],
@@ -307,7 +308,9 @@ const floor2: MapFloor = {
     box('234', 2.4, 25.7, 6, 6.4, '西棟職員室'),
     box('235', 4.5, 32.2, 4.1, 3.9, 'NMR室'),
     box('236', 0.5, 36.2, 8, 3.9, '機器分析実習室'),
-    box('237', 0.6, 40.2, 8, 7.8, '環境工学実習室・環境工学準備室', [zone('20C')]),
+    box('237', 0.6, 40.2, 8, 7.8, '環境工学実習室・環境工学準備室', [
+      named({ ja: '基礎分析実習室・環境工学実習室' }),
+    ]),
     box('238', 2.6, 48.2, 5.9, 3.6, '生徒会室（全日制）'),
     box('239', 0.7, 52, 7.9, 6.1, '生徒更衣室（男）'),
     box('locker-day', 0.7, 58.3, 7.8, 22.1, 'ロッカースペース（全日制）'),
@@ -317,9 +320,11 @@ const floor2: MapFloor = {
     box('230', 10.6, 8, 5.9, 3, '薬品庫'),
     box('wi-store-2f', 10.6, 11.1, 5.9, 4.9),
     wc(10.6, 16.2, 6, 4.1),
-    box('229', 10.7, 28.1, 8.2, 8.2, '環境計測実習室', [zone('20D')]),
+    box('229', 10.7, 28.1, 8.2, 8.2, '環境計測実習室'),
     box('228', 10.8, 36.4, 8.2, 3.8, '基礎分析準備室'),
-    box('227', 10.8, 40.4, 8.2, 8.1, '基礎分析実習室', [zone('20C')]),
+    box('227', 10.8, 40.4, 8.2, 8.1, '基礎分析実習室', [
+      named({ ja: '基礎分析実習室・環境工学実習室' }),
+    ]),
     stairs(10.7, 48.8, 8.2, 3.2),
     box('226', 10.9, 52, 8.1, 6.1, '生徒更衣室（女）'),
     feature('void', 'void', 10.9, 61, 7.4, 11.2),
@@ -343,7 +348,7 @@ const floor2: MapFloor = {
     stairs(46.8, 49.2, 8.2, 3.2),
     box('locker-evening', 49.2, 52.6, 5.6, 9, 'ロッカースペース（定時制）'),
     hall('unomori-tei', 49, 62.5, 6.4, 9.5, { ja: '鵜の森亭', en: 'Unomori-tei' }, [
-      named({ ja: '中庭ステージ・20B（鵜の森亭）' }),
+      named({ ja: '中庭ステージ・鵜の森亭' }),
     ]),
     box('225', 48.5, 72.5, 5.9, 5.5, '生徒会室（定時制）'),
     wc(50.9, 78.5, 4, 4),
@@ -362,7 +367,9 @@ const floor2: MapFloor = {
     stairs(46.7, 105, 2.5, 8),
     // The library wraps around the store room
     {
-      ...box('209', 46.6, 115.5, 14.2, 7.3, '図書室'),
+      ...box('209', 46.6, 115.5, 14.2, 7.3),
+      name: { ja: '図書室', en: 'Library' },
+      byName: true,
       parts: [{ x: 60.8, y: 118.8, w: 6.5, h: 4 }],
     },
     box('storage', 60.8, 115.5, 5, 2.8, '倉庫'),
@@ -390,7 +397,7 @@ const floor3: MapFloor = {
     box('335', 2.5, 48.4, 6.1, 3.5, '化学基礎準備室'),
     box('336', 0.5, 52.1, 8.2, 7.9, '生命基礎実験室'),
     box('337', 2.4, 60.3, 6.2, 3.9, '生命基礎準備室'),
-    box('338', 0.5, 67.8, 8, 8, '美術室', [zone('30A')]),
+    box('338', 0.5, 67.8, 8, 8, '美術室'),
     box('338-prep', 0.4, 76, 8, 3.9, '美術準備室'),
     elevator(0.6, 88, 7, 6),
     box('330', 10.5, 3.4, 8.1, 8.8, '宇宙通信実習室'),
