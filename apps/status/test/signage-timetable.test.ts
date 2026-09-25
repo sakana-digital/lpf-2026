@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vite-plus/test'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { organizationProfiles } from '@shared/organizations'
 import { slotDisplayName } from '@shared/timetable'
 import type { FestivalDay, TimetableSlot } from '@shared/timetable'
@@ -123,5 +123,21 @@ describe('clockOffset', () => {
     const target = new Date('2026-09-26T10:22:00+09:00')
     const shifted = Date.now() + clockOffset(`?at=${target.toISOString()}`)
     expect(Math.abs(shifted - target.getTime())).toBeLessThan(1000)
+  })
+
+  it('keeps the clock running across a reload', () => {
+    const session = new Map<string, string>()
+    vi.stubGlobal('sessionStorage', {
+      getItem: (key: string) => session.get(key) ?? null,
+      setItem: (key: string, value: string) => session.set(key, value),
+    })
+    vi.useFakeTimers({ now: new Date('2026-09-20T09:00:00+09:00') })
+    const search = '?at=2026-09-26T10:22:00%2B09:00'
+    const offset = clockOffset(search)
+    vi.advanceTimersByTime(30 * 60_000)
+    expect(clockOffset(search)).toBe(offset)
+    expect(clockOffset('?at=2026-09-27T10:00:00%2B09:00')).not.toBe(offset)
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
   })
 })

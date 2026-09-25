@@ -38,13 +38,43 @@ export function footerMessages(now: Date, timetable = daySlots): string[] {
   return []
 }
 
+// The service worker reloads the signage after every deploy. Recomputing the
+// offset then would snap the clock back to `at`, so the first one is kept for
+// the life of the tab.
+const OFFSET_KEY = 'signage-clock-offset'
+
+function readSession(key: string): string | null {
+  try {
+    return sessionStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function writeSession(key: string, value: string) {
+  try {
+    sessionStorage.setItem(key, value)
+  } catch {
+    // Blocked site data: the clock just restarts from `at` on reload.
+  }
+}
+
 /**
  * `?at=2026-09-26T10:22` shifts the clock so the timetable footer can be checked
- * outside the festival. The value is read in the device's own time zone.
+ * outside the festival. The value is read in the device's own time zone, and the
+ * clock keeps running from there across reloads of the same tab.
  */
 export function clockOffset(search: string): number {
   const at = new URLSearchParams(search).get('at')
   if (!at) return 0
   const target = new Date(at).getTime()
-  return Number.isNaN(target) ? 0 : target - Date.now()
+  if (Number.isNaN(target)) return 0
+  const stored = JSON.parse(readSession(OFFSET_KEY) ?? 'null') as {
+    at: string
+    offset: number
+  } | null
+  if (stored?.at === at) return stored.offset
+  const offset = target - Date.now()
+  writeSession(OFFSET_KEY, JSON.stringify({ at, offset }))
+  return offset
 }
