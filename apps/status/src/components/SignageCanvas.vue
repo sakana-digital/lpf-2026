@@ -37,8 +37,11 @@ const SOUND_KEY = 'signage-sound'
 const tick = ref(0)
 const now = useNow(() => props.clockOffset)
 const videoFailed = ref(false)
-// Remembered so the reload an update triggers does not silence the display.
-const soundEnabled = ref(readStored(SOUND_KEY) === 'on')
+// The stored choice outlives a refused autoplay: after a reload the browser
+// may keep the video muted until someone touches the page, and that must not
+// be mistaken for the operator turning sound off.
+const soundWanted = ref(readStored(SOUND_KEY) === 'on')
+const soundEnabled = ref(soundWanted.value)
 const video = useTemplateRef<HTMLVideoElement>('video')
 const audio = useTemplateRef<HTMLAudioElement>('audio')
 let rotateTimer: ReturnType<typeof setInterval> | undefined
@@ -114,7 +117,7 @@ const audioScheduled = computed(() => props.audioUrl !== null && props.config.au
 const playsAudio = computed(() => audioScheduled.value && due(props.config.audioStartAt))
 const needsSound = computed(() => !soundEnabled.value && (showsVideo.value || audioScheduled.value))
 
-watch(soundEnabled, (on) => writeStored(SOUND_KEY, on ? 'on' : 'off'))
+watch(soundWanted, (on) => writeStored(SOUND_KEY, on ? 'on' : 'off'))
 
 // A fresh payload means the server is reachable again, so a failed video gets another try.
 watch([() => props.videoUrl, () => props.config], () => {
@@ -135,7 +138,17 @@ async function play(element: HTMLMediaElement | null): Promise<boolean> {
 async function enableSound() {
   soundEnabled.value = true
   const played = await Promise.all([play(video.value), play(audio.value)])
-  if (played.includes(false)) soundEnabled.value = false
+  if (played.includes(false)) {
+    soundEnabled.value = false
+    return
+  }
+  soundWanted.value = true
+}
+
+// Any touch counts as the gesture the browser waits for, so a remembered
+// choice comes back without having to find the button.
+function resumeSound() {
+  if (soundWanted.value && !soundEnabled.value) void enableSound()
 }
 
 // Without a tap on this page the browser may refuse the remembered sound. Fall
@@ -154,12 +167,16 @@ watch(
 )
 
 onMounted(() => {
+  window.addEventListener('pointerdown', resumeSound)
   rotateTimer = setInterval(() => {
     tick.value += 1
   }, ROTATE_MS)
 })
 
-onUnmounted(() => clearInterval(rotateTimer))
+onUnmounted(() => {
+  window.removeEventListener('pointerdown', resumeSound)
+  clearInterval(rotateTimer)
+})
 
 const column = css({
   display: 'grid',
@@ -349,12 +366,18 @@ const styles = {
     position: 'absolute',
     left: '0.6cqw',
     bottom: '0.6cqw',
-    padding: '0.3cqw 0.6cqw',
-    border: '0.1cqw solid token(colors.signage.paper)',
-    background: 'rgb(9 9 9 / 80%)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.6cqw',
+    padding: '0.8cqw 1.4cqw',
+    border: '0.15cqw solid token(colors.signage.paper)',
+    background: 'rgb(9 9 9 / 85%)',
     color: 'signage.paper',
-    fontSize: '0.62cqw',
+    fontSize: '1.3cqw',
+    letterSpacing: '0.08em',
+    lineHeight: 1,
     cursor: 'pointer',
+    '& svg': { flexShrink: 0, width: '2.2cqw', height: '2.2cqw' },
   }),
   offline: css({
     position: 'absolute',
@@ -497,6 +520,19 @@ const styles = {
             </figure>
           </div>
           <button v-if="needsSound" type="button" :class="styles.sound" @click="enableSound">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor" />
+              <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+              <path d="M19 5a10 10 0 0 1 0 14" />
+            </svg>
             音声を有効にする
           </button>
           <span v-if="!connected" :class="styles.offline">通信を確認しています。</span>
