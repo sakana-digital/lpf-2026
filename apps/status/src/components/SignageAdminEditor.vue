@@ -5,6 +5,7 @@ import { readStored, writeStored } from '@shared/storage'
 import { getSignageAdmin, issueSignageViewerToken, updateSignageConfig } from '@/lib/api'
 import { fromLocalInput, toLocalInput } from '@/lib/localDateTime'
 import { useSaveState } from '@/composables/useSaveState'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import SignageMediaEditor from '@/components/SignageMediaEditor.vue'
 import { css, cx } from '@styled/css'
 import {
@@ -39,8 +40,15 @@ const { saving, saved, failed, save: runSave } = useSaveState()
 const VIEWER_URL_KEY = 'signage-viewer-url'
 const viewerUrl = ref(readStored(VIEWER_URL_KEY) ?? '')
 const issuingUrl = ref(false)
+const confirmingIssue = ref(false)
 const copied = ref(false)
 let copyTimer: ReturnType<typeof setTimeout> | undefined
+
+const REISSUE_MESSAGE = [
+  '閲覧 URL を再発行しますか？',
+  '',
+  '以前の URL と、それで開いている表示端末は無効になります。',
+].join('\n')
 
 async function load() {
   loading.value = true
@@ -87,6 +95,16 @@ async function issueUrl() {
   } finally {
     issuingUrl.value = false
   }
+}
+
+function requestIssue() {
+  if (viewerUrl.value) confirmingIssue.value = true
+  else void issueUrl()
+}
+
+function confirmIssue() {
+  confirmingIssue.value = false
+  void issueUrl()
 }
 
 async function copyUrl() {
@@ -175,7 +193,7 @@ const styles = {
             type="button"
             :class="button({ variant: 'primary' })"
             :disabled="issuingUrl"
-            @click="issueUrl"
+            @click="requestIssue"
           >
             {{ issuingUrl ? '発行中…' : viewerUrl ? '閲覧 URL を再発行' : '閲覧 URL を発行' }}
           </button>
@@ -183,6 +201,13 @@ const styles = {
             <span>{{ viewerUrl }}</span>
             <small>{{ copied ? 'コピーしました。' : 'クリックでコピー' }}</small>
           </button>
+          <ConfirmDialog
+            :open="confirmingIssue"
+            :message="REISSUE_MESSAGE"
+            confirm-label="再発行する"
+            @confirm="confirmIssue"
+            @cancel="confirmingIssue = false"
+          />
         </section>
 
         <div :class="styles.cell">
