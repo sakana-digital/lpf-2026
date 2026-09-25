@@ -1,18 +1,25 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { STATUS_ORG_IDS } from '@shared/status'
 import type { SignagePayload } from '@shared/status'
+import { readStored, writeStored } from '@shared/storage'
+import { syncMediaCache } from '@/lib/signageOffline'
 import { clockOffset } from '@/lib/signageTimetable'
 import SignageCanvas from '@/components/SignageCanvas.vue'
 import { css } from '@styled/css'
 
 const REFRESH_MS = 60_000
+// What the display showed last, so a reload while offline is not left blank.
+const PAYLOAD_KEY = 'signage-payload'
 
 const offset = clockOffset(window.location.search)
 const payload = ref<SignagePayload | null>(null)
 const failures = ref(0)
 const unauthorized = ref(false)
+const playable = ref<string[]>([])
+const downloads = reactive(new Map<string, { loaded: number; total: number }>())
 let timer: ReturnType<typeof setInterval> | undefined
+let mediaSyncs = 0
 
 function mediaUrl(kind: 'video' | 'audio', key: string | null | undefined): string | null {
   return key ? `/api/signage/${kind}/${encodeURIComponent(key)}` : null
@@ -20,6 +27,22 @@ function mediaUrl(kind: 'video' | 'audio', key: string | null | undefined): stri
 
 const videoUrl = computed(() => mediaUrl('video', payload.value?.config.activeVideoKey))
 const audioUrl = computed(() => mediaUrl('audio', payload.value?.config.activeAudioKey))
+const videoDownload = computed(() => (videoUrl.value && downloads.get(videoUrl.value)) || null)
+
+function playableUrl(url: string | null): string | null {
+  return url !== null && playable.value.includes(url) ? url : null
+}
+
+// Only the latest sync decides, or a slow download of an old file could hide the new one.
+async function syncMedia() {
+  const run = ++mediaSyncs
+  const paths = [videoUrl.value, audioUrl.value].filter((url) => url !== null)
+  const ready = await syncMediaCache(paths, (path, loaded, total) => {
+    downloads.set(path, { loaded, total })
+  })
+  for (const path of paths) downloads.delete(path)
+  if (run === mediaSyncs) playable.value = ready
+}
 
 async function refresh() {
   try {
@@ -29,12 +52,16 @@ async function refresh() {
       return
     }
     if (!response.ok) throw new Error(`signage: ${response.status}`)
-    payload.value = (await response.json()) as SignagePayload
+    const text = await response.text()
+    payload.value = JSON.parse(text) as SignagePayload
     failures.value = 0
     unauthorized.value = false
+    writeStored(PAYLOAD_KEY, text)
   } catch {
     failures.value += 1
+    payload.value ??= JSON.parse(readStored(PAYLOAD_KEY) ?? 'null') as SignagePayload | null
   }
+  if (payload.value) void syncMedia()
 }
 
 onMounted(() => {
@@ -75,8 +102,9 @@ const styles = {
     :config="payload.config"
     :org-ids="STATUS_ORG_IDS"
     :statuses="payload.statuses"
-    :video-url="videoUrl"
-    :audio-url="audioUrl"
+    :video-url="playableUrl(videoUrl)"
+    :audio-url="playableUrl(audioUrl)"
+    :video-download="videoDownload"
     :connected="failures < 2"
     :clock-offset="offset"
   />

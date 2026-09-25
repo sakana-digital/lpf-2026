@@ -1,20 +1,16 @@
 import { defineTokens } from '@pandacss/dev'
 
-/** Signage runs on a fixed dark display, so its palette never follows the theme. */
+/** Signage runs on a fixed display, so its palette never follows the theme. */
 const signage = {
   ink: { value: '#050505' },
   panel: { value: '#090909' },
   paper: { value: '#f7f7f2' },
-  good: { value: '#68e49b' },
-  goodSoft: { value: 'rgb(35 118 69 / 32%)' },
-  warn: { value: '#ffe06b' },
-  warnSoft: { value: 'rgb(136 109 15 / 32%)' },
-  bad: { value: '#ff6f75' },
-  badSoft: { value: 'rgb(135 27 36 / 38%)' },
-  pause: { value: '#ffae67' },
-  pauseSoft: { value: 'rgb(139 72 15 / 36%)' },
+  good: { value: '#1fbf66' },
+  warn: { value: '#ffc21a' },
+  bad: { value: '#f23d4a' },
+  pause: { value: '#ff8514' },
+  soldout: { value: '#a50f1c' },
   muted: { value: '#777' },
-  mutedSoft: { value: '#111' },
   standby: { value: '#171717' },
 }
 

@@ -188,12 +188,19 @@ const timeFormat = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'Asia/Tokyo',
   hour: '2-digit',
   minute: '2-digit',
-  hour12: false,
+  second: '2-digit',
+  hourCycle: 'h23',
 })
 
 /** The JST calendar date as `YYYY-MM-DD`, comparable against `festivalDates`. */
 export function jstDate(now: Date): string {
   return dateFormat.format(now)
+}
+
+/** The JST wall clock as zero-padded `[hh, mm, ss]`, whatever zone the device is set to. */
+export function jstTime(now: Date): [string, string, string] {
+  const [h = '00', m = '00', s = '00'] = timeFormat.format(now).split(':')
+  return [h, m, s]
 }
 
 /** The festival day and minutes past midnight in JST, or null outside the festival. */

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vite-plus/test'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vite-plus/test'
 import { createSSRApp, h } from 'vue'
 import { renderToString } from 'vue/server-renderer'
 import type { SignageConfig } from '@shared/status'
@@ -40,7 +40,18 @@ function onSignage(videoStartAt: number | null) {
   )
 }
 
-const nowSec = Math.floor(Date.now() / 1000)
+// Outside the festival, so the ticker shows the fixed notice rather than the timetable.
+const NOW = new Date('2026-09-01T12:00:00+09:00')
+const nowSec = Math.floor(NOW.getTime() / 1000)
+
+beforeAll(() => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(NOW)
+})
+
+afterAll(() => {
+  vi.useRealTimers()
+})
 
 describe('SignageCanvas', () => {
   it('renders organizations, statuses, footer and video fallback', async () => {
@@ -48,6 +59,7 @@ describe('SignageCanvas', () => {
 
     expect(html).toContain('1-1')
     expect(html).toContain('1-9')
+    expect(html).toContain('ボウリング')
     expect(html).toContain('販売中')
     expect(html).toContain('未報告')
     expect(html).toContain('INFORMATION')
@@ -64,8 +76,25 @@ describe('SignageCanvas', () => {
   })
 
   it('waits for the scheduled start before playing the video', async () => {
-    expect(await onSignage(nowSec + 3600)).toContain('映像準備中')
-    expect(await onSignage(nowSec + 3600)).not.toContain('<video')
+    const html = await onSignage(nowSec + 3600)
+
+    expect(html).toContain('映像準備中')
+    expect(html).toContain('13:00 から放映')
+    expect(html).not.toContain('<video')
+    expect(await onSignage(nowSec + 86_400)).toContain('9/2 12:00 から放映')
+    expect(await render(makeConfig())).not.toContain('から放映')
+  })
+
+  it('shows how far the video has downloaded while it stands by', async () => {
+    const MiB = 1024 ** 2
+    const html = await render(makeConfig(), {
+      videoDownload: { loaded: 215 * MiB, total: 430 * MiB },
+    })
+
+    expect(html).toContain('映像準備中')
+    expect(html).toContain('<progress')
+    expect(html).toContain('50%（215 / 430 MB）')
+    expect(await render(makeConfig())).not.toContain('<progress')
   })
 
   it('plays muted once the start time has passed, offering to enable sound', async () => {

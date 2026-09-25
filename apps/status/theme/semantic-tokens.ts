@@ -2,7 +2,7 @@ import { defineSemanticTokens } from '@pandacss/dev'
 
 /**
  * Dark is the base and `_osLight` follows the device, so the theme needs no script.
- * The signage stays dark because it paints from the `signage.*` tokens instead of these.
+ * The signage ignores the device theme because it paints from the `signage.*` tokens instead of these.
  */
 export const semanticTokens = defineSemanticTokens({
   colors: {

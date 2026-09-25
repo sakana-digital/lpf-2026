@@ -6,3 +6,7 @@ export function classOrgLabel(orgId: string): string {
   if (/^c\d-\d$/.test(orgId)) return orgId.slice(1)
   return localized(organizationProfile(orgId)?.name, 'ja') || orgId
 }
+
+export function orgProjectLabel(orgId: string): string {
+  return localized(organizationProfile(orgId)?.project, 'ja')
+}

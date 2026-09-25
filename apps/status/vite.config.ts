@@ -2,6 +2,7 @@ import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig, lazyPlugins } from 'vite-plus'
 import vue from '@vitejs/plugin-vue'
+import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   fmt: {
@@ -17,7 +18,20 @@ export default defineConfig({
   preview: {
     host: true,
   },
-  plugins: lazyPlugins(() => [vue()]),
+  plugins: lazyPlugins(() => [
+    vue(),
+    // Only the signage runs offline; the group and admin pages stay online-only.
+    VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'sw',
+      filename: 'sw.ts',
+      scope: '/signage',
+      registerType: 'autoUpdate',
+      injectRegister: false,
+      manifest: false,
+      injectManifest: { globPatterns: ['**/*.{js,css,html,svg,png}'] },
+    }),
+  ]),
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
