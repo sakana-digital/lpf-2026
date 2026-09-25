@@ -23,7 +23,7 @@ You are ready once your stall's name appears in the top right of the screen. The
 
 Pick one 販売状況 (sales) and one 混雑状況 (queue).
 
-![The screen after signing in as 3年次9組: the stall name in the top right, with the sales and queue options below it.](/status-org.png)
+![The screen after signing in as 3-1: the stall name in the top right, with the sales and queue options below it.](/status-org.png)
 
 - Send again whenever the situation changes.
 - Choosing 販売休止中 (paused) or 全て完売 (sold out) disables the queue options.

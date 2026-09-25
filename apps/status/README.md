@@ -16,7 +16,7 @@ bun run status:seed
 bun run status:dev
 ```
 
-- シードが入れるトークンは 2 件だけです。`http://localhost:8787/?t=dev-token-c2-3`（2年次3組）と `http://localhost:8787/?t=dev-token-admin`（管理者）で開きます。
+- シードが入れるトークンは 2 件だけです。`http://localhost:8787/?t=dev-token-c2-3`（2-3）と `http://localhost:8787/?t=dev-token-admin`（管理者）で開きます。
 - 他の団体として開くには `bun run status:token` で全団体分を発行し、`apps/status/tokens.local.csv` の URL を使います（[トークン](#トークン)）。
 - サイネージは管理者画面の「サイネージ設定」で閲覧 URL を発行して開きます。
 - 本体サイトは `bun dev`（:5173）です。`/api` は vite の proxy で :8787 に転送されます。
