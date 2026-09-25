@@ -44,10 +44,12 @@ const confirmingIssue = ref(false)
 const copied = ref(false)
 let copyTimer: ReturnType<typeof setTimeout> | undefined
 
-const REISSUE_MESSAGE = [
-  '閲覧 URL を再発行しますか？',
+// Issued URLs live only on the device that issued them, so an empty field here
+// doesn't mean no URL is active — confirm every time.
+const ISSUE_MESSAGE = [
+  '閲覧 URL を発行しますか？',
   '',
-  '以前の URL と、それで開いている表示端末は無効になります。',
+  '以前に発行した URL と、それで開いている表示端末は無効になります。',
 ].join('\n')
 
 async function load() {
@@ -95,11 +97,6 @@ async function issueUrl() {
   } finally {
     issuingUrl.value = false
   }
-}
-
-function requestIssue() {
-  if (viewerUrl.value) confirmingIssue.value = true
-  else void issueUrl()
 }
 
 function confirmIssue() {
@@ -193,7 +190,7 @@ const styles = {
             type="button"
             :class="button({ variant: 'primary' })"
             :disabled="issuingUrl"
-            @click="requestIssue"
+            @click="confirmingIssue = true"
           >
             {{ issuingUrl ? '発行中…' : viewerUrl ? '閲覧 URL を再発行' : '閲覧 URL を発行' }}
           </button>
@@ -203,8 +200,8 @@ const styles = {
           </button>
           <ConfirmDialog
             :open="confirmingIssue"
-            :message="REISSUE_MESSAGE"
-            confirm-label="再発行する"
+            :message="ISSUE_MESSAGE"
+            :confirm-label="viewerUrl ? '再発行する' : '発行する'"
             @confirm="confirmIssue"
             @cancel="confirmingIssue = false"
           />
