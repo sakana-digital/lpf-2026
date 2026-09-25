@@ -20,6 +20,10 @@ const news: NewsItem[] = [
     type: 'instagram',
     url: 'https://www.instagram.com/p/DcTXfnlTd7G/',
   },
+  {
+    type: 'instagram',
+    url: 'https://www.instagram.com/p/DdffNuSEtNo/',
+  }
 ]
 
 export const newsLinks = [...news].reverse()
