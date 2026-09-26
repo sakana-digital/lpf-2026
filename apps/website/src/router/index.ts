@@ -9,6 +9,8 @@ import {
   legacyPages,
   localePath,
   localizedPath,
+  newsPostPageId,
+  newsPostSlugs,
   pagePath,
 } from '@/data/pages'
 import type { Language } from '@/data/pages'
@@ -25,6 +27,7 @@ declare module 'vue-router' {
 }
 
 const NewsView = () => import('@/views/NewsView.vue')
+const NewsPostView = () => import('@/views/NewsPostView.vue')
 const ExploreView = () => import('@/views/ExploreView.vue')
 const NotFoundView = () => import('@/views/NotFoundView.vue')
 
@@ -78,6 +81,13 @@ function localeRoutes(language: Language): RouteRecordRaw[] {
       component: NewsView,
       meta: { pageTitle: labelKey('news') },
     },
+    ...newsPostSlugs.map((slug): RouteRecordRaw => ({
+      path: localePath(pagePath(newsPostPageId(slug)), language),
+      name: `news-${slug}${suffix}`,
+      component: NewsPostView,
+      props: { slug },
+      meta: { pageTitle: labelKey('news') },
+    })),
     exploreRoute(language, suffix),
     {
       path: `${localePath('/', language)}:pathMatch(.*)*`,

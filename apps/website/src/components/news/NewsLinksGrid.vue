@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { newsItemKey } from '@/data/newsLinks'
 import type { NewsItem } from '@/data/newsLinks'
 import InstagramEmbed from '@/components/news/InstagramEmbed.vue'
 import NewsLinkCard from '@/components/news/NewsLinkCard.vue'
+import NewsPostCard from '@/components/news/NewsPostCard.vue'
 import { processInstagramEmbedsNear } from '@/lib/instagramEmbed'
 import { useMasonryLayout } from '@/composables/useMasonryLayout'
 
@@ -52,12 +54,13 @@ onBeforeUnmount(() => stopEmbedObserver?.())
     <div v-if="props.items.length > 0" class="links-grid" :style="gridStyle">
       <div
         v-for="(item, i) in props.items"
-        :key="item.url"
+        :key="newsItemKey(item)"
         class="lane-item"
         :data-index="i"
         :style="itemStyle(i)"
       >
         <InstagramEmbed v-if="item.type === 'instagram'" :url="item.url" />
+        <NewsPostCard v-else-if="item.type === 'post'" :slug="item.slug" :date="item.date" />
         <NewsLinkCard v-else :url="item.url" :title-key="item.titleKey" :source="item.source" />
       </div>
     </div>

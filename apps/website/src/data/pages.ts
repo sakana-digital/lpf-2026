@@ -26,10 +26,27 @@ export interface PageDefinition {
   legacy?: boolean
 }
 
+/**
+ * Site-specific news posts, each served at /news/<slug>/. The date and the
+ * position in the feed live in data/newsLinks, the text in news.posts.<slug>.*
+ */
+export const newsPostSlugs = ['cash-only'] as const
+export type NewsPostSlug = (typeof newsPostSlugs)[number]
+
+export function newsPostPageId(slug: NewsPostSlug): string {
+  return `news-${slug}`
+}
+
 export const pages: PageDefinition[] = [
   { id: 'home', path: '/', indexable: true, navigable: true },
   { id: 'explore', path: '/explore/', indexable: false, navigable: true },
   { id: 'news', path: '/news/', indexable: true, navigable: true },
+  ...newsPostSlugs.map((slug) => ({
+    id: newsPostPageId(slug),
+    path: `/news/${slug}/`,
+    indexable: true,
+    navigable: false,
+  })),
   { id: 'events', path: '/explore/events/', indexable: true, navigable: false },
   { id: 'timetable', path: '/explore/timetable/', indexable: true, navigable: false },
   { id: 'map', path: '/explore/map/', indexable: true, navigable: false },
