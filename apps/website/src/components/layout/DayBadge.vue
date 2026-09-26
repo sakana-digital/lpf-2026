@@ -18,6 +18,7 @@ const day = resolveFestivalDay()
   display: flex;
   align-items: center;
   height: 100%;
+  padding-inline: 16px;
   font-size: 12px;
 }
 </style>
