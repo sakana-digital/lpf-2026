@@ -20,6 +20,10 @@
         "title": "ニュース",
         "description": "八宝祭 2026 の最新のお知らせと Instagram の投稿をお届けします。"
       },
+      "news-cash-only": {
+        "title": "校内食堂・PTA コーナーのお支払いについて",
+        "description": "校内食堂およびLiSA校サポーターズ（PTA）運営のコーナーは「現金のみ」となります。"
+      },
       "events": {
         "title": "イベント",
         "description": "八宝祭 2026 のクラス企画・部活動・有志による出展の一覧です。"
@@ -113,6 +117,13 @@
     "links": {
       "setsumeikai": "学校説明会",
       "bunkasai": "文化祭の開催が決定しました"
+    },
+    "backToList": "ニュース一覧へ戻る",
+    "posts": {
+      "cash-only": {
+        "title": "校内食堂・PTA コーナーのお支払いについて",
+        "body": "校内食堂およびLiSA校サポーターズ（PTA）運営のコーナーは「現金のみ」となります。"
+      }
     }
   },
   "home": {

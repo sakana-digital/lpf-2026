@@ -20,6 +20,10 @@
         "title": "News",
         "description": "The latest announcements and Instagram posts from Happo-sai 2026."
       },
+      "news-cash-only": {
+        "title": "Payment at the Cafeteria and PTA Corners",
+        "description": "The school cafeteria and the corners run by the LiSA Supporters (PTA) accept cash only."
+      },
       "events": {
         "title": "Events",
         "description": "All class projects, club exhibits and independent events at Happo-sai 2026."
@@ -113,6 +117,13 @@
     "links": {
       "setsumeikai": "School Information Session",
       "bunkasai": "Festival Dates Have Been Announced"
+    },
+    "backToList": "Back to News",
+    "posts": {
+      "cash-only": {
+        "title": "Payment at the Cafeteria and PTA Corners",
+        "body": "The school cafeteria and the corners run by the LiSA Supporters (PTA) accept cash only."
+      }
     }
   },
   "home": {
