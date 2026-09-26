@@ -24,6 +24,7 @@ const props = defineProps<{ token: string }>()
 const emptyConfig: SignageConfig = {
   activeVideoKey: null,
   videoStartAt: null,
+  videoStopAt: null,
   activeAudioKey: null,
   audioStartAt: null,
   footerText: '',
@@ -33,6 +34,7 @@ const emptyConfig: SignageConfig = {
 }
 const config = reactive<SignageConfig>({ ...emptyConfig })
 const videoStart = ref('')
+const videoStop = ref('')
 const audioStart = ref('')
 const loading = ref(true)
 const { saving, saved, failed, save: runSave } = useSaveState()
@@ -59,6 +61,7 @@ async function load() {
     const payload = await getSignageAdmin(props.token)
     Object.assign(config, payload.config)
     videoStart.value = toLocalInput(payload.config.videoStartAt)
+    videoStop.value = toLocalInput(payload.config.videoStopAt)
     audioStart.value = toLocalInput(payload.config.audioStartAt)
   } catch {
     failed.value = true
@@ -72,6 +75,7 @@ async function save() {
     updateSignageConfig(props.token, {
       activeVideoKey: config.activeVideoKey,
       videoStartAt: fromLocalInput(videoStart.value),
+      videoStopAt: fromLocalInput(videoStop.value),
       activeAudioKey: config.activeAudioKey,
       audioStartAt: fromLocalInput(audioStart.value),
       footerText: config.footerText,
@@ -82,6 +86,7 @@ async function save() {
   if (!updated) return
   Object.assign(config, updated)
   videoStart.value = toLocalInput(config.videoStartAt)
+  videoStop.value = toLocalInput(config.videoStopAt)
   audioStart.value = toLocalInput(config.audioStartAt)
 }
 
@@ -211,6 +216,7 @@ const styles = {
           <SignageMediaEditor
             v-model:active-key="config.activeVideoKey"
             v-model:start-at="videoStart"
+            v-model:stop-at="videoStop"
             :token
             kind="video"
           />

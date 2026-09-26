@@ -51,7 +51,7 @@ beforeEach(async () => {
     env.DB.prepare('DELETE FROM test_session'),
     env.DB.prepare(
       `UPDATE signage_config
-       SET active_video_key = NULL, video_start_at = NULL,
+       SET active_video_key = NULL, video_start_at = NULL, video_stop_at = NULL,
            active_audio_key = NULL, audio_start_at = NULL, footer_text = '',
            alert_enabled = 0, alert_text = '', updated_at = unixepoch()
        WHERE id = 1`,
@@ -112,6 +112,7 @@ describe('signage authentication and configuration', () => {
       body: JSON.stringify({
         activeVideoKey: null,
         videoStartAt: 1790000000,
+        videoStopAt: 1790003600,
         footerText: '文化祭開催中',
         alertEnabled: true,
         alertText: '速報テスト',
@@ -122,10 +123,11 @@ describe('signage authentication and configuration', () => {
     const cookie = await issueViewerCookie()
     const response = await SELF.fetch(`${origin}/api/signage`, { headers: { Cookie: cookie } })
     const payload = (await response.json()) as {
-      config: { videoStartAt: number | null }
+      config: { videoStartAt: number | null; videoStopAt: number | null }
       statuses: Array<{ orgId: string }>
     }
     expect(payload.config.videoStartAt).toBe(1790000000)
+    expect(payload.config.videoStopAt).toBe(1790003600)
     expect(payload.statuses).toEqual([expect.objectContaining({ orgId: 'c2-5' })])
     expect(await (await SELF.fetch(`${siteOrigin}/api/status`)).json()).toEqual([])
   })
@@ -138,6 +140,22 @@ describe('signage authentication and configuration', () => {
         activeVideoKey: null,
         videoStartAt: 'noon',
         footerText: 'x'.repeat(121),
+        alertEnabled: false,
+        alertText: '',
+      }),
+    })
+    expect(response.status).toBe(400)
+  })
+
+  it('rejects a video stop time that is not after the start', async () => {
+    const response = await SELF.fetch(`${origin}/api/signage`, {
+      method: 'PUT',
+      headers: { ...adminHeaders, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        activeVideoKey: null,
+        videoStartAt: 1790000000,
+        videoStopAt: 1790000000,
+        footerText: '',
         alertEnabled: false,
         alertText: '',
       }),

@@ -88,22 +88,38 @@ function due(startAt: number | null): boolean {
   return startAt !== null && now.value.getTime() >= startAt * 1000
 }
 
+const videoStopped = computed(
+  () => props.config.activeVideoKey !== null && due(props.config.videoStopAt),
+)
 const videoReady = computed(
-  () => props.config.videoStartAt === null || due(props.config.videoStartAt),
+  () =>
+    (props.config.videoStartAt === null || due(props.config.videoStartAt)) && !videoStopped.value,
 )
 const showsVideo = computed(() => props.videoUrl !== null && videoReady.value && !videoFailed.value)
 
-// Without the start time, a scheduled video looks the same as a broken one.
-const videoStartLabel = computed(() => {
-  const startAt = props.config.videoStartAt
-  if (props.config.activeVideoKey === null || startAt === null || videoReady.value) return ''
-  const start = new Date(startAt * 1000)
-  const [hour, minute] = jstTime(start)
-  const day = jstDate(start)
+function scheduleLabel(at: number): string {
+  const time = new Date(at * 1000)
+  const [hour, minute] = jstTime(time)
+  const day = jstDate(time)
   const date =
     day === jstDate(now.value) ? '' : `${Number(day.slice(5, 7))}/${Number(day.slice(8))} `
-  return `${date}${hour}:${minute} から放映`
+  return `${date}${hour}:${minute}`
+}
+
+// Without the start or stop time, a scheduled video looks the same as a broken one.
+const videoScheduleLabel = computed(() => {
+  const { activeVideoKey, videoStartAt, videoStopAt } = props.config
+  if (activeVideoKey === null || videoReady.value) return ''
+  if (videoStopped.value && videoStopAt !== null) return `${scheduleLabel(videoStopAt)} で放映終了`
+  if (videoStartAt !== null) return `${scheduleLabel(videoStartAt)} から放映`
+  return ''
 })
+
+const fallbackText = computed(() =>
+  videoStopped.value
+    ? { title: '放映終了', note: 'VIDEO ENDED' }
+    : { title: '映像準備中', note: 'VIDEO STANDBY' },
+)
 
 const downloadLabel = computed(() => {
   if (!props.videoDownload) return ''
@@ -529,9 +545,9 @@ const styles = {
               @error="videoFailed = true"
             />
             <div v-else :class="styles.fallback">
-              <span :class="styles.fallbackTitle">映像準備中</span>
-              <small :class="styles.fallbackNote">VIDEO STANDBY</small>
-              <p v-if="videoStartLabel" :class="styles.startAt">{{ videoStartLabel }}</p>
+              <span :class="styles.fallbackTitle">{{ fallbackText.title }}</span>
+              <small :class="styles.fallbackNote">{{ fallbackText.note }}</small>
+              <p v-if="videoScheduleLabel" :class="styles.startAt">{{ videoScheduleLabel }}</p>
               <div v-if="videoDownload" :class="styles.download">
                 <progress :value="videoDownload.loaded" :max="videoDownload.total" />
                 <small>{{ downloadLabel }}</small>
