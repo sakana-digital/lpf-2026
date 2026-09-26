@@ -270,6 +270,7 @@ const styles = {
     fontWeight: 'bold',
     letterSpacing: '0.02em',
   }),
+  spanned: css({ gridColumn: '2 / 4' }),
   unreported: cx(
     signageBadge({ tone: 'muted' }),
     css({ gridColumn: '2 / 4', letterSpacing: '0.14em' }),
@@ -485,16 +486,25 @@ const styles = {
               </span>
             </strong>
             <template v-if="row.status">
-              <span :class="signageBadge({ tone: SALES_TONES[row.status.sales] })">
+              <span
+                :class="
+                  cx(
+                    signageBadge({ tone: SALES_TONES[row.status.sales] }),
+                    hidesCongestion(row.status.sales) && styles.spanned,
+                  )
+                "
+              >
                 {{ SIGNAGE_SALES_LABELS[row.status.sales] }}
               </span>
-              <span
-                v-if="!hidesCongestion(row.status.sales) && row.status.congestion"
-                :class="signageBadge({ tone: CONGESTION_TONES[row.status.congestion] })"
-              >
-                {{ CONGESTION_LABELS[row.status.congestion] }}
-              </span>
-              <span v-else :class="signageBadge({ tone: 'muted' })">—</span>
+              <template v-if="!hidesCongestion(row.status.sales)">
+                <span
+                  v-if="row.status.congestion"
+                  :class="signageBadge({ tone: CONGESTION_TONES[row.status.congestion] })"
+                >
+                  {{ CONGESTION_LABELS[row.status.congestion] }}
+                </span>
+                <span v-else :class="signageBadge({ tone: 'muted' })">—</span>
+              </template>
             </template>
             <span v-else :class="styles.unreported">未報告</span>
           </article>
