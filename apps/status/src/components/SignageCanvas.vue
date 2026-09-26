@@ -206,12 +206,13 @@ const styles = {
     '--gutter': '1.1cqw',
     '--heading': '5.2cqw',
     '--rule': '0.1cqw solid token(colors.signage.ink/35)',
+    containerType: 'size',
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
     gridTemplateRows: 'minmax(0, 1fr) 8.9%',
     width: 'min(100vw, calc(100vh * 16 / 9))',
     height: 'min(100vh, calc(100vw * 9 / 16))',
-    padding: '0.2cqw',
+    padding: 'min(0.2cqw, calc(0.2cqh * 16 / 9))',
     background: 'signage.paper',
     color: 'signage.ink',
   }),
@@ -269,6 +270,7 @@ const styles = {
     fontWeight: 'bold',
     letterSpacing: '0.02em',
   }),
+  spanned: css({ gridColumn: '2 / 4' }),
   unreported: cx(
     signageBadge({ tone: 'muted' }),
     css({ gridColumn: '2 / 4', letterSpacing: '0.14em' }),
@@ -284,15 +286,22 @@ const styles = {
     lineHeight: 1,
   }),
   videoPanel: css({
-    position: 'relative',
     display: 'grid',
+    gridTemplateRows: 'auto minmax(0, 1fr)',
     minWidth: 0,
     minHeight: 0,
     overflow: 'hidden',
     background:
       'radial-gradient(circle, #777 0 0.09cqw, transparent 0.1cqw) 0 0 / 0.55cqw 0.55cqw, token(colors.signage.standby)',
     color: 'signage.paper',
-    '& video': { width: '100%', height: '100%', objectFit: 'contain' },
+  }),
+  screen: css({
+    position: 'relative',
+    display: 'grid',
+    aspectRatio: '16 / 9',
+    minHeight: 0,
+    overflow: 'hidden',
+    '& video': { width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'top' },
     '& audio': { display: 'none' },
   }),
   fallback: css({
@@ -340,27 +349,33 @@ const styles = {
     },
   }),
   links: css({
-    position: 'absolute',
-    right: '0.6cqw',
-    bottom: '0.6cqw',
+    containerType: 'size',
     display: 'flex',
-    gap: '0.6cqw',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '12cqh',
   }),
   link: css({
     display: 'grid',
-    gap: '0.3cqw',
-    width: '6.4cqw',
+    gap: '3cqh',
+    width: '76cqh',
     '& p': {
-      padding: '0.25cqw 0',
+      padding: '1.5cqh 0',
       background: 'signage.paper',
       color: 'signage.ink',
-      fontSize: '0.72cqw',
+      fontSize: '6cqh',
       letterSpacing: '0.04em',
       lineHeight: 1.2,
       textAlign: 'center',
       whiteSpace: 'nowrap',
     },
-    '& img': { width: '100%', aspectRatio: '1', imageRendering: 'pixelated' },
+    '& img': {
+      width: '100%',
+      aspectRatio: '1',
+      padding: 'calc(100% * 3 / 33)',
+      background: 'signage.paper',
+      imageRendering: 'pixelated',
+    },
   }),
   sound: css({
     position: 'absolute',
@@ -471,16 +486,25 @@ const styles = {
               </span>
             </strong>
             <template v-if="row.status">
-              <span :class="signageBadge({ tone: SALES_TONES[row.status.sales] })">
+              <span
+                :class="
+                  cx(
+                    signageBadge({ tone: SALES_TONES[row.status.sales] }),
+                    hidesCongestion(row.status.sales) && styles.spanned,
+                  )
+                "
+              >
                 {{ SIGNAGE_SALES_LABELS[row.status.sales] }}
               </span>
-              <span
-                v-if="!hidesCongestion(row.status.sales) && row.status.congestion"
-                :class="signageBadge({ tone: CONGESTION_TONES[row.status.congestion] })"
-              >
-                {{ CONGESTION_LABELS[row.status.congestion] }}
-              </span>
-              <span v-else :class="signageBadge({ tone: 'muted' })">—</span>
+              <template v-if="!hidesCongestion(row.status.sales)">
+                <span
+                  v-if="row.status.congestion"
+                  :class="signageBadge({ tone: CONGESTION_TONES[row.status.congestion] })"
+                >
+                  {{ CONGESTION_LABELS[row.status.congestion] }}
+                </span>
+                <span v-else :class="signageBadge({ tone: 'muted' })">—</span>
+              </template>
             </template>
             <span v-else :class="styles.unreported">未報告</span>
           </article>
@@ -493,49 +517,51 @@ const styles = {
           <SignageClock :offset="clockOffset" />
         </header>
         <section :class="styles.videoPanel">
-          <video
-            v-if="showsVideo"
-            ref="video"
-            :src="videoUrl!"
-            :muted="!soundEnabled"
-            autoplay
-            loop
-            playsinline
-            @error="videoFailed = true"
-          />
-          <div v-else :class="styles.fallback">
-            <span :class="styles.fallbackTitle">映像準備中</span>
-            <small :class="styles.fallbackNote">VIDEO STANDBY</small>
-            <p v-if="videoStartLabel" :class="styles.startAt">{{ videoStartLabel }}</p>
-            <div v-if="videoDownload" :class="styles.download">
-              <progress :value="videoDownload.loaded" :max="videoDownload.total" />
-              <small>{{ downloadLabel }}</small>
+          <div :class="styles.screen">
+            <video
+              v-if="showsVideo"
+              ref="video"
+              :src="videoUrl!"
+              :muted="!soundEnabled"
+              autoplay
+              loop
+              playsinline
+              @error="videoFailed = true"
+            />
+            <div v-else :class="styles.fallback">
+              <span :class="styles.fallbackTitle">映像準備中</span>
+              <small :class="styles.fallbackNote">VIDEO STANDBY</small>
+              <p v-if="videoStartLabel" :class="styles.startAt">{{ videoStartLabel }}</p>
+              <div v-if="videoDownload" :class="styles.download">
+                <progress :value="videoDownload.loaded" :max="videoDownload.total" />
+                <small>{{ downloadLabel }}</small>
+              </div>
             </div>
+            <audio v-if="playsAudio" ref="audio" :src="audioUrl!" autoplay />
+            <button v-if="needsSound" type="button" :class="styles.sound" @click="enableSound">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor" />
+                <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+                <path d="M19 5a10 10 0 0 1 0 14" />
+              </svg>
+              音声を有効にする
+            </button>
+            <span v-if="!connected" :class="styles.offline">通信を確認しています。</span>
           </div>
-          <audio v-if="playsAudio" ref="audio" :src="audioUrl!" autoplay />
           <div :class="styles.links">
             <figure v-for="link in SIGNAGE_LINKS" :key="link.label" :class="styles.link">
               <p>{{ link.label }}</p>
               <img :src="link.qr" alt="" />
             </figure>
           </div>
-          <button v-if="needsSound" type="button" :class="styles.sound" @click="enableSound">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor" />
-              <path d="M15.5 8.5a5 5 0 0 1 0 7" />
-              <path d="M19 5a10 10 0 0 1 0 14" />
-            </svg>
-            音声を有効にする
-          </button>
-          <span v-if="!connected" :class="styles.offline">通信を確認しています。</span>
         </section>
       </div>
 
