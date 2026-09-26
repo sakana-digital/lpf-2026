@@ -7,7 +7,7 @@ export type NewsItem =
   | { type: 'link'; url: string; titleKey: string; source: 'school' }
   | NewsPost
 
-// Oldest first: append new entries at the end. Post dates are YYYY-MM-DD in JST.
+// Oldest first: append new entries at the end. Post dates are YYYY-MM-DDTHH:mm in JST.
 const news: NewsItem[] = [
   {
     type: 'link',
@@ -32,7 +32,7 @@ const news: NewsItem[] = [
   {
     type: 'post',
     slug: 'cash-only',
-    date: '2026-09-26',
+    date: '2026-09-26T21:26',
   },
 ]
 

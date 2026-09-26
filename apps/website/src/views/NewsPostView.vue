@@ -5,7 +5,7 @@ import { RouterLink } from 'vue-router'
 import { findNewsPost } from '@/data/newsLinks'
 import { localePath, pagePath } from '@/data/pages'
 import type { NewsPostSlug } from '@/data/pages'
-import { formatNewsDate } from '@/lib/newsDate'
+import { formatNewsDate, newsDateTime } from '@/lib/newsDate'
 
 const props = defineProps<{
   slug: NewsPostSlug
@@ -21,7 +21,7 @@ const newsPath = computed(() => localePath(pagePath('news'), locale.value))
 <template>
   <main class="news-post">
     <article class="article">
-      <time v-if="post" class="date" :datetime="post.date">{{ formattedDate }}</time>
+      <time v-if="post" class="date" :datetime="newsDateTime(post.date)">{{ formattedDate }}</time>
       <h2 class="title">{{ t(`news.posts.${props.slug}.title`) }}</h2>
       <p class="body">{{ t(`news.posts.${props.slug}.body`) }}</p>
     </article>

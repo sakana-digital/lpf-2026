@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import { localePath, newsPostPageId, pagePath } from '@/data/pages'
 import type { NewsPostSlug } from '@/data/pages'
-import { formatNewsDate } from '@/lib/newsDate'
+import { formatNewsDate, newsDateTime } from '@/lib/newsDate'
 
 const props = defineProps<{
   slug: NewsPostSlug
@@ -19,7 +19,7 @@ const formattedDate = computed(() => formatNewsDate(props.date, locale.value))
 
 <template>
   <RouterLink class="news-post-card" :to="to">
-    <time class="date" :datetime="props.date">{{ formattedDate }}</time>
+    <time class="date" :datetime="newsDateTime(props.date)">{{ formattedDate }}</time>
     <h3 class="title">{{ t(`news.posts.${props.slug}.title`) }}</h3>
     <p class="body">{{ t(`news.posts.${props.slug}.body`) }}</p>
   </RouterLink>

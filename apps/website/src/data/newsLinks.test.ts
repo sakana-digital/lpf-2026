@@ -1,18 +1,17 @@
 import { describe, expect, it } from 'vite-plus/test'
 import { newsPosts } from '@/data/newsLinks'
 import { newsPostSlugs } from '@/data/pages'
+import { newsDateTime } from '@/lib/newsDate'
 import ja from '@/locales/ja.json'
 import en from '@/locales/en.json'
 
 describe('newsPosts', () => {
-  it('gives every post page exactly one dated entry in the feed', () => {
+  it('gives every post page exactly one entry dated with a time in the feed', () => {
     for (const slug of newsPostSlugs) {
       const entries = newsPosts.filter((post) => post.slug === slug)
       expect(entries, slug).toHaveLength(1)
-      expect(entries[0]!.date, slug).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-      expect(Number.isNaN(new Date(`${entries[0]!.date}T00:00:00+09:00`).getTime()), slug).toBe(
-        false,
-      )
+      expect(entries[0]!.date, slug).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
+      expect(Number.isNaN(new Date(newsDateTime(entries[0]!.date)).getTime()), slug).toBe(false)
     }
   })
 
