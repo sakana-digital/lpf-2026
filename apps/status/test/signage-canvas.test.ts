@@ -10,6 +10,7 @@ function makeConfig(alertEnabled = false): SignageConfig {
   return {
     activeVideoKey: null,
     videoStartAt: null,
+    videoStopAt: null,
     activeAudioKey: null,
     audioStartAt: null,
     footerText: '固定案内テスト',
@@ -33,9 +34,9 @@ function render(config: SignageConfig, props: Record<string, unknown> = {}) {
   )
 }
 
-function onSignage(videoStartAt: number | null) {
+function onSignage(videoStartAt: number | null, videoStopAt: number | null = null) {
   return render(
-    { ...makeConfig(), activeVideoKey: 'signage/videos/a.mp4', videoStartAt },
+    { ...makeConfig(), activeVideoKey: 'signage/videos/a.mp4', videoStartAt, videoStopAt },
     { videoUrl: '/api/signage/video/a.mp4' },
   )
 }
@@ -104,6 +105,18 @@ describe('SignageCanvas', () => {
     expect(html).toContain('muted')
     expect(html).toContain('音声を有効にする')
     expect(html).not.toContain('映像準備中')
+  })
+
+  it('hides the video again once the stop time has passed', async () => {
+    const playing = await onSignage(nowSec - 3600, nowSec + 3600)
+    expect(playing).toContain('<video')
+
+    const stopped = await onSignage(nowSec - 3600, nowSec - 60)
+    expect(stopped).not.toContain('<video')
+    expect(stopped).toContain('放映終了')
+    expect(stopped).toContain('11:59 で放映終了')
+    expect(stopped).not.toContain('映像準備中')
+    expect(await onSignage(null, nowSec - 60)).not.toContain('<video')
   })
 
   it('waits for the scheduled start before playing the audio', async () => {

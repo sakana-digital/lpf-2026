@@ -37,6 +37,8 @@ export interface SignageConfig {
   activeVideoKey: string | null
   /** Unix seconds. Until then the signage shows the standby panel instead of the video. */
   videoStartAt: number | null
+  /** Unix seconds. From then on the video is hidden again; null keeps it playing. */
+  videoStopAt: number | null
   activeAudioKey: string | null
   /** Unix seconds. The audio plays once from here; null keeps the signage silent. */
   audioStartAt: number | null

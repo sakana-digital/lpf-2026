@@ -20,6 +20,8 @@ import {
 const props = defineProps<{ token: string; kind: SignageMediaKind }>()
 const activeKey = defineModel<string | null>('activeKey', { required: true })
 const startAt = defineModel<string>('startAt', { required: true })
+// Only the video takes a stop time; the audio plays once and ends by itself.
+const stopAt = defineModel<string>('stopAt')
 
 interface KindText {
   heading: string
@@ -27,6 +29,8 @@ interface KindText {
   limit: string
   start: string
   clear: string
+  stop?: string
+  clearStop?: string
   none: string
   accept: string
 }
@@ -38,6 +42,8 @@ const TEXT: Record<SignageMediaKind, KindText> = {
     limit: '最大 1 GiB',
     start: '再生を始める時刻',
     clear: 'すぐ再生',
+    stop: '再生を止める時刻',
+    clearStop: '止めない',
     none: '動画を表示しない',
     accept: 'video/mp4,.mp4',
   },
@@ -232,6 +238,15 @@ const styles = {
       </label>
       <button type="button" :class="button()" :disabled="!startAt" @click="startAt = ''">
         {{ text.clear }}
+      </button>
+    </div>
+    <div v-if="stopAt !== undefined" :class="styles.start">
+      <label :class="cx(hint(), styles.startField)">
+        <span>{{ text.stop }}</span>
+        <input v-model="stopAt" :class="control()" type="datetime-local" :min="startAt" />
+      </label>
+      <button type="button" :class="button()" :disabled="!stopAt" @click="stopAt = ''">
+        {{ text.clearStop }}
       </button>
     </div>
     <div :class="styles.list">

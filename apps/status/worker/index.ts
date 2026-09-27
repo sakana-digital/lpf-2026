@@ -79,6 +79,7 @@ interface StatusLogRow {
 interface SignageConfigRow {
   active_video_key: string | null
   video_start_at: number | null
+  video_stop_at: number | null
   active_audio_key: string | null
   audio_start_at: number | null
   footer_text: string
@@ -423,6 +424,7 @@ function toSignageConfig(row: SignageConfigRow): SignageConfig {
   return {
     activeVideoKey: row.active_video_key,
     videoStartAt: row.video_start_at,
+    videoStopAt: row.video_stop_at,
     activeAudioKey: row.active_audio_key,
     audioStartAt: row.audio_start_at,
     footerText: row.footer_text,
@@ -434,7 +436,7 @@ function toSignageConfig(row: SignageConfigRow): SignageConfig {
 
 async function fetchSignageConfig(env: Env): Promise<SignageConfig> {
   const row = await env.DB.prepare(
-    `SELECT active_video_key, video_start_at, active_audio_key, audio_start_at,
+    `SELECT active_video_key, video_start_at, video_stop_at, active_audio_key, audio_start_at,
             footer_text, alert_enabled, alert_text, updated_at
      FROM signage_config WHERE id = 1`,
   ).first<SignageConfigRow>()
@@ -442,6 +444,7 @@ async function fetchSignageConfig(env: Env): Promise<SignageConfig> {
     return {
       activeVideoKey: null,
       videoStartAt: null,
+      videoStopAt: null,
       activeAudioKey: null,
       audioStartAt: null,
       footerText: '',
@@ -474,11 +477,14 @@ async function putSignageConfig(request: Request, env: Env): Promise<Response> {
   }
   const raw = (body ?? {}) as Record<string, unknown>
   const videoStartAt = raw.videoStartAt ?? null
+  const videoStopAt = raw.videoStopAt ?? null
   const activeAudioKey = raw.activeAudioKey ?? null
   const audioStartAt = raw.audioStartAt ?? null
   if (
     (raw.activeVideoKey !== null && typeof raw.activeVideoKey !== 'string') ||
     (videoStartAt !== null && !Number.isSafeInteger(videoStartAt)) ||
+    (videoStopAt !== null && !Number.isSafeInteger(videoStopAt)) ||
+    (videoStartAt !== null && videoStopAt !== null && videoStopAt <= videoStartAt) ||
     (activeAudioKey !== null && typeof activeAudioKey !== 'string') ||
     (audioStartAt !== null && !Number.isSafeInteger(audioStartAt)) ||
     typeof raw.footerText !== 'string' ||
@@ -505,9 +511,9 @@ async function putSignageConfig(request: Request, env: Env): Promise<Response> {
     `UPDATE signage_config
      SET active_video_key = ?1, video_start_at = ?2, active_audio_key = ?3,
          audio_start_at = ?4, footer_text = ?5, alert_enabled = ?6, alert_text = ?7,
-         updated_at = unixepoch()
+         video_stop_at = ?8, updated_at = unixepoch()
      WHERE id = 1
-     RETURNING active_video_key, video_start_at, active_audio_key, audio_start_at,
+     RETURNING active_video_key, video_start_at, video_stop_at, active_audio_key, audio_start_at,
                footer_text, alert_enabled, alert_text, updated_at`,
   )
     .bind(
@@ -518,6 +524,7 @@ async function putSignageConfig(request: Request, env: Env): Promise<Response> {
       raw.footerText,
       raw.alertEnabled ? 1 : 0,
       raw.alertText,
+      videoStopAt,
     )
     .first<SignageConfigRow>()
   if (!row) return json({ error: 'write_failed' }, 500)
